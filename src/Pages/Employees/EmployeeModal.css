@@ -1,0 +1,428 @@
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.employee-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(17, 30, 50, 0.58);
+
+    backdrop-filter: blur(3px);
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.employee-modal {
+    width: min(520px, 100%);
+
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    background: #fff;
+
+    border: 1px solid #dbe4ef;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 20px 50px rgba(18, 39, 68, 0.24);
+
+    color: #193252;
+}
+
+.employee-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.employee-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.employee-modal::-webkit-scrollbar-thumb {
+    background: #c8d3e2;
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.employee-modal-header {
+    min-height: 52px;
+
+    padding: 0 18px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #e3e9f1;
+}
+
+.employee-modal-header h2 {
+    margin: 0;
+
+    color: #172d4f;
+
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+.employee-modal-close {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #71839d;
+
+    font-size: 25px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.employee-modal-close:hover {
+    color: #263d5d;
+}
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.employee-modal-body {
+    padding: 19px;
+}
+
+
+/* =========================================================
+   PHOTO
+========================================================= */
+
+.employee-photo-section {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+.employee-photo-preview {
+    width: 52px;
+    height: 52px;
+
+    flex: 0 0 52px;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+}
+
+.employee-photo-preview img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+.employee-photo-placeholder {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e9f2ff;
+
+    color: #2176d8;
+
+    border-radius: 50%;
+}
+
+.employee-photo-placeholder i {
+    font-size: 26px;
+}
+
+.employee-photo-actions {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 3px;
+}
+
+.upload-photo-btn {
+    min-height: 31px;
+
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    border: 1px solid #dce5f0;
+
+    border-radius: 6px;
+
+    background: #fff;
+
+    color: #243b5a;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.upload-photo-btn:hover {
+    background: #f5f8fc;
+}
+
+.employee-photo-actions>span {
+    color: #8494aa;
+
+    font-size: 10px;
+}
+
+.remove-photo-btn {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #c4414d;
+
+    font-size: 10px;
+
+    cursor: pointer;
+}
+
+.remove-photo-btn:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   FORM GRID
+========================================================= */
+
+.employee-form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    column-gap: 12px;
+
+    row-gap: 12px;
+}
+
+
+/* =========================================================
+   FORM FIELD
+========================================================= */
+
+.employee-form-field {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+.employee-form-field label {
+    margin-bottom: 5px;
+
+    color: #526984;
+
+    font-size: 11px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+}
+
+.employee-form-field label span {
+    color: #e14a58;
+}
+
+.employee-form-field input {
+    width: 100%;
+
+    height: 36px;
+
+    padding: 0 10px;
+
+    border: 1px solid #d8e3ef;
+
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #fff;
+
+    color: #243c5c;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.employee-form-field input:focus {
+    border-color: #5b8ff4;
+
+    box-shadow:
+        0 0 0 2px rgba(47, 109, 246, 0.08);
+}
+
+.employee-form-field input::placeholder {
+    color: #9aa8ba;
+}
+
+
+/* =========================================================
+   VALIDATION ERROR
+========================================================= */
+
+.field-error {
+    margin-top: 4px;
+
+    color: #d04450;
+
+    font-size: 10px;
+
+    line-height: 1.2;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.employee-modal-footer {
+    min-height: 60px;
+
+    padding: 10px 18px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    border-top: 1px solid #e3e9f1;
+}
+
+.employee-cancel-btn,
+.employee-save-btn {
+    height: 36px;
+
+    padding: 0 15px;
+
+    border-radius: 7px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.employee-cancel-btn {
+    border: 1px solid #dce5f0;
+
+    background: #fff;
+
+    color: #263d5d;
+}
+
+.employee-cancel-btn:hover {
+    background: #f5f8fc;
+}
+
+.employee-save-btn {
+    border: 1px solid #2f6df6;
+
+    background: #2f6df6;
+
+    color: #fff;
+
+    box-shadow: 0 3px 8px rgba(47, 109, 246, 0.15);
+}
+
+.employee-save-btn:hover {
+    background: #245edb;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .employee-modal-overlay {
+        padding: 10px;
+    }
+
+    .employee-modal {
+        max-height: calc(100vh - 20px);
+
+        border-radius: 11px;
+    }
+
+    .employee-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-modal-body {
+        padding: 16px;
+    }
+
+    .employee-modal-header {
+        padding: 0 16px;
+    }
+
+    .employee-modal-footer {
+        padding: 9px 16px;
+    }
+}

@@ -1,0 +1,373 @@
+/* ================================
+   LOGIN PAGE
+================================ */
+
+.login-page {
+    min-height: 100vh;
+    width: 100%;
+    background: #f4f6fb;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px 20px;
+}
+
+
+/* ================================
+   LOGIN CARD
+================================ */
+
+.login-card {
+    width: 410px;
+    max-width: 100%;
+
+    background: #ffffff;
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 25px rgba(31, 45, 61, 0.08),
+        0 20px 45px rgba(31, 45, 61, 0.06);
+}
+
+
+/* ================================
+   CARD BODY
+================================ */
+
+.login-card .card-body {
+    padding: 32px 34px 30px;
+}
+
+
+/* ================================
+   LOGO
+================================ */
+
+.logo-wrapper {
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.troy-logo {
+    width: 145px;
+    height: auto;
+    display: block;
+}
+
+
+/* ================================
+   SUBTITLE
+================================ */
+
+.login-subtitle {
+    margin: 0 0 24px;
+
+    color: #8b94a5;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    letter-spacing: 0.1px;
+}
+
+
+/* ================================
+   LABEL
+================================ */
+
+.login-label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #7b8495;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+/* ================================
+   INPUT
+================================ */
+
+.login-input {
+    height: 42px;
+
+    border: 1px solid #e2e6ed;
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #596273;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    padding: 10px 13px;
+
+    box-shadow: 0 2px 6px rgba(31, 45, 61, 0.04);
+
+    transition: all 0.2s ease;
+}
+
+.login-input::placeholder {
+    color: #a3abb8;
+}
+
+.login-input:focus {
+    border-color: #3674f5;
+
+    box-shadow:
+        0 0 0 3px rgba(54, 116, 245, 0.10);
+
+    outline: none;
+}
+
+
+/* ================================
+   ERROR
+================================ */
+
+.login-error {
+    margin-top: -2px;
+    margin-bottom: 10px;
+
+    color: #dc3545;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* ================================
+   SIGN IN BUTTON
+================================ */
+
+.login-button {
+    height: 40px;
+
+    margin-top: 4px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #326df4;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    box-shadow:
+        0 4px 9px rgba(50, 109, 244, 0.25);
+
+    transition: all 0.2s ease;
+}
+
+.login-button:hover {
+    background: #2861e5;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 12px rgba(50, 109, 244, 0.30);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+
+/* ================================
+   DEMO LOGIN
+================================ */
+
+.demo-login {
+    height: 34px;
+
+    margin-top: 20px;
+
+    border-radius: 7px;
+
+    background: #eef2f8;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    color: #8993a4;
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.demo-login strong {
+    color: #7d8798;
+    font-weight: 700;
+}
+
+.demo-separator {
+    color: #aab2bf;
+}
+
+/* ================================
+   FIELD ERROR
+================================ */
+
+.field-error {
+    margin-top: 5px;
+
+    color: #dc3545;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* ================================
+   INPUT ERROR
+================================ */
+
+.login-input.input-error {
+    border-color: #dc3545;
+}
+
+.login-input.input-error:focus {
+    border-color: #dc3545;
+
+    box-shadow:
+        0 0 0 3px rgba(220, 53, 69, 0.10);
+}
+
+
+/* ================================
+   GENERAL LOGIN ERROR
+================================ */
+
+.login-error {
+    margin-top: -2px;
+    margin-bottom: 10px;
+
+    padding: 9px 11px;
+
+    border-radius: 7px;
+
+    background: #fff1f2;
+
+    color: #dc3545;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* ================================
+   DISABLED INPUT
+================================ */
+
+.login-input:disabled {
+    background-color: #f7f8fa;
+
+    cursor: not-allowed;
+
+    opacity: 0.75;
+}
+
+
+/* ================================
+   SIGN IN BUTTON
+================================ */
+
+.login-button {
+    height: 40px;
+
+    margin-top: 4px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #326df4;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    box-shadow:
+        0 4px 9px rgba(50, 109, 244, 0.25);
+
+    transition: all 0.2s ease;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-button:hover:not(:disabled) {
+    background: #2861e5;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 12px rgba(50, 109, 244, 0.30);
+}
+
+.login-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+
+/* ================================
+   LOADING BUTTON
+================================ */
+
+.login-button:disabled {
+    background: #7fa2f5;
+
+    color: #ffffff;
+
+    cursor: not-allowed;
+
+    opacity: 0.9;
+
+    transform: none;
+
+    box-shadow:
+        0 3px 7px rgba(50, 109, 244, 0.15);
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 480px) {
+
+    .login-page {
+        padding: 20px 15px;
+    }
+
+    .login-card {
+        width: 100%;
+        border-radius: 16px;
+    }
+
+    .login-card .card-body {
+        padding: 28px 25px;
+    }
+
+    .troy-logo {
+        width: 135px;
+    }
+
+    .login-subtitle {
+        font-size: 13px;
+    }
+}

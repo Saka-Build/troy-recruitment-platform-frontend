@@ -1,0 +1,163 @@
+/* job.css */
+/* custom overrides & additional styling */
+
+.job-page {
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Stats Cards */
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e9edf4;
+  transition: 0.2s ease;
+}
+
+.stat-card h2 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 2rem;
+  color: #0b1e33;
+}
+
+.stat-card p {
+  margin: 0;
+  color: #5e6f8d;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+
+/* Table */
+.job-table {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 0;
+}
+
+.job-table thead th {
+  background: #f2f5fa;
+  color: #1f2a44;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.job-table tbody td {
+  padding: 1.2rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #edf2f7;
+  color: #1e2a41;
+}
+
+.job-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.job-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.badge.bg-success {
+  background-color: #d1fae5 !important;
+  color: #0b6e4f !important;
+  font-weight: 600;
+  padding: 0.35rem 1rem;
+  border-radius: 40px;
+  font-size: 0.75rem;
+}
+
+/* Buttons */
+.btn-outline-primary {
+  border-color: #dce3ef;
+  color: #2b4b7a;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.9rem;
+  border-radius: 30px;
+  font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+  background: #eef3fc;
+  border-color: #b6c8e0;
+}
+
+.btn-outline-danger {
+  border-color: #f1d8da;
+  color: #b33c4a;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.9rem;
+  border-radius: 30px;
+  font-weight: 500;
+}
+
+.btn-outline-danger:hover {
+  background: #fde8ea;
+  border-color: #e8b8bd;
+}
+
+/* Responsive fine-tune */
+@media (max-width: 768px) {
+  .stat-card h2 {
+    font-size: 1.6rem;
+  }
+
+  .stat-card p {
+    font-size: 0.75rem;
+  }
+
+  .job-table thead th,
+  .job-table tbody td {
+    padding: 0.8rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .job-table tbody td:first-child {
+    min-width: 160px;
+  }
+
+  .btn-outline-primary,
+  .btn-outline-danger {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .job-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .stat-card {
+    padding: 0.7rem 0.3rem;
+  }
+
+  .stat-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .job-table tbody td {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.4rem;
+  }
+
+  .job-table thead th {
+    font-size: 0.65rem;
+    padding: 0.6rem 0.4rem;
+  }
+}

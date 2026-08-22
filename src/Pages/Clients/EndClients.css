@@ -1,0 +1,659 @@
+/* =========================================================
+   END CLIENT PAGE
+========================================================= */
+
+.end-clients-page {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+
+    /* padding: 38px 36px 50px; */
+
+    background: #f4f7fc;
+
+    box-sizing: border-box;
+
+    color: #09254a;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.end-clients-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 34px;
+}
+
+.end-clients-title-section {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+}
+
+.end-clients-title-section h1 {
+    margin: 8px 0 4px;
+
+    font-size: 28px;
+
+    line-height: 1.15;
+
+    font-weight: 700;
+
+    color: #09254a;
+}
+
+.end-clients-title-section p {
+    margin: 0;
+
+    font-size: 15px;
+
+    color: #60718b;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.back-to-clients-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    padding: 6px 0;
+    color: #2f6bff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.back-to-clients-btn::before {
+    content: "←";
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.back-to-clients-btn:hover {
+    color: #1a4fc9;
+}
+
+.back-to-clients-btn:hover::before {
+    transform: translateX(-3px);
+}
+
+.back-to-clients-btn:active {
+    transform: scale(0.97);
+}
+
+/* Optional: Add a subtle underline animation */
+.back-to-clients-btn::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #2f6bff;
+    transition: width 0.25s ease;
+}
+
+.back-to-clients-btn:hover::after {
+    width: 100%;
+}
+
+
+/* =========================================================
+   HEADER BUTTON
+========================================================= */
+
+.end-clients-header-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.add-end-client-btn {
+    height: 44px;
+
+    padding: 0 22px;
+
+    border: 1px solid #2f6bff;
+
+    border-radius: 11px;
+
+    background: #2f6bff;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: 0 3px 7px rgba(47, 107, 255, 0.16);
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.add-end-client-btn:hover {
+    background: #245eea;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.end-client-stats {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 14px;
+
+    margin-bottom: 20px;
+}
+
+.end-client-stat-card {
+    min-height: 78px;
+
+    padding: 12px 18px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #dbe4ef;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+.end-client-stat-number {
+    font-size: 27px;
+
+    line-height: 1;
+
+    font-weight: 700;
+
+    color: #09254a;
+
+    margin-bottom: 7px;
+}
+
+.end-client-stat-number.active-number {
+    color: #2f6bff;
+}
+
+.end-client-stat-label {
+    font-size: 14px;
+
+    color: #60718b;
+}
+
+
+/* =========================================================
+   FILTER BAR
+========================================================= */
+
+.end-clients-filter-bar {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 1fr) 155px;
+
+    gap: 12px;
+
+    margin-bottom: 14px;
+}
+
+.end-client-search,
+.end-client-status-filter {
+    height: 46px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d7e1ee;
+
+    border-radius: 11px;
+
+    background: #ffffff;
+
+    outline: none;
+
+    padding: 0 15px;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    color: #263b5b;
+}
+
+.end-client-search::placeholder {
+    color: #71819a;
+}
+
+.end-client-search:focus,
+.end-client-status-filter:focus {
+    border-color: #79a2ff;
+
+    box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.08);
+}
+
+.end-client-status-filter {
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.end-clients-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    background: #ffffff;
+
+    border: 1px solid #dbe4ef;
+
+    border-radius: 15px;
+
+    box-sizing: border-box;
+}
+
+.end-clients-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    table-layout: fixed;
+}
+
+.end-clients-table th {
+    height: 54px;
+
+    padding: 0 20px;
+
+    text-align: left;
+
+    background: #eaf0f8;
+
+    border-bottom: 1px solid #d7e1ee;
+
+    color: #55708f;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.02em;
+}
+
+.end-clients-table th:nth-child(1) {
+    width: 55%;
+}
+
+.end-clients-table th:nth-child(2) {
+    width: 20%;
+}
+
+.end-clients-table th:nth-child(3) {
+    width: 25%;
+}
+
+.end-clients-table td {
+    padding: 20px;
+
+    border-bottom: 1px solid #e1e8f1;
+
+    vertical-align: middle;
+
+    font-size: 15px;
+
+    color: #17365d;
+}
+
+.end-clients-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.end-clients-table tbody tr:hover {
+    background: #fbfcff;
+}
+
+
+/* =========================================================
+   NAME
+========================================================= */
+
+.end-client-name {
+    font-size: 16px;
+
+    font-weight: 600;
+
+    color: #09254a;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.end-client-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 80px;
+
+    height: 34px;
+
+    padding: 0 13px;
+
+    box-sizing: border-box;
+
+    border-radius: 18px;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+.end-client-status.active {
+    background: #d9f1e7;
+
+    color: #1eaa71;
+}
+
+.end-client-status.inactive {
+    background: #edf0f4;
+
+    color: #6b7280;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.end-client-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+}
+
+.end-client-edit-action,
+.end-client-delete-action {
+    border: none;
+
+    background: transparent;
+
+    padding: 0;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.end-client-edit-action {
+    color: #17365d;
+}
+
+.end-client-delete-action {
+    color: #17365d;
+}
+
+.end-client-edit-action:hover,
+.end-client-delete-action:hover {
+    color: #2f6bff;
+
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.no-end-client-data {
+    text-align: center !important;
+
+    padding: 50px 20px !important;
+
+    color: #71819a !important;
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.end-clients-pagination {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PAGINATION INFO
+========================================================= */
+
+.end-client-pagination-info {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.end-client-pagination-info strong {
+    color: #263b5b;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   PAGINATION CONTROLS
+========================================================= */
+
+.end-client-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* =========================================================
+   PAGE BUTTON
+========================================================= */
+
+.pagination-page,
+.pagination-arrow {
+    min-width: 36px;
+    height: 36px;
+
+    padding: 0 10px;
+
+    border: 1px solid #d7e1ee;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #52657f;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.pagination-page:hover:not(:disabled),
+.pagination-arrow:hover:not(:disabled) {
+    background: #f4f7fc;
+    border-color: #b8c8dc;
+    color: #263b5b;
+}
+
+
+/* =========================================================
+   ACTIVE PAGE
+========================================================= */
+
+.pagination-page.active {
+    background: #263b5b;
+    border-color: #263b5b;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   DISABLED
+========================================================= */
+
+.pagination-arrow:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   ARROW
+========================================================= */
+
+.pagination-arrow {
+    font-size: 22px;
+    line-height: 1;
+    padding-bottom: 3px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .end-clients-pagination {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .end-client-pagination-info {
+        text-align: center;
+    }
+
+    .end-client-pagination-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .end-clients-page {
+        padding: 28px 20px 40px;
+    }
+
+    .end-clients-header {
+        flex-direction: column;
+    }
+
+    .end-clients-header-actions {
+        width: 100%;
+    }
+
+    .add-end-client-btn {
+        width: 100%;
+    }
+
+    .end-client-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .end-clients-filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .end-clients-page {
+        padding: 22px 14px 30px;
+    }
+
+    .end-clients-title-section h1 {
+        font-size: 26px;
+    }
+
+    .end-clients-table {
+        min-width: 650px;
+    }
+
+}

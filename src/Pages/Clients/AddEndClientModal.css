@@ -1,0 +1,587 @@
+/* =========================================================
+   END CLIENT MODAL OVERLAY
+========================================================= */
+
+.end-client-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(15, 30, 52, 0.58);
+
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+
+    z-index: 9999;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.end-client-modal {
+    width: 100%;
+    max-width: 560px;
+
+    max-height: calc(100vh - 48px);
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 24px 70px rgba(15, 35, 65, 0.25),
+        0 8px 24px rgba(15, 35, 65, 0.12);
+
+    animation: endClientModalOpen 0.2s ease-out;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MODAL ANIMATION
+========================================================= */
+
+@keyframes endClientModalOpen {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.end-client-modal-header {
+    min-height: 88px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px 28px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5ebf3;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER TEXT
+========================================================= */
+
+.end-client-modal-header h2 {
+    margin: 0;
+
+    color: #102f56;
+
+    font-size: 25px;
+    line-height: 1.2;
+
+    font-weight: 700;
+
+    letter-spacing: -0.3px;
+}
+
+
+.end-client-modal-header p {
+    margin: 5px 0 0;
+
+    color: #71839c;
+
+    font-size: 14px;
+    line-height: 1.4;
+
+    font-weight: 400;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.end-client-modal-close {
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 1px solid #d7e0eb;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #60748f;
+
+    font-size: 22px;
+    font-weight: 400;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+
+.end-client-modal-close:hover {
+    background: #f5f8fc;
+
+    border-color: #c5d2e1;
+
+    color: #17385f;
+}
+
+
+.end-client-modal-close:active {
+    transform: scale(0.96);
+}
+
+
+.end-client-modal-close:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.end-client-modal-form {
+    display: flex;
+
+    flex-direction: column;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.end-client-form-group {
+    width: 100%;
+
+    padding: 24px 28px 0;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.end-client-form-group label {
+    display: block;
+
+    margin: 0 0 9px;
+
+    color: #536b88;
+
+    font-size: 14px;
+
+    line-height: 1.3;
+
+    font-weight: 600;
+}
+
+
+.end-client-form-group label .required {
+    margin-left: 3px;
+
+    color: #ef4444;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   INPUT + SELECT
+========================================================= */
+
+.end-client-form-group input,
+.end-client-form-group select {
+    width: 100%;
+    height: 48px;
+
+    box-sizing: border-box;
+
+    padding: 0 14px;
+
+    border: 1px solid #d6e0ec;
+
+    border-radius: 9px;
+
+    outline: none;
+
+    background: #ffffff;
+
+    color: #263f60;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    font-weight: 400;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+
+/* =========================================================
+   PLACEHOLDER
+========================================================= */
+
+.end-client-form-group input::placeholder {
+    color: #97a3b2;
+
+    opacity: 1;
+}
+
+
+/* =========================================================
+   INPUT HOVER
+========================================================= */
+
+.end-client-form-group input:hover,
+.end-client-form-group select:hover {
+    border-color: #b9c9dc;
+}
+
+
+/* =========================================================
+   INPUT FOCUS
+========================================================= */
+
+.end-client-form-group input:focus,
+.end-client-form-group select:focus {
+    border-color: #5b8def;
+
+    box-shadow:
+        0 0 0 3px rgba(47, 107, 255, 0.10);
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+.end-client-form-group select {
+    cursor: pointer;
+
+    appearance: auto;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.end-client-form-error {
+    margin: 14px 28px 0;
+
+    padding: 10px 12px;
+
+    border: 1px solid #fecaca;
+
+    border-radius: 8px;
+
+    background: #fff5f5;
+
+    color: #dc2626;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.end-client-modal-footer {
+    margin-top: 26px;
+
+    padding: 18px 28px 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    border-top: 1px solid #e5ebf3;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   COMMON BUTTON
+========================================================= */
+
+.end-client-cancel-btn,
+.end-client-save-btn {
+    height: 46px;
+
+    padding: 0 22px;
+
+    border-radius: 9px;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.1s ease;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CANCEL
+========================================================= */
+
+.end-client-cancel-btn {
+    min-width: 100px;
+
+    background: #ffffff;
+
+    border: 1px solid #d5dfeb;
+
+    color: #183456;
+}
+
+
+.end-client-cancel-btn:hover {
+    background: #f6f8fb;
+
+    border-color: #c4d0de;
+}
+
+
+.end-client-cancel-btn:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+.end-client-save-btn {
+    min-width: 145px;
+
+    border: 1px solid #2f6bff;
+
+    background: #2f6bff;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 3px 8px rgba(47, 107, 255, 0.18);
+}
+
+
+.end-client-save-btn:hover {
+    background: #245eea;
+
+    border-color: #245eea;
+
+    box-shadow:
+        0 5px 12px rgba(47, 107, 255, 0.23);
+}
+
+
+.end-client-save-btn:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   DISABLED BUTTONS
+========================================================= */
+
+.end-client-cancel-btn:disabled,
+.end-client-save-btn:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.55;
+
+    box-shadow: none;
+}
+
+
+.end-client-save-btn:disabled {
+    background: #9db8f5;
+
+    border-color: #9db8f5;
+}
+
+
+/* =========================================================
+   DISABLED INPUT
+========================================================= */
+
+.end-client-form-group input:disabled,
+.end-client-form-group select:disabled {
+    background: #f5f7fa;
+
+    color: #71839c;
+
+    border-color: #d8e0ea;
+
+    cursor: not-allowed;
+
+    opacity: 1;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .end-client-modal-overlay {
+        padding: 16px;
+    }
+
+
+    .end-client-modal {
+        max-width: 100%;
+
+        border-radius: 14px;
+
+        max-height: calc(100vh - 32px);
+    }
+
+
+    .end-client-modal-header {
+        min-height: 78px;
+
+        padding: 18px 20px;
+    }
+
+
+    .end-client-modal-header h2 {
+        font-size: 22px;
+    }
+
+
+    .end-client-modal-header p {
+        font-size: 13px;
+    }
+
+
+    .end-client-modal-close {
+        width: 34px;
+        height: 34px;
+    }
+
+
+    .end-client-form-group {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+
+    .end-client-form-error {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+
+    .end-client-modal-footer {
+        padding: 16px 20px 20px;
+
+        flex-direction: column-reverse;
+
+        align-items: stretch;
+    }
+
+
+    .end-client-cancel-btn,
+    .end-client-save-btn {
+        width: 100%;
+    }
+
+}
+
+
+
+/* =========================================================
+   END CLIENT DROPDOWN - HIDE SCROLLBAR
+========================================================= */
+
+.end-client-dropdown {
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.end-client-dropdown::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
