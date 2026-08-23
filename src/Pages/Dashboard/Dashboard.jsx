@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Dashboard.css";
 import Add_Edit_CandidateModal from "../Add_Edit_CandidateModal";
+import AddCandidateModal from "../Add_Edit_CandidateModal";
 
 
 function Dashboard() {
@@ -137,7 +138,7 @@ const attentionItems = [
 ];
 
   return (
-    <div className="dashboard-page">
+    <div className="page">
 
       {/* =========================================
           PAGE HEADER
@@ -145,19 +146,19 @@ const attentionItems = [
 
       <div className="container-fluid px-0">
 
-        <div className="dashboard-heading-row">
+        <div className="page-header">
 
           <div>
-            <h1 className="dashboard-title">
+            <h1 className="page-title">
               Super Admin Dashboard
             </h1>
 
-            <p className="dashboard-subtitle">
+            <p className="page-subtitle">
               Live snapshot of your recruitment pipeline
             </p>
           </div>
 
-          <div className="dashboard-actions">
+          <div className="page-header-actions">
 
             <select
               className="admin-select"
@@ -167,8 +168,8 @@ const attentionItems = [
               <option>Admin</option>
             </select>
 
-            <button className="add-candidate-btn" onClick={() => setShowCandidateModal(true)}>
-              + Add candidate
+            <button className="primary-btn" onClick={() => setShowCandidateModal(true)}>
+              <i className="bi bi-plus-lg"></i> Add candidate
             </button>
 
           </div>
@@ -504,7 +505,7 @@ const attentionItems = [
     </div>
 
       </div>
-      <Add_Edit_CandidateModal
+      <AddCandidateModal
   show={showCandidateModal}
   onClose={() => setShowCandidateModal(false)}
 />

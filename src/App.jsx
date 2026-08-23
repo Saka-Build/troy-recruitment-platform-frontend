@@ -94,6 +94,14 @@ import CandidateMasterDB from "./Pages/CandidateMasterDB/CandidateMasterDB";
 import Client from "./Pages/Clients/Clients";
 import Employees from "./Pages/Employees/Employees";
 
+
+import PageNotFound from "./Components/PageNotFound";
+import JobDetails from "./Pages/Jobs/JobDetails";
+import NewJob from "./Pages/Jobs/NewJob";
+import CandidateDetails from "./Pages/Candidate/CandidateDetails";
+import RecruitmentWorkflow from "./Pages/RecruitmentWorkflow/RecruitmentWorkflow";
+import RecruitmentWorkflowDetails from "./Pages/RecruitmentWorkflow/RecruitmentWorkflowDetails";
+
 import "./app.css";
 
 
@@ -142,28 +150,36 @@ function App() {
                     />
 
                     {/* /dashboard/pipeline */}
-                    <Route
+                    {/* <Route
                         path="pipeline"
                         element={<Pipeline />}
-                    />
+                    /> */}
+                    {/* /dashboard/RecruitmentWorkflow */}
+                    <Route path="recruitment-Workflow" element={<RecruitmentWorkflow />}/>
+                    <Route path="recruitment-workflow/:stage" element={<RecruitmentWorkflowDetails />}/>
 
                     {/* /dashboard/candidates */}
-                    <Route
+                    {/* <Route
                         path="candidates"
                         element={<Candidates />}
-                    />
+                    /> */}
+                    <Route path="candidates" element={<Candidates />} />
+                    <Route path="candidates/:name" element={<CandidateDetails />}/>
 
                     {/* /dashboard/master-db */}
-                    <Route
+                    {/* <Route
                         path="master-db"
                         element={<CandidateMasterDB />}
-                    />
+                    /> */}
 
                     {/* /dashboard/jobs */}
-                    <Route
+                    {/* <Route
                         path="jobs"
                         element={<JobPage />}
-                    />
+                    /> */}
+                    <Route path="jobs" element={<JobPage />} />
+                    <Route path="jobs/:id" element={<JobDetails />} />
+                    <Route path="jobs/new" element={<NewJob />}/>
 
                     {/* /dashboard/clients */}
                     <Route
@@ -181,11 +197,11 @@ function App() {
 
 
                 {/* Invalid URL */}
-                <Route
+                {/* <Route
                     path="*"
                     element={<Navigate to="/" replace />}
-                />
-
+                /> */}
+                <Route path="*" element={<PageNotFound />}/>
             </Routes>
 
         </BrowserRouter>

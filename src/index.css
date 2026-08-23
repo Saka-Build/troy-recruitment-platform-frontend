@@ -1,0 +1,1253 @@
+:root {
+  --page-bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --text-primary: #0b1f3a;
+  --text-secondary: #748097;
+  --text-muted: #75839a;
+  --border-color: #e1e5ec;
+  --table-border: #e2e6ed;
+  --hover-bg: #f5f7fb;
+  --select-bg: #ffffff;
+  --placeholder-color: #8490a3;
+  --icon-color: #7586a0;
+}
+
+.dark-theme {
+  --page-bg: #0f172a;
+  --card-bg: #182235;
+  --input-bg: #182235;
+  --text-primary: #f1f5f9;
+  --text-secondary: #a8b4c7;
+  --text-muted: #94a3b8;
+  --border-color: #2d3a50;
+  --table-border: #2d3a50;
+  --hover-bg: #202c40;
+  --select-bg: #182235;
+  --placeholder-color: #7f8da3;
+  --icon-color: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, sans-serif;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.page-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.page-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.primary-btn {
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 21px;
+  border: none;
+  border-radius: 12px;
+  background: #316cf4;
+  color: #ffffff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.primary-btn:hover {
+  background: #2459d8;
+}
+
+.primary-btn i {
+  font-size: 14px;
+}
+
+.outline-btn {
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.outline-btn:hover {
+  background: var(--hover-bg);
+}
+
+.common-search {
+  height: 37px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, sans-serif;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.common-search span {
+  color: var(--icon-color);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.common-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.common-search input::placeholder {
+  color: var(--placeholder-color);
+}
+
+.common-select {
+  height: 37px;
+  min-height: 37px;
+  padding: 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background-color: var(--select-bg);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.common-select:focus {
+  border-color: #8bb2f5;
+}
+
+.common-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border: 1px solid var(--table-border);
+  border-radius: 12px 12px 0 0;
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, sans-serif;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.empty-state {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.top-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.search-wrapper {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.search-icon {
+  color: var(--icon-color);
+}
+
+.search-input {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--placeholder-color);
+}
+
+.advanced-btn {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.advanced-btn:hover {
+  background: var(--hover-bg);
+}
+
+.header-icon-btn {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.header-icon-btn:hover {
+  background: var(--hover-bg);
+}
+
+@media (max-width: 991.98px) {
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .page-header-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .page-title {
+    font-size: 25px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .page-header {
+    margin-bottom: 22px;
+  }
+
+  .page-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .primary-btn,
+  .outline-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .page-title {
+    font-size: 23px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+}
+
+
+/* =========================================================
+   GLOBAL LAYOUT
+========================================================= */
+.dark-theme .dashboard-layout,
+.dark-theme .main-section,
+.dark-theme .page-content,
+.dark-theme .dashboard-page,
+.dark-theme .recruitment-workflow-page,
+.dark-theme .recruitment-workflow-details-page {
+  background: var(--page-bg);
+  color: var(--text-primary);
+}
+
+.dark-theme .top-header {
+  background: var(--card-bg);
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .search-wrapper {
+  background: var(--input-bg);
+  border-color: var(--border-color);
+}
+
+.dark-theme .search-icon {
+  color: var(--icon-color);
+}
+
+.dark-theme .search-input {
+  color: var(--text-primary);
+}
+
+.dark-theme .search-input::placeholder {
+  color: var(--placeholder-color);
+}
+
+.dark-theme .advanced-btn,
+.dark-theme .header-icon-btn {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .advanced-btn:hover,
+.dark-theme .header-icon-btn:hover {
+  background: var(--hover-bg);
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.dark-theme .sidebar {
+  background: #0b1426;
+}
+
+.dark-theme .sidebar-link {
+  color: #aebbd0;
+}
+
+.dark-theme .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.dark-theme .sidebar-link.active {
+  background: #326df6;
+  color: #ffffff;
+}
+
+.dark-theme .sidebar-bottom {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark-theme .admin-name,
+.dark-theme .signout-btn {
+  color: #ffffff;
+}
+
+.dark-theme .admin-role {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   COMMON DARK CARDS
+========================================================= */
+
+.dark-theme .dashboard-card,
+.dark-theme .summary-card,
+.dark-theme .timezone-card,
+.dark-theme .todays-interviews-card,
+.dark-theme .attention-card,
+.dark-theme .job-stat-card,
+.dark-theme .job-table-wrapper,
+.dark-theme .job-description-card,
+.dark-theme .job-ai-matching-card,
+.dark-theme .job-activity-card,
+.dark-theme .required-skills-card,
+.dark-theme .job-description-panel,
+.dark-theme .activity-panel,
+.dark-theme .job-modal,
+.dark-theme .candidate-stat-card,
+.dark-theme .candidate-table-wrapper,
+.dark-theme .candidate-contact-card,
+.dark-theme .candidate-tab-card,
+.dark-theme .candidate-cv-card,
+.dark-theme .report-stat-card,
+.dark-theme .success-story-card,
+.dark-theme .report-table-wrapper {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+
+/* =========================================================
+   COMMON PRIMARY TEXT
+========================================================= */
+
+.dark-theme .card-value,
+.dark-theme .country-code,
+.dark-theme .timezone-time,
+.dark-theme .status-value,
+.dark-theme .todays-interviews-title,
+.dark-theme .attention-title,
+.dark-theme .interview-time,
+.dark-theme .interview-candidate-name,
+.dark-theme .job-stat-number,
+.dark-theme .job-title,
+.dark-theme .job-client,
+.dark-theme .job-location,
+.dark-theme .job-details-heading h1,
+.dark-theme .job-summary-value,
+.dark-theme .assigned-recruiter-value,
+.dark-theme .required-skills-card h2,
+.dark-theme .job-description-panel-header h2,
+.dark-theme .activity-panel h2,
+.dark-theme .new-job-header h1,
+.dark-theme .job-modal-header h2,
+.dark-theme .job-description-header h2,
+.dark-theme .job-ai-matching-header h2,
+.dark-theme .job-activity-card h2,
+.dark-theme .stat-number,
+.dark-theme .candidate-name,
+.dark-theme .applied-job,
+.dark-theme .experience,
+.dark-theme .candidate-name-row h1,
+.dark-theme .candidate-contact-card h2,
+.dark-theme .candidate-tab-card h2,
+.dark-theme .candidate-cv-card h2,
+.dark-theme .summary-value,
+.dark-theme .detail-value,
+.dark-theme .contact-value-with-actions strong,
+.dark-theme .cv-detail-row strong,
+.dark-theme .timeline-title,
+.dark-theme .pipeline-column-header h3,
+.dark-theme .report-stat-number,
+.dark-theme .report-section-title,
+.dark-theme .success-story-name,
+.dark-theme .report-table .stage-label,
+.dark-theme .report-table .client-name,
+.dark-theme .workflow-candidate-info strong,
+.dark-theme .workflow-role,
+.dark-theme .workflow-stage-count,
+.dark-theme .workflow-modal-header h2,
+.dark-theme .job-pipeline-column-header strong,
+.dark-theme .job-candidate-info strong,
+.dark-theme .job-location-detail-row strong,
+.dark-theme .template-item-info strong,
+.dark-theme .candidate-not-found h2 {
+  color: #f3f4f6;
+}
+
+
+/* =========================================================
+   COMMON SECONDARY TEXT
+========================================================= */
+
+.dark-theme .card-label,
+.dark-theme .timezone-country,
+.dark-theme .status-title,
+.dark-theme .interviews-header-info,
+.dark-theme .interview-role,
+.dark-theme .job-stat-label,
+.dark-theme .job-meta,
+.dark-theme .job-summary-label,
+.dark-theme .job-summary-muted,
+.dark-theme .lead-note-title,
+.dark-theme .lead-note-text,
+.dark-theme .job-location-detail-row span,
+.dark-theme .job-description-empty,
+.dark-theme .job-description-empty-title,
+.dark-theme .job-description-empty-text,
+.dark-theme .activity-date,
+.dark-theme .activity-subtitle,
+.dark-theme .new-job-header p,
+.dark-theme .job-form-field label,
+.dark-theme .parse-description,
+.dark-theme .parse-note,
+.dark-theme .ai-engine-row,
+.dark-theme .copilot-body > p,
+.dark-theme .job-activity-date,
+.dark-theme .job-activity-description,
+.dark-theme .stat-label,
+.dark-theme .candidate-meta,
+.dark-theme .skills,
+.dark-theme .detail-label,
+.dark-theme .candidate-profile-info p,
+.dark-theme .summary-label,
+.dark-theme .cv-detail-row,
+.dark-theme .cv-no-file,
+.dark-theme .cv-empty-title,
+.dark-theme .cv-empty-description,
+.dark-theme .ai-empty-title,
+.dark-theme .ai-empty-text,
+.dark-theme .timeline-date,
+.dark-theme .candidate-note-label,
+.dark-theme .history-date,
+.dark-theme .candidate-role,
+.dark-theme .job-candidate-info span,
+.dark-theme .job-candidate-match,
+.dark-theme .job-pipeline-empty,
+.dark-theme .job-ai-score,
+.dark-theme .job-ai-note,
+.dark-theme .workflow-candidate-bottom > span,
+.dark-theme .workflow-client,
+.dark-theme .workflow-cv-id,
+.dark-theme .workflow-rate,
+.dark-theme .workflow-stage-label,
+.dark-theme .workflow-summary,
+.dark-theme .workflow-rate-field label,
+.dark-theme .workflow-current-rate,
+.dark-theme .workflow-modal-note,
+.dark-theme .report-stat-label,
+.dark-theme .success-story-role {
+  color: #9ca3af;
+}
+
+
+/* =========================================================
+   COMMON INPUTS / SELECTS
+========================================================= */
+
+.dark-theme .job-search-box,
+.dark-theme .job-filter-select,
+.dark-theme .common-search,
+.dark-theme .common-select,
+.dark-theme .admin-select,
+.dark-theme .workflow-search,
+.dark-theme .workflow-cv-search,
+.dark-theme .workflow-role-filter,
+.dark-theme .workflow-move-select,
+.dark-theme .candidate-action-icons button {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark-theme .job-search-box input,
+.dark-theme .common-search input,
+.dark-theme .job-filter-select,
+.dark-theme .workflow-search input {
+  color: #e5e7eb;
+}
+
+.dark-theme .job-search-box input::placeholder,
+.dark-theme .common-search input::placeholder,
+.dark-theme .workflow-search input::placeholder,
+.dark-theme .workflow-cv-search::placeholder {
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   COMMON BUTTONS
+========================================================= */
+
+.dark-theme .job-details-back-btn,
+.dark-theme .job-details-edit-btn,
+.dark-theme .new-job-back-btn,
+.dark-theme .job-modal-cancel,
+.dark-theme .modal-cancel-btn,
+.dark-theme .job-ai-review-btn,
+.dark-theme .back-candidates-btn,
+.dark-theme .detail-delete-btn,
+.dark-theme .job-not-found button,
+.dark-theme .candidate-icons button,
+.dark-theme .status-select,
+.dark-theme .contact-value-with-actions button,
+.dark-theme .candidate-note-input,
+.dark-theme .workflow-modal-cancel {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark-theme .job-details-back-btn:hover,
+.dark-theme .job-details-edit-btn:hover,
+.dark-theme .new-job-back-btn:hover,
+.dark-theme .job-modal-cancel:hover,
+.dark-theme .modal-cancel-btn:hover,
+.dark-theme .job-ai-review-btn:hover,
+.dark-theme .back-candidates-btn:hover,
+.dark-theme .detail-delete-btn:hover,
+.dark-theme .job-not-found button:hover,
+.dark-theme .candidate-icons button:hover,
+.dark-theme .contact-value-with-actions button:hover {
+  background: #273449;
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.dark-theme .timezone-badge {
+  background: #273449;
+  color: #9ca3af;
+}
+
+.dark-theme .blue-icon,
+.dark-theme .trophy-icon {
+  background: #26365a;
+}
+
+.dark-theme .status-card-active {
+  border-color: #5f8fff;
+}
+
+.dark-theme .interview-item {
+  background: #273449;
+  border-color: #ef4444;
+}
+
+.dark-theme .interview-upcoming:nth-child(2) {
+  border-left-color: #f59e0b;
+}
+
+.dark-theme .interview-meta {
+  color: var(--text-secondary);
+}
+
+.dark-theme .interview-meta-separator {
+  color: #64748b;
+}
+
+.dark-theme .interview-action {
+  background: #1f2937;
+  border-color: #374151;
+  color: #9ca3af;
+}
+
+.dark-theme .interview-countdown-box {
+  background: #1f2937;
+  border-color: #b85d57;
+  color: #f08078;
+}
+
+.dark-theme .attention-danger {
+  background: #352426;
+  border-color: #7f403d;
+  color: #f08078;
+}
+
+.dark-theme .attention-warning {
+  background: #352f22;
+  border-color: #806d38;
+  color: #e5b94f;
+}
+
+
+/* =========================================================
+   JOB / CANDIDATE PAGE BACKGROUNDS
+========================================================= */
+
+.dark-theme .job-page,
+.dark-theme .job-details-page,
+.dark-theme .new-job-page,
+.dark-theme .job-not-found,
+.dark-theme .candidate-page,
+.dark-theme .candidate-details-page,
+.dark-theme .candidate-not-found {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+
+/* =========================================================
+   TABLE HEADERS
+========================================================= */
+
+.dark-theme .job-table thead,
+.dark-theme .candidate-table thead th,
+.dark-theme .workflow-table thead th,
+.dark-theme .report-table thead {
+  background: #273449;
+}
+
+.dark-theme .job-table th,
+.dark-theme .candidate-table thead th,
+.dark-theme .workflow-table thead th,
+.dark-theme .report-table thead th {
+  color: #cbd5e1;
+  border-bottom-color: #374151;
+}
+
+
+/* =========================================================
+   TABLE ROWS
+========================================================= */
+
+.dark-theme .job-table tbody tr:nth-child(even),
+.dark-theme .candidate-table tbody tr:nth-child(even) {
+  background: #1b2535;
+}
+
+.dark-theme .job-table tbody tr:nth-child(odd),
+.dark-theme .candidate-table tbody tr:nth-child(odd) {
+  background: #1f2937;
+}
+
+.dark-theme .job-table tbody tr:hover,
+.dark-theme .candidate-table tbody tr:hover,
+.dark-theme .workflow-table tbody tr:hover,
+.dark-theme .report-table tbody tr:hover {
+  background: #26354a;
+}
+
+
+/* =========================================================
+   TABLE BORDERS
+========================================================= */
+
+.dark-theme .job-table td,
+.dark-theme .candidate-table tbody td,
+.dark-theme .workflow-table tbody td,
+.dark-theme .report-table tbody td {
+  border-bottom-color: #374151;
+}
+
+.dark-theme .candidate-table tbody td {
+  color: #dbeafe;
+}
+
+.dark-theme .report-table tbody td {
+  color: #e5e7eb;
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.dark-theme .job-details-tabs,
+.dark-theme .candidate-detail-tabs {
+  border-bottom-color: #374151;
+}
+
+.dark-theme .job-details-tabs button,
+.dark-theme .candidate-detail-tabs button {
+  color: #9ca3af;
+}
+
+.dark-theme .job-details-tabs button:hover,
+.dark-theme .job-details-tabs button.active,
+.dark-theme .candidate-detail-tabs button:hover,
+.dark-theme .candidate-detail-tabs button.active {
+  color: #5f8fff;
+}
+
+
+/* =========================================================
+   JOB DETAIL CARDS
+========================================================= */
+
+.dark-theme .job-detail-summary-card,
+.dark-theme .assigned-recruiter-card {
+  background: #273449;
+  border-color: #374151;
+}
+
+.dark-theme .lead-note-card {
+  background: #26354a;
+  border-color: #374151;
+}
+
+.dark-theme .required-skill,
+.dark-theme .candidate-skills span {
+  background: #273449;
+  border-color: #3b4a60;
+  color: #dbeafe;
+}
+
+.dark-theme .job-location-detail-row {
+  border-bottom-color: #374151;
+}
+
+
+/* =========================================================
+   JOB ACTIVITY
+========================================================= */
+
+.dark-theme .job-description-panel-header,
+.dark-theme .job-modal-header {
+  border-bottom-color: #374151;
+}
+
+.dark-theme .activity-item,
+.dark-theme .job-activity-item {
+  border-bottom-color: #374151;
+}
+
+.dark-theme .activity-icon,
+.dark-theme .job-activity-icon,
+.dark-theme .history-icon {
+  background: #273449;
+}
+
+.dark-theme .activity-title,
+.dark-theme .job-activity-title {
+  color: #dbeafe;
+}
+
+
+/* =========================================================
+   JOB PIPELINE
+========================================================= */
+
+.dark-theme .job-pipeline-column {
+  background: #273449;
+  border-color: #374151;
+}
+
+.dark-theme .job-pipeline-column-header span {
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.dark-theme .job-pipeline-candidate {
+  background: #1f2937;
+}
+
+
+/* =========================================================
+   JOB MODALS
+========================================================= */
+
+.dark-theme .job-modal-header,
+.dark-theme .job-modal-footer {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.dark-theme .job-modal-body,
+.dark-theme .template-modal-body {
+  background: #1f2937;
+}
+
+.dark-theme .job-form-field input,
+.dark-theme .job-form-field select,
+.dark-theme .parse-textarea,
+.dark-theme .copilot-textarea {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark-theme .job-form-field input::placeholder,
+.dark-theme .parse-textarea::placeholder {
+  color: #6b7280;
+}
+
+.dark-theme .template-item {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark-theme .template-item:hover {
+  background: #273449;
+  border-color: #4b5563;
+}
+
+.dark-theme .modal-close-btn,
+.dark-theme .job-modal-close {
+  color: #9ca3af;
+}
+
+.dark-theme .modal-close-btn:hover,
+.dark-theme .job-modal-close:hover {
+  color: #f3f4f6;
+}
+
+.dark-theme .no-jobs {
+  color: #9ca3af;
+}
+
+.dark-theme .job-ai-ranking {
+  background: #273449;
+  color: #8fb1ff;
+}
+
+.dark-theme .job-ai-jd-btn,
+.dark-theme .add-jd-btn,
+.dark-theme .modal-save-btn,
+.dark-theme .job-modal-primary {
+  color: #ffffff;
+}
+
+.dark-theme .modal-overlay,
+.dark-theme .job-modal-overlay {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+
+/* =========================================================
+   CANDIDATE
+========================================================= */
+
+.dark-theme .candidate-summary-card {
+  background: #273449;
+  border-color: #374151;
+}
+
+.dark-theme .summary-highlight {
+  color: #5f8fff;
+}
+
+.dark-theme .candidate-detail-row,
+.dark-theme .cv-detail-row,
+.dark-theme .history-item {
+  border-bottom-color: #374151;
+}
+
+.dark-theme .candidate-note-item {
+  background: #273449;
+}
+
+.dark-theme .candidate-note-text {
+  color: #dbeafe;
+}
+
+.dark-theme .candidate-profile-avatar,
+.dark-theme .candidate-avatar {
+  background: linear-gradient(
+    145deg,
+    #4779dc,
+    #1d448f
+  );
+}
+
+.dark-theme .candidate-cv-card,
+.dark-theme .candidate-tab-card,
+.dark-theme .candidate-contact-card {
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   RECRUITMENT WORKFLOW
+========================================================= */
+
+.dark-theme .workflow-stage,
+.dark-theme .workflow-table-wrapper,
+.dark-theme .workflow-stage-tab,
+.dark-theme .workflow-rate-modal {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.dark-theme .workflow-stage {
+  border-top-color: var(--stage-color);
+  color: #f3f4f6;
+}
+
+.dark-theme .workflow-stage:hover {
+  background: #273449;
+  border-color: #435169;
+  border-top-color: var(--stage-color);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.28);
+}
+
+.dark-theme .workflow-stage-tab:hover {
+  background: #273449;
+}
+
+.dark-theme .workflow-stage-tab.active {
+  background: #316cf4;
+  border-color: #316cf4;
+  color: #ffffff;
+}
+
+.dark-theme .workflow-back-btn,
+.dark-theme .workflow-stage-tab,
+.dark-theme .workflow-candidate,
+.dark-theme .candidate-action-icons button,
+.dark-theme .workflow-nav-btn {
+  color: var(--text-primary);
+}
+
+.dark-theme .workflow-table-wrapper {
+  border-color: #374151;
+}
+
+.dark-theme .workflow-modal-header,
+.dark-theme .workflow-modal-footer {
+  border-color: #374151;
+}
+
+.dark-theme .workflow-modal-close,
+.dark-theme .workflow-open-btn {
+  color: #9ca3af;
+}
+
+.dark-theme .workflow-open-btn:hover {
+  color: #8fb1ff;
+}
+
+.dark-theme .workflow-rate-input-row select,
+.dark-theme .workflow-rate-input-row input {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark-theme .workflow-rate-input-row input::placeholder {
+  color: #6b7280;
+}
+
+.dark-theme .workflow-stage-toast {
+  background: #071b42;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   WORKFLOW STATUS
+========================================================= */
+
+.dark-theme .workflow-status-pipeline {
+  background: #273449;
+  border-color: #4b5a70;
+  color: #9ca3af;
+}
+
+.dark-theme .workflow-status-sourcing {
+  background: #18384a;
+  border-color: #267da5;
+  color: #70cfff;
+}
+
+.dark-theme .workflow-status-ready {
+  background: #173b3b;
+  border-color: #2b9e9a;
+  color: #68ddd8;
+}
+
+.dark-theme .workflow-status-interview {
+  background: #40351f;
+  border-color: #8b6928;
+  color: #ffc963;
+}
+
+.dark-theme .workflow-status-selected {
+  background: #193d2a;
+  border-color: #2e965c;
+  color: #6fe3a1;
+}
+
+.dark-theme .workflow-status-offer {
+  background: #173c32;
+  border-color: #269b78;
+  color: #63dfb9;
+}
+
+.dark-theme .workflow-status-joined {
+  background: #173b2b;
+  border-color: #2c985c;
+  color: #68dda0;
+}
+
+.dark-theme .workflow-warning,
+.dark-theme .workflow-rate-warning {
+  color: #f87171;
+}
+
+
+/* =========================================================
+   REPORT PAGE
+========================================================= */
+
+.dark-theme .report-stat-card.highlight {
+  border-color: #5f8fff;
+  background: #1f2937;
+}
+
+.dark-theme .report-stat-number.highlight-number {
+  color: #8fb1ff;
+}
+
+.dark-theme .report-table .stage-label,
+.dark-theme .report-table .client-name {
+  color: #f3f4f6;
+}
+
+.dark-theme .activate-windows {
+  border-top-color: #374151;
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   ADVANCED SEARCH
+========================================================= */
+
+.dark-theme .advanced-panel {
+  background: #14161d;
+  border-left-color: #262a35;
+}
+
+.dark-theme .advanced-header {
+  border-bottom-color: #262a35;
+}
+
+.dark-theme .advanced-header h2 {
+  color: #f2f3f5;
+}
+
+.dark-theme .advanced-close-btn {
+  color: #7d8290;
+}
+
+.dark-theme .advanced-close-btn:hover {
+  background: #1e212b;
+  color: #f2f3f5;
+}
+
+.dark-theme .advanced-section-title {
+  color: #7d8290;
+}
+
+.dark-theme .advanced-label {
+  color: #b4b8c2;
+}
+
+.dark-theme .advanced-input,
+.dark-theme .advanced-select {
+  background: #1a1d26;
+  border-color: #2c303c;
+  color: #f2f3f5;
+}
+
+.dark-theme .advanced-input::placeholder {
+  color: #5c6170;
+}
+
+.dark-theme .boolean-add-row {
+  background: #1a1d26;
+  border-color: #2c303c;
+  color: #7d8290;
+}
+
+.dark-theme .advanced-empty {
+  color: #7d8290;
+}
+
+.dark-theme .recently-viewed-item {
+  border-bottom-color: #1e212b;
+}
+
+.dark-theme .recently-viewed-btn:hover,
+.dark-theme .recently-viewed-btn:focus-visible {
+  background: #1e212b;
+}
+
+.dark-theme .recently-viewed-name {
+  color: #f2f3f5;
+}
+
+.dark-theme .recently-viewed-type {
+  color: #7d8290;
+}
+
+.dark-theme .advanced-footer {
+  border-top-color: #262a35;
+}
+
+.dark-theme .advanced-btn-secondary {
+  background: #1a1d26;
+  border-color: #2c303c;
+  color: #d0d3da;
+}
+
+.dark-theme .advanced-btn-secondary:hover {
+  background: #20232d;
+}
+
+.dark-theme .boolean-tag--and {
+  background: rgba(26, 157, 84, 0.15);
+}
