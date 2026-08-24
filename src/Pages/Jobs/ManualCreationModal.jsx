@@ -58,19 +58,24 @@ function ManualCreationModal({
     location: "",
     jobType: "Permanent",
     workMode: "Onsite",
+
     clientRateAmount: "",
     clientRateCurrency: "INR",
     clientRatePeriod: "month",
+
     candidateRateAmount: "",
     candidateRateCurrency: "INR",
     candidateRatePeriod: "month",
+
     skills: "",
     priority: "High",
     status: "Open",
+
     ownerId: "",
     assignedRecruiters: [],
     description: "",
     industry: "Information Technology",
+    leadNote: "",
   });
 
   useEffect(() => {
@@ -169,6 +174,7 @@ function ManualCreationModal({
         "",
       assignedRecruiters: recruiterIds,
       description: editJob.description || "",
+      leadNote: editJob.leadNote || "",
       industry:
         editJob.industry ||
         "Information Technology",
@@ -319,6 +325,8 @@ function ManualCreationModal({
       description:
         formData.description.trim(),
       descriptionSource: "manual",
+      leadNote:
+  formData.leadNote.trim(),
       industry: formData.industry.trim(),
       isTemplate: false,
       templateName: null,
@@ -873,7 +881,29 @@ function ManualCreationModal({
                 </div>
               )}
             </div>
+            <div className="job-form-field full">
+              <label>Lead note</label>
 
+              <textarea
+                className="lead-note-textarea"
+                name="leadNote"
+                value={formData.leadNote}
+                onChange={handleChange}
+                placeholder="Enter lead note"
+                disabled={submitting}
+              />
+            </div>
+            <div className="job-form-field">
+              <label>Industry</label>
+
+              <input
+                type="text"
+                name="industry"
+                value={formData.industry}
+                onChange={handleChange}
+                disabled={submitting}
+              />
+            </div>
             <div className="job-form-field full">
               <label>Description</label>
 
@@ -887,17 +917,6 @@ function ManualCreationModal({
               />
             </div>
 
-            <div className="job-form-field">
-              <label>Industry</label>
-
-              <input
-                type="text"
-                name="industry"
-                value={formData.industry}
-                onChange={handleChange}
-                disabled={submitting}
-              />
-            </div>
           </div>
         </div>
 
