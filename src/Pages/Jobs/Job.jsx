@@ -187,7 +187,6 @@ function JobPage() {
 
   return (
     <div className="page job-page">
-      <h1>Suryasnata Parhi</h1>
       <div className="page-header">
         <div>
           <h1 className="page-title">Jobs </h1>
