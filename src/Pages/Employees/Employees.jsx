@@ -1342,127 +1342,127 @@ function Employees() {
         async (employeeData) => {
 
 
-        /*
-         * =====================================================
-         * EDIT
-         *
-         * No UPDATE API was provided yet.
-         * =====================================================
-         */
-        if (editingEmployee) {
+            /*
+             * =====================================================
+             * EDIT
+             *
+             * No UPDATE API was provided yet.
+             * =====================================================
+             */
+            if (editingEmployee) {
 
-            alert(
-                "Employee update API is not available yet."
-            );
+                alert(
+                    "Employee update API is not available yet."
+                );
 
-            return;
-        }
+                return;
+            }
 
-
-        /*
-         * =====================================================
-         * CREATE
-         * =====================================================
-         */
-        const apiEmployeeData = {
-
-            employeeCode:
-                employeeData.employeeId,
-
-            fullName:
-                employeeData.fullName,
-
-            designation:
-                employeeData.designation,
-
-            officialEmail:
-                employeeData.officialEmail,
-
-            personalEmail:
-                employeeData.personalEmail,
-
-            phone:
-                employeeData.contactNumber,
-
-            whatsapp:
-                employeeData.whatsappNumber,
-
-            role:
-                employeeData.role,
-
-            password:
-                employeeData.password,
-
-            isActive:
-                employeeData.isActive,
-
-            countryCode:
-                employeeData.countryCode,
-        };
-
-
-        console.log(
-            "Employee API Data:",
-            apiEmployeeData
-        );
-
-
-        try {
 
             /*
-             * Create API
+             * =====================================================
+             * CREATE
+             * =====================================================
              */
-            const response =
-                await dispatch(
-                    createEmployee({
+            const apiEmployeeData = {
 
-                        employeeData:
-                            apiEmployeeData,
+                employeeCode:
+                    employeeData.employeeId,
 
-                        photoFile:
-    employeeData.photo ||
-    null,
+                fullName:
+                    employeeData.fullName,
 
-                    })
-                ).unwrap();
+                designation:
+                    employeeData.designation,
+
+                officialEmail:
+                    employeeData.officialEmail,
+
+                personalEmail:
+                    employeeData.personalEmail,
+
+                phone:
+                    employeeData.contactNumber,
+
+                whatsapp:
+                    employeeData.whatsappNumber,
+
+                role:
+                    employeeData.role,
+
+                password:
+                    employeeData.password,
+
+                isActive:
+                    employeeData.isActive,
+
+                countryCode:
+                    employeeData.countryCode,
+            };
 
 
             console.log(
-                "Employee created successfully:",
-                response
+                "Employee API Data:",
+                apiEmployeeData
             );
 
 
-            /*
-             * Close modal
-             */
-            closeModal();
+            try {
+
+                /*
+                 * Create API
+                 */
+                const response =
+                    await dispatch(
+                        createEmployee({
+
+                            employeeData:
+                                apiEmployeeData,
+
+                            photoFile:
+                                employeeData.photo ||
+                                null,
+
+                        })
+                    ).unwrap();
 
 
-            /*
-             * Reload from backend.
-             *
-             * This is better than manually adding
-             * the response because GET ALL gives
-             * us the actual backend list.
-             */
-            dispatch(
-                getAllEmployees()
-            );
+                console.log(
+                    "Employee created successfully:",
+                    response
+                );
 
 
-            alert(
-                "Employee created successfully."
-            );
+                /*
+                 * Close modal
+                 */
+                closeModal();
 
-        } catch (error) {
 
-            console.error(
-                "Create employee failed:",
-                error
-            );
-        }
-    };
+                /*
+                 * Reload from backend.
+                 *
+                 * This is better than manually adding
+                 * the response because GET ALL gives
+                 * us the actual backend list.
+                 */
+                dispatch(
+                    getAllEmployees()
+                );
+
+
+                alert(
+                    "Employee created successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Create employee failed:",
+                    error
+                );
+            }
+        };
 
 
     /*
@@ -1473,53 +1473,53 @@ function Employees() {
     const handleDeleteEmployee =
         async (employee) => {
 
-        if (!employee?.id) {
+            if (!employee?.id) {
 
-            alert(
-                "Employee ID not found."
-            );
+                alert(
+                    "Employee ID not found."
+                );
 
-            return;
-        }
-
-
-        const confirmed =
-            window.confirm(
-                `Delete ${employee.fullName} from the employee directory?`
-            );
+                return;
+            }
 
 
-        if (!confirmed) {
-            return;
-        }
+            const confirmed =
+                window.confirm(
+                    `Delete ${employee.fullName} from the employee directory?`
+                );
 
 
-        try {
-
-            await dispatch(
-                deleteEmployeeApi(
-                    employee.id
-                )
-            ).unwrap();
+            if (!confirmed) {
+                return;
+            }
 
 
-            alert(
-                "Employee deleted successfully."
-            );
+            try {
 
-        } catch (error) {
+                await dispatch(
+                    deleteEmployeeApi(
+                        employee.id
+                    )
+                ).unwrap();
 
-            console.error(
-                "Delete employee failed:",
-                error
-            );
 
-            alert(
-                error ||
-                "Unable to delete employee."
-            );
-        }
-    };
+                alert(
+                    "Employee deleted successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Delete employee failed:",
+                    error
+                );
+
+                alert(
+                    error ||
+                    "Unable to delete employee."
+                );
+            }
+        };
 
 
     /*
@@ -1678,172 +1678,172 @@ function Employees() {
 
     return (
 
-        <div className="employees-page">
+        <div className="page">
 
-            <div className="employees-content">
+            {/* <div className="page-content"> */}
 
 
-                {/* =================================================
+            {/* =================================================
                     HEADER
                 ================================================= */}
 
-                <div className="employees-header">
+            <div className="page-header">
 
-                    <div>
+                <div>
 
-                        <h1>
-                            Troy Employees
-                        </h1>
+                    <h1 className="page-title">
+                        Troy Employees
+                    </h1>
 
-                        <p>
+                    <p className="page-subtitle">
 
-                            {employees.length}{" "}
+                        {employees.length}{" "}
 
-                            {employees.length === 1
-                                ? "team member"
-                                : "team members"}
+                        {employees.length === 1
+                            ? "team member"
+                            : "team members"}
 
-                        </p>
-
-                    </div>
-
-
-                    <div className="employees-header-actions">
-
-                        <button
-                            type="button"
-                            className="employee-export-btn"
-                            onClick={
-                                exportCsv
-                            }
-                        >
-
-                            <i className="bi bi-download"></i>
-
-                            Export CSV
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            className="employee-add-btn"
-                            onClick={
-                                openAddModal
-                            }
-                        >
-
-                            <i className="bi bi-plus-lg"></i>
-
-                            Add employee
-
-                        </button>
-
-                    </div>
+                    </p>
 
                 </div>
 
 
-                {/* =================================================
+                <div className="page-header-actions">
+
+                    <button
+                        type="button"
+                        className="outline-btn"
+                        onClick={
+                            exportCsv
+                        }
+                    >
+
+                        <i className="bi bi-download"></i>
+
+                        Export CSV
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={
+                            openAddModal
+                        }
+                    >
+
+                        <i className="bi bi-plus-lg"></i>
+
+                        Add employee
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            {/* =================================================
                     API ERROR
                 ================================================= */}
 
-                {error && (
+            {error && (
 
-                    <div className="employee-api-error">
+                <div className="employee-api-error">
 
-                        {error}
+                    {error}
 
-                    </div>
+                </div>
 
-                )}
+            )}
 
 
-                {/* =================================================
+            {/* =================================================
                     STATS
                 ================================================= */}
 
-                <div className="employee-stats">
+            <div className="employee-stats">
 
-                    <div className="employee-stat-card">
+                <div className="employee-stat-card">
 
-                        <div className="employee-stat-value">
+                    <div className="employee-stat-value">
 
-                            {employees.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Total
-
-                        </div>
+                        {employees.length}
 
                     </div>
 
+                    <div className="employee-stat-label">
 
-                    <div className="employee-stat-card">
-
-                        <div className="employee-stat-value">
-
-                            {designations.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Designations
-
-                        </div>
+                        Total
 
                     </div>
 
                 </div>
 
 
-                {/* =================================================
+                <div className="employee-stat-card">
+
+                    <div className="employee-stat-value">
+
+                        {designations.length}
+
+                    </div>
+
+                    <div className="employee-stat-label">
+
+                        Designations
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* =================================================
                     SEARCH
                 ================================================= */}
 
-                <div className="employee-search-wrapper">
+            <div className="employee-search-wrapper common-search">
 
-                    <i className="bi bi-search"></i>
+                <i className="bi bi-search"></i>
 
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(event) =>
-                            setSearch(
-                                event.target.value
-                            )
-                        }
-                        placeholder="Search name, ID, designation, email..."
-                    />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(event) =>
+                        setSearch(
+                            event.target.value
+                        )
+                    }
+                    placeholder="Search name, ID, designation, email..."
+                />
 
-                </div>
+            </div>
 
 
-                {/* =================================================
+            {/* =================================================
                     LOADING
                 ================================================= */}
 
-                {isFetching && (
+            {isFetching && (
 
-                    <div className="employees-loading">
+                <div className="employees-loading">
 
-                        Loading employees...
+                    Loading employees...
 
-                    </div>
+                </div>
 
-                )}
+            )}
 
 
-                {/* =================================================
+            {/* =================================================
                     TABLE
                 ================================================= */}
 
-                {!isFetching &&
-                    filteredEmployees.length > 0 && (
+            {!isFetching &&
+                filteredEmployees.length > 0 && (
 
                     <div className="employees-table-wrapper">
 
@@ -1887,253 +1887,253 @@ function Employees() {
                                 {filteredEmployees.map(
                                     (employee) => {
 
-                                    const employeeId =
-                                        employee.id;
+                                        const employeeId =
+                                            employee.id;
 
-                                    const employeeCode =
-                                        employee.employeeCode ||
-                                        employee.employeeId;
+                                        const employeeCode =
+                                            employee.employeeCode ||
+                                            employee.employeeId;
 
-                                    const phone =
-                                        employee.phone ||
-                                        employee.contactNumber ||
-                                        "";
+                                        const phone =
+                                            employee.phone ||
+                                            employee.contactNumber ||
+                                            "";
 
-                                    const whatsapp =
-                                        employee.whatsapp ||
-                                        employee.whatsappNumber ||
-                                        "";
+                                        const whatsapp =
+                                            employee.whatsapp ||
+                                            employee.whatsappNumber ||
+                                            "";
 
 
-                                    return (
+                                        return (
 
-                                        <tr
-                                            key={
-                                                employeeId
-                                            }
-                                        >
+                                            <tr
+                                                key={
+                                                    employeeId
+                                                }
+                                            >
 
-                                            {/* EMPLOYEE */}
+                                                {/* EMPLOYEE */}
 
-                                            <td>
+                                                <td>
 
-                                                <div className="employee-person">
+                                                    <div className="employee-person">
 
-                                                    {employee.photoUrl ||
-                                                    employee.photo ? (
+                                                        {employee.photoUrl ||
+                                                            employee.photo ? (
 
-                                                        <img
-                                                            src={
-                                                                employee.photoUrl ||
-                                                                employee.photo
-                                                            }
-                                                            alt={
-                                                                employee.fullName
-                                                            }
-                                                            className="employee-avatar employee-avatar-image"
-                                                        />
+                                                            <img
+                                                                src={
+                                                                    employee.photoUrl ||
+                                                                    employee.photo
+                                                                }
+                                                                alt={
+                                                                    employee.fullName
+                                                                }
+                                                                className="employee-avatar employee-avatar-image"
+                                                            />
 
-                                                    ) : (
+                                                        ) : (
 
-                                                        <div className="employee-avatar">
+                                                            <div className="employee-avatar">
 
-                                                            {initials(
-                                                                employee.fullName
-                                                            )}
+                                                                {initials(
+                                                                    employee.fullName
+                                                                )}
+
+                                                            </div>
+
+                                                        )}
+
+
+                                                        <div className="employee-person-info">
+
+                                                            <strong>
+
+                                                                {
+                                                                    employee.fullName
+                                                                }
+
+                                                            </strong>
+
+                                                            <span>
+
+                                                                {
+                                                                    employee.personalEmail ||
+                                                                    "—"
+                                                                }
+
+                                                            </span>
 
                                                         </div>
 
-                                                    )}
-
-
-                                                    <div className="employee-person-info">
-
-                                                        <strong>
-
-                                                            {
-                                                                employee.fullName
-                                                            }
-
-                                                        </strong>
-
-                                                        <span>
-
-                                                            {
-                                                                employee.personalEmail ||
-                                                                "—"
-                                                            }
-
-                                                        </span>
-
                                                     </div>
 
-                                                </div>
-
-                                            </td>
+                                                </td>
 
 
-                                            {/* EMPLOYEE ID */}
+                                                {/* EMPLOYEE ID */}
 
-                                            <td>
+                                                <td>
 
-                                                <span className="employee-id">
-
-                                                    {
-                                                        employeeCode
-                                                    }
-
-                                                </span>
-
-                                            </td>
-
-
-                                            {/* DESIGNATION */}
-
-                                            <td>
-
-                                                <span className="designation-text">
-
-                                                    {
-                                                        employee.designation
-                                                    }
-
-                                                </span>
-
-                                            </td>
-
-
-                                            {/* CONTACT */}
-
-                                            <td>
-
-                                                <div className="employee-contact">
-
-                                                    <span>
+                                                    <span className="employee-id">
 
                                                         {
-                                                            phone
+                                                            employeeCode
                                                         }
 
                                                     </span>
 
+                                                </td>
 
-                                                    <div className="employee-comms">
 
-                                                        <a
-                                                            href={
-                                                                `tel:${phone}`
+                                                {/* DESIGNATION */}
+
+                                                <td>
+
+                                                    <span className="designation-text">
+
+                                                        {
+                                                            employee.designation
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* CONTACT */}
+
+                                                <td>
+
+                                                    <div className="employee-contact">
+
+                                                        <span>
+
+                                                            {
+                                                                phone
                                                             }
-                                                            title="Call"
-                                                        >
 
-                                                            <i className="bi bi-telephone"></i>
-
-                                                        </a>
+                                                        </span>
 
 
-                                                        <a
-                                                            href={
-                                                                `https://wa.me/${whatsapp.replace(
-                                                                    /[^0-9]/g,
-                                                                    ""
-                                                                )}`
-                                                            }
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            title="WhatsApp"
-                                                        >
+                                                        <div className="employee-comms">
 
-                                                            <i className="bi bi-whatsapp"></i>
+                                                            <a
+                                                                href={
+                                                                    `tel:${phone}`
+                                                                }
+                                                                title="Call"
+                                                            >
 
-                                                        </a>
+                                                                <i className="bi bi-telephone"></i>
+
+                                                            </a>
 
 
-                                                        <a
-                                                            href={
-                                                                `mailto:${employee.officialEmail}`
-                                                            }
-                                                            title="Email"
-                                                        >
+                                                            <a
+                                                                href={
+                                                                    `https://wa.me/${whatsapp.replace(
+                                                                        /[^0-9]/g,
+                                                                        ""
+                                                                    )}`
+                                                                }
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                title="WhatsApp"
+                                                            >
 
-                                                            <i className="bi bi-envelope"></i>
+                                                                <i className="bi bi-whatsapp"></i>
 
-                                                        </a>
+                                                            </a>
+
+
+                                                            <a
+                                                                href={
+                                                                    `mailto:${employee.officialEmail}`
+                                                                }
+                                                                title="Email"
+                                                            >
+
+                                                                <i className="bi bi-envelope"></i>
+
+                                                            </a>
+
+                                                        </div>
 
                                                     </div>
 
-                                                </div>
-
-                                            </td>
+                                                </td>
 
 
-                                            {/* EMAIL */}
+                                                {/* EMAIL */}
 
-                                            <td>
+                                                <td>
 
-                                                <a
-                                                    href={
-                                                        `mailto:${employee.officialEmail}`
-                                                    }
-                                                    className="employee-email"
-                                                >
-
-                                                    {
-                                                        employee.officialEmail
-                                                    }
-
-                                                </a>
-
-                                            </td>
-
-
-                                            {/* ACTIONS */}
-
-                                            <td>
-
-                                                <div className="employee-actions">
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            openEditModal(
-                                                                employee
-                                                            )
+                                                    <a
+                                                        href={
+                                                            `mailto:${employee.officialEmail}`
                                                         }
-                                                        disabled={
-                                                            isDeleting ||
-                                                            isFetching
-                                                        }
+                                                        className="employee-email"
                                                     >
-                                                        Edit
-                                                    </button>
 
-
-                                                    <button
-                                                        type="button"
-                                                        className="employee-delete-action"
-                                                        onClick={() =>
-                                                            handleDeleteEmployee(
-                                                                employee
-                                                            )
+                                                        {
+                                                            employee.officialEmail
                                                         }
-                                                        disabled={
-                                                            isDeleting
-                                                        }
-                                                    >
-                                                        {isDeleting
-                                                            ? "Deleting..."
-                                                            : "Delete"}
-                                                    </button>
 
-                                                </div>
+                                                    </a>
 
-                                            </td>
+                                                </td>
 
-                                        </tr>
 
-                                    );
+                                                {/* ACTIONS */}
 
-                                })}
+                                                <td>
+
+                                                    <div className="employee-actions">
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openEditModal(
+                                                                    employee
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isDeleting ||
+                                                                isFetching
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </button>
+
+
+                                                        <button
+                                                            type="button"
+                                                            className="employee-delete-action"
+                                                            onClick={() =>
+                                                                handleDeleteEmployee(
+                                                                    employee
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isDeleting
+                                                            }
+                                                        >
+                                                            {isDeleting
+                                                                ? "Deleting..."
+                                                                : "Delete"}
+                                                        </button>
+
+                                                    </div>
+
+                                                </td>
+
+                                            </tr>
+
+                                        );
+
+                                    })}
 
                             </tbody>
 
@@ -2144,12 +2144,12 @@ function Employees() {
                 )}
 
 
-                {/* =================================================
+            {/* =================================================
                     EMPTY STATE
                 ================================================= */}
 
-                {!isFetching &&
-                    filteredEmployees.length === 0 && (
+            {!isFetching &&
+                filteredEmployees.length === 0 && (
 
                     <div className="employees-empty-state">
 
@@ -2172,7 +2172,7 @@ function Employees() {
 
                 )}
 
-            </div>
+            {/* </div> */}
 
 
             {/* =================================================

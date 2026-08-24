@@ -445,7 +445,10 @@ button {
 .dark-theme .todays-interviews-card,
 .dark-theme .attention-card,
 .dark-theme .job-stat-card,
+.dark-theme .employee-stats,
+.dark-theme .employee-stats-card,
 .dark-theme .job-table-wrapper,
+.dark-theme .employees-table-wrapper,
 .dark-theme .job-description-card,
 .dark-theme .job-ai-matching-card,
 .dark-theme .job-activity-card,
@@ -460,6 +463,8 @@ button {
 .dark-theme .candidate-cv-card,
 .dark-theme .report-stat-card,
 .dark-theme .success-story-card,
+.dark-theme .client-stat-card,
+.dark-theme .clients-table-wrapper,
 .dark-theme .report-table-wrapper {
   background: #1f2937;
   border-color: #374151;
@@ -520,6 +525,8 @@ button {
 .dark-theme .job-candidate-info strong,
 .dark-theme .job-location-detail-row strong,
 .dark-theme .template-item-info strong,
+.dark-theme .client-stat-number,
+.dark-theme .client-stat-label,
 .dark-theme .candidate-not-found h2 {
   color: #f3f4f6;
 }
@@ -551,7 +558,7 @@ button {
 .dark-theme .parse-description,
 .dark-theme .parse-note,
 .dark-theme .ai-engine-row,
-.dark-theme .copilot-body > p,
+.dark-theme .copilot-body>p,
 .dark-theme .job-activity-date,
 .dark-theme .job-activity-description,
 .dark-theme .stat-label,
@@ -575,7 +582,7 @@ button {
 .dark-theme .job-pipeline-empty,
 .dark-theme .job-ai-score,
 .dark-theme .job-ai-note,
-.dark-theme .workflow-candidate-bottom > span,
+.dark-theme .workflow-candidate-bottom>span,
 .dark-theme .workflow-client,
 .dark-theme .workflow-cv-id,
 .dark-theme .workflow-rate,
@@ -596,6 +603,7 @@ button {
 
 .dark-theme .job-search-box,
 .dark-theme .job-filter-select,
+.dark-theme .status-filter,
 .dark-theme .common-search,
 .dark-theme .common-select,
 .dark-theme .admin-select,
@@ -745,11 +753,17 @@ button {
 .dark-theme .job-table thead,
 .dark-theme .candidate-table thead th,
 .dark-theme .workflow-table thead th,
+.dark-theme .clients-table thead th,
+.dark-theme .clients-table thead,
+.dark-theme .employees-table thead th,
+.dark-theme .employees-table thead,
 .dark-theme .report-table thead {
   background: #273449;
 }
 
 .dark-theme .job-table th,
+.dark-theme .clients-table th,
+.dark-theme .employees-table th,
 .dark-theme .candidate-table thead th,
 .dark-theme .workflow-table thead th,
 .dark-theme .report-table thead th {
@@ -763,17 +777,26 @@ button {
 ========================================================= */
 
 .dark-theme .job-table tbody tr:nth-child(even),
+.dark-theme .clients-table tbody tr:nth-child(even),
+.dark-theme .employees-table tbody tr:nth-child(even),
 .dark-theme .candidate-table tbody tr:nth-child(even) {
   background: #1b2535;
 }
 
 .dark-theme .job-table tbody tr:nth-child(odd),
+.dark-theme .clients-table tbody tr:nth-child(odd),
+.dark-theme .employees-table tbody tr:nth-child(odd),
 .dark-theme .candidate-table tbody tr:nth-child(odd) {
   background: #1f2937;
 }
 
 .dark-theme .job-table tbody tr:hover,
+.dark-theme .clients-table tbody tr:hover,
 .dark-theme .candidate-table tbody tr:hover,
+.dark-theme .employees-table tbody tr:hover {
+  background: #26354a;
+}
+
 .dark-theme .workflow-table tbody tr:hover,
 .dark-theme .report-table tbody tr:hover {
   background: #26354a;
@@ -786,16 +809,22 @@ button {
 
 .dark-theme .job-table td,
 .dark-theme .candidate-table tbody td,
+.dark-theme .clients-table tbody td,
 .dark-theme .workflow-table tbody td,
+.dark-theme .employees-table tbody td,
 .dark-theme .report-table tbody td {
   border-bottom-color: #374151;
 }
 
-.dark-theme .candidate-table tbody td {
+.dark-theme .candidate-table tbody td,
+.dark-theme .employees-table tbody td,
+.dark-theme .clients-table tbody td {
   color: #dbeafe;
 }
 
-.dark-theme .report-table tbody td {
+.dark-theme .report-table tbody td,
+.dark-theme .employees-table tbody td
+.dark-theme .clients-table tbody td {
   color: #e5e7eb;
 }
 
@@ -995,11 +1024,9 @@ button {
 
 .dark-theme .candidate-profile-avatar,
 .dark-theme .candidate-avatar {
-  background: linear-gradient(
-    145deg,
-    #4779dc,
-    #1d448f
-  );
+  background: linear-gradient(145deg,
+      #4779dc,
+      #1d448f);
 }
 
 .dark-theme .candidate-cv-card,

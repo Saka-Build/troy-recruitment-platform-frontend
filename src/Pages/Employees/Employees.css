@@ -6,7 +6,7 @@
     width: 100%;
     min-height: calc(100vh - 70px);
 
-    background: #f4f7fc;
+    /* background: #f4f7fc; */
     color: #172d4f;
 
     box-sizing: border-box;
@@ -270,7 +270,7 @@
     border-collapse: separate;
     border-spacing: 0;
 
-    color: #304967;
+    /* color: #304967; */
 
     font-size: 13px;
 }
@@ -293,7 +293,7 @@
 
     background: #edf3fa;
 
-    color: #627795;
+    /* color: #627795; */
 
     font-size: 10.5px;
 
@@ -364,7 +364,7 @@
 }
 
 .employee-person-info strong {
-    color: #173251;
+    /* color: #173251; */
 
     font-size: 13px;
     font-weight: 700;
@@ -373,7 +373,7 @@
 .employee-person-info span {
     margin-top: 3px;
 
-    color: #7487a1;
+    /* color: #7487a1; */
 
     font-size: 11px;
 }
@@ -384,7 +384,7 @@
 ========================================================= */
 
 .employee-id {
-    color: #405a7a;
+    /* color: #405a7a; */
 
     font-size: 12px;
     font-weight: 600;
@@ -396,7 +396,7 @@
 ========================================================= */
 
 .designation-text {
-    color: #405a7a;
+    /* color: #405a7a; */
 
     font-size: 12px;
 }
@@ -414,7 +414,7 @@
 }
 
 .employee-contact>span {
-    color: #415b7a;
+    /* color: #415b7a; */
 
     font-size: 12px;
 }
@@ -440,7 +440,7 @@
 
     background: #f8fbff;
 
-    color: #51708f;
+    /* color: #51708f; */
 
     text-decoration: none;
 
@@ -463,7 +463,7 @@
 ========================================================= */
 
 .employee-email {
-    color: #416080;
+    /* color: #416080; */
 
     font-size: 12px;
 
