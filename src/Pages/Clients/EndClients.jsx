@@ -207,9 +207,9 @@ function EndClients({ onBack }) {
 
                     const matchesStatus =
                         statusFilter ===
-                            "All statuses" ||
+                        "All statuses" ||
                         client.status ===
-                            statusFilter;
+                        statusFilter;
 
 
                     return (
@@ -438,7 +438,7 @@ function EndClients({ onBack }) {
     const lastRecord =
         Math.min(
             currentPage *
-                ITEMS_PER_PAGE,
+            ITEMS_PER_PAGE,
             filteredEndClients.length
         );
 
@@ -449,14 +449,14 @@ function EndClients({ onBack }) {
 
     return (
 
-        <div className="end-clients-page">
+        <div className="page">
 
 
             {/* =================================================
                 HEADER
             ================================================= */}
 
-            <div className="end-clients-header">
+            <div className="page-header">
 
                 <div className="end-clients-title-section">
 
@@ -469,12 +469,12 @@ function EndClients({ onBack }) {
                     </button>
 
 
-                    <h1>
+                    <h1 className="page-title">
                         End Clients
                     </h1>
 
 
-                    <p>
+                    <p className="page-subtitle">
 
                         {endClients.length} end client{" "}
 
@@ -710,14 +710,13 @@ function EndClients({ onBack }) {
                                         <td>
 
                                             <span
-                                                className={`end-client-status ${
-                                                    client.status
-                                                        ?.toLowerCase()
-                                                        .replace(
-                                                            /\s+/g,
-                                                            "-"
-                                                        )
-                                                }`}
+                                                className={`end-client-status ${client.status
+                                                    ?.toLowerCase()
+                                                    .replace(
+                                                        /\s+/g,
+                                                        "-"
+                                                    )
+                                                    }`}
                                             >
 
                                                 {
@@ -792,114 +791,113 @@ function EndClients({ onBack }) {
                 filteredEndClients.length > 0 &&
                 totalPages > 1 && (
 
-                <div className="end-clients-pagination">
+                    <div className="end-clients-pagination">
 
 
-                    {/* =========================================
+                        {/* =========================================
                         RECORD INFO
                     ========================================= */}
 
-                    <div className="end-client-pagination-info">
+                        <div className="end-client-pagination-info">
 
-                        Showing{" "}
+                            Showing{" "}
 
-                        <strong>
-                            {firstRecord}
-                        </strong>
+                            <strong>
+                                {firstRecord}
+                            </strong>
 
-                        {" "}to{" "}
+                            {" "}to{" "}
 
-                        <strong>
-                            {lastRecord}
-                        </strong>
+                            <strong>
+                                {lastRecord}
+                            </strong>
 
-                        {" "}of{" "}
+                            {" "}of{" "}
 
-                        <strong>
-                            {filteredEndClients.length}
-                        </strong>
+                            <strong>
+                                {filteredEndClients.length}
+                            </strong>
 
-                        {" "}end clients
+                            {" "}end clients
 
-                    </div>
+                        </div>
 
 
-                    {/* =========================================
+                        {/* =========================================
                         PAGINATION CONTROLS
                     ========================================= */}
 
-                    <div className="end-client-pagination-controls">
+                        <div className="end-client-pagination-controls">
 
 
-                        {/* PREVIOUS */}
+                            {/* PREVIOUS */}
 
-                        <button
-                            type="button"
-                            className="pagination-arrow"
-                            onClick={
-                                handlePreviousPage
-                            }
-                            disabled={
-                                currentPage === 1
-                            }
-                        >
+                            <button
+                                type="button"
+                                className="pagination-arrow"
+                                onClick={
+                                    handlePreviousPage
+                                }
+                                disabled={
+                                    currentPage === 1
+                                }
+                            >
 
-                            ‹
+                                ‹
 
-                        </button>
+                            </button>
 
 
-                        {/* PAGE NUMBERS */}
+                            {/* PAGE NUMBERS */}
 
-                        {pageNumbers.map(
-                            (page) => (
+                            {pageNumbers.map(
+                                (page) => (
 
-                                <button
-                                    key={page}
-                                    type="button"
-                                    className={`pagination-page ${
-                                        currentPage === page
+                                    <button
+                                        key={page}
+                                        type="button"
+                                        className={`pagination-page ${currentPage === page
                                             ? "active"
                                             : ""
-                                    }`}
-                                    onClick={() =>
-                                        handlePageChange(
-                                            page
-                                        )
-                                    }
-                                >
+                                            }`}
+                                        onClick={() =>
+                                            handlePageChange(
+                                                page
+                                            )
+                                        }
+                                    >
 
-                                    {page}
+                                        {page}
 
-                                </button>
+                                    </button>
 
-                            )
-                        )}
+                                )
+                            )}
 
 
-                        {/* NEXT */}
+                            {/* NEXT */}
 
-                        <button
-                            type="button"
-                            className="pagination-arrow"
-                            onClick={
-                                handleNextPage
-                            }
-                            disabled={
-                                currentPage ===
-                                totalPages
-                            }
-                        >
+                            <button
+                                type="button"
+                                className="pagination-arrow"
+                                onClick={
+                                    handleNextPage
+                                }
+                                disabled={
+                                    currentPage ===
+                                    totalPages
+                                }
+                            >
 
-                            ›
+                                ›
 
-                        </button>
+                            </button>
+
+                        </div>
 
                     </div>
 
-                </div>
-
-            )}
+                )}
 
 
             {/* =================================================
