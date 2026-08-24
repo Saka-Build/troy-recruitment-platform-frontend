@@ -1,19 +1,148 @@
-import {
-    createAsyncThunk,
-    createSlice,
-} from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import employeeApi from "../../services/employeeApi";
+
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    " ";
 
 
 /*
- * =========================================================
- * CREATE EMPLOYEE
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| GET ALL EMPLOYEES
+|--------------------------------------------------------------------------
+*/
+export const getAllEmployees = createAsyncThunk(
+    "employees/getAllEmployees",
+    async (_, { rejectWithValue }) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/employees`
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to fetch employees."
+                );
+            }
+
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch employees."
+            );
+        }
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| GET COUNTRIES
+|--------------------------------------------------------------------------
+*/
+export const getCountries = createAsyncThunk(
+    "employees/getCountries",
+    async (_, { rejectWithValue }) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/global/getCountries`
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to fetch countries."
+                );
+            }
+
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch countries."
+            );
+        }
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| GET EMPLOYEE BY ID
+|--------------------------------------------------------------------------
+*/
+export const getEmployeeById = createAsyncThunk(
+    "employees/getEmployeeById",
+    async (id, { rejectWithValue }) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/employees/${id}`
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to fetch employee."
+                );
+            }
+
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch employee."
+            );
+        }
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| CREATE EMPLOYEE
+|
+| POST /api/v1/employees/create
+|
+| multipart/form-data
+|
+| employee -> JSON
+| photo    -> File
+|--------------------------------------------------------------------------
+*/
 export const createEmployee = createAsyncThunk(
     "employees/createEmployee",
-
     async (
         {
             employeeData,
@@ -24,109 +153,107 @@ export const createEmployee = createAsyncThunk(
 
         try {
 
-            const response =
-                await employeeApi.createEmployee(
-                    employeeData,
-                    photoFile
+            const formData = new FormData();
+
+
+            /*
+             * Backend expects:
+             *
+             * employee = JSON
+             */
+            const employeeBlob =
+                new Blob(
+                    [
+                        JSON.stringify(
+                            employeeData
+                        ),
+                    ],
+                    {
+                        type:
+                            "application/json",
+                    }
                 );
 
-            return response;
 
-        } catch (error) {
-
-            console.error(
-                "Create Employee API Error:",
-                error
+            formData.append(
+                "employee",
+                employeeBlob
             );
 
-            const message =
-                error.response?.data?.message ||
-                error.response?.data?.error ||
-                "Unable to create employee. Please try again.";
 
-            return rejectWithValue(message);
-        }
-    }
-);
+            /*
+             * Backend expects:
+             *
+             * photo = File
+             */
+            if (photoFile) {
 
+                formData.append(
+                    "photo",
+                    photoFile
+                );
+            }
 
-/*
- * =========================================================
- * GET ALL EMPLOYEES
- * =========================================================
- */
-export const getAllEmployees = createAsyncThunk(
-    "employees/getAllEmployees",
-
-    async (_, { rejectWithValue }) => {
-
-        try {
 
             const response =
-                await employeeApi.getAllEmployees();
+                await fetch(
+                    `${API_BASE_URL}/api/v1/employees/create`,
+                    {
+                        method: "POST",
+                        body: formData,
+                    }
+                );
 
-            return response;
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to create employee."
+                );
+            }
+
+
+            return data;
 
         } catch (error) {
 
-            console.error(
-                "Get All Employees API Error:",
-                error
+            return rejectWithValue(
+                error.message ||
+                "Failed to create employee."
             );
-
-            const message =
-                error.response?.data?.message ||
-                error.response?.data?.error ||
-                "Unable to load employees.";
-
-            return rejectWithValue(message);
         }
     }
 );
 
 
 /*
- * =========================================================
- * GET EMPLOYEE BY ID
- * =========================================================
- */
-export const getEmployeeById = createAsyncThunk(
-    "employees/getEmployeeById",
-
-    async (id, { rejectWithValue }) => {
-
-        try {
-
-            const response =
-                await employeeApi.getEmployeeById(id);
-
-            return response;
-
-        } catch (error) {
-
-            console.error(
-                "Get Employee By ID API Error:",
-                error
-            );
-
-            const message =
-                error.response?.data?.message ||
-                error.response?.data?.error ||
-                "Unable to load employee.";
-
-            return rejectWithValue(message);
-        }
-    }
-);
-
+|--------------------------------------------------------------------------
+| UPDATE EMPLOYEE
+|
+| PUT /api/v1/employees/update/{id}
+|
+| Backend accepts partial body.
+|--------------------------------------------------------------------------
+*/
 /*
- * =========================================================
- * UPDATE EMPLOYEE
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| UPDATE EMPLOYEE
+|
+| PUT /api/v1/employees/update/{id}
+|
+| multipart/form-data
+|
+| employee -> JSON
+| photo    -> File (optional)
+|--------------------------------------------------------------------------
+*/
 export const updateEmployee = createAsyncThunk(
     "employees/updateEmployee",
-
     async (
         {
             id,
@@ -138,464 +265,474 @@ export const updateEmployee = createAsyncThunk(
 
         try {
 
-            const response =
-                await employeeApi.updateEmployee(
-                    id,
-                    employeeData,
+            const formData = new FormData();
+
+            /*
+             * Backend expects:
+             *
+             * employee = JSON
+             */
+            const employeeBlob = new Blob(
+                [
+                    JSON.stringify(
+                        employeeData
+                    ),
+                ],
+                {
+                    type: "application/json",
+                }
+            );
+
+            formData.append(
+                "employee",
+                employeeBlob
+            );
+
+
+            /*
+             * Backend expects:
+             *
+             * photo = File
+             */
+            if (photoFile) {
+
+                formData.append(
+                    "photo",
                     photoFile
                 );
+            }
 
-            return response;
+
+            console.log(
+                "UPDATE URL:",
+                `${API_BASE_URL}/api/v1/employees/update/${id}`
+            );
+
+            console.log(
+                "UPDATE BODY:",
+                employeeData
+            );
+
+
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/api/v1/employees/update/${id}`,
+                    {
+                        method: "PUT",
+
+                        body: formData,
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                "UPDATE RESPONSE STATUS:",
+                response.status
+            );
+
+            console.log(
+                "UPDATE RESPONSE:",
+                data
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to update employee."
+                );
+            }
+
+
+            return data;
 
         } catch (error) {
 
             console.error(
-                "Update Employee API Error:",
+                "UPDATE EMPLOYEE ERROR:",
                 error
             );
 
-            const message =
-                error.response?.data?.message ||
-                error.response?.data?.error ||
-                "Unable to update employee. Please try again.";
-
-            return rejectWithValue(message);
-        }
-    }
-);
-
-/*
- * =========================================================
- * DELETE EMPLOYEE
- * =========================================================
- */
-export const deleteEmployee = createAsyncThunk(
-    "employees/deleteEmployee",
-
-    async (id, { rejectWithValue }) => {
-
-        try {
-
-            await employeeApi.deleteEmployee(id);
-
-            return id;
-
-        } catch (error) {
-
-            console.error(
-                "Delete Employee API Error:",
-                error
+            return rejectWithValue(
+                error.message ||
+                "Failed to update employee."
             );
-
-            const message =
-                error.response?.data?.message ||
-                error.response?.data?.error ||
-                "Unable to delete employee.";
-
-            return rejectWithValue(message);
         }
     }
 );
 
 
 /*
- * =========================================================
- * INITIAL STATE
- * =========================================================
- */
-const initialState = {
+|--------------------------------------------------------------------------
+| SLICE
+|--------------------------------------------------------------------------
+*/
+const employeeSlice =
+    createSlice({
 
-    employees: [],
+        name: "employees",
 
-    selectedEmployee: null,
+        initialState: {
 
-    isLoading: false,
+            employees: [],
 
-    isFetching: false,
-    isUpdating: false,
-    isDeleting: false,
+            countries: [],
 
-    error: null,
+            selectedEmployee: null,
 
-    success: false,
-};
+            isLoading: false,
 
+            isSaving: false,
 
-/*
- * =========================================================
- * SLICE
- * =========================================================
- */
-const employeeSlice = createSlice({
+            countriesLoading: false,
 
-    name: "employees",
+            error: null,
 
-    initialState,
-
-    reducers: {
-
-        clearEmployeeError: (state) => {
-            state.error = null;
+            countriesError: null,
         },
 
-        clearEmployeeSuccess: (state) => {
-            state.success = false;
+
+        reducers: {
+
+            clearEmployeeError: (
+                state
+            ) => {
+
+                state.error = null;
+            },
+
+
+            clearSelectedEmployee: (
+                state
+            ) => {
+
+                state.selectedEmployee = null;
+            },
         },
 
-        clearSelectedEmployee: (state) => {
-            state.selectedEmployee = null;
-        },
-    },
+
+        extraReducers: (builder) => {
+
+            /*
+             * -------------------------------------------------------
+             * GET ALL EMPLOYEES
+             * -------------------------------------------------------
+             */
+
+            builder
+
+                .addCase(
+                    getAllEmployees.pending,
+                    (state) => {
+
+                        state.isLoading =
+                            true;
+
+                        state.error = null;
+                    }
+                )
 
 
-    extraReducers: (builder) => {
+                .addCase(
+                    getAllEmployees.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
 
-        builder
+                        state.isLoading =
+                            false;
+
+
+                        /*
+                         * API returns:
+                         *
+                         * {
+                         *   content: []
+                         * }
+                         */
+
+                        state.employees =
+                            action.payload
+                                ?.content ||
+                            [];
+                    }
+                )
+
+
+                .addCase(
+                    getAllEmployees.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isLoading =
+                            false;
+
+                        state.error =
+                            action.payload ||
+                            "Failed to fetch employees.";
+                    }
+                );
 
 
             /*
-             * =================================================
-             * CREATE START
-             * =================================================
+             * -------------------------------------------------------
+             * GET COUNTRIES
+             * -------------------------------------------------------
              */
-            .addCase(
-                createEmployee.pending,
-                (state) => {
 
-                    state.isLoading = true;
-                    state.error = null;
-                    state.success = false;
-                }
-            )
+            builder
+
+                .addCase(
+                    getCountries.pending,
+                    (state) => {
+
+                        state.countriesLoading =
+                            true;
+
+                        state.countriesError =
+                            null;
+                    }
+                )
+
+
+                .addCase(
+                    getCountries.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.countriesLoading =
+                            false;
+
+                        state.countries =
+                            action.payload || [];
+                    }
+                )
+
+
+                .addCase(
+                    getCountries.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.countriesLoading =
+                            false;
+
+                        state.countriesError =
+                            action.payload ||
+                            "Failed to fetch countries.";
+                    }
+                );
 
 
             /*
-             * =================================================
-             * CREATE SUCCESS
-             * =================================================
+             * -------------------------------------------------------
+             * GET EMPLOYEE BY ID
+             * -------------------------------------------------------
              */
-            .addCase(
-                createEmployee.fulfilled,
-                (state, action) => {
 
-                    state.isLoading = false;
-                    state.success = true;
-                    state.error = null;
+            builder
 
-                    /*
-                     * Add API response
-                     */
-                    state.employees.push(
-                        action.payload
-                    );
-                }
-            )
+                .addCase(
+                    getEmployeeById.pending,
+                    (state) => {
+
+                        state.isLoading =
+                            true;
+
+                        state.error = null;
+                    }
+                )
+
+
+                .addCase(
+                    getEmployeeById.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isLoading =
+                            false;
+
+                        state.selectedEmployee =
+                            action.payload;
+                    }
+                )
+
+
+                .addCase(
+                    getEmployeeById.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isLoading =
+                            false;
+
+                        state.error =
+                            action.payload ||
+                            "Failed to fetch employee.";
+                    }
+                );
 
 
             /*
-             * =================================================
-             * CREATE FAILED
-             * =================================================
+             * -------------------------------------------------------
+             * CREATE EMPLOYEE
+             * -------------------------------------------------------
              */
-            .addCase(
-                createEmployee.rejected,
-                (state, action) => {
 
-                    state.isLoading = false;
-                    state.success = false;
+            builder
 
-                    state.error =
-                        action.payload ||
-                        "Unable to create employee.";
-                }
-            )
+                .addCase(
+                    createEmployee.pending,
+                    (state) => {
 
+                        state.isSaving =
+                            true;
 
-            /*
-             * =================================================
-             * GET ALL START
-             * =================================================
-             */
-            .addCase(
-                getAllEmployees.pending,
-                (state) => {
-
-                    state.isFetching = true;
-                    state.error = null;
-                }
-            )
+                        state.error = null;
+                    }
+                )
 
 
-            /*
-             * =================================================
-             * GET ALL SUCCESS
-             * =================================================
-             */
-            .addCase(
-    getAllEmployees.fulfilled,
-    (state, action) => {
+                .addCase(
+                    createEmployee.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
 
-        state.isFetching = false;
-        state.error = null;
-
-        /*
-         * Backend returns Spring Page:
-         *
-         * {
-         *   content: [...]
-         * }
-         */
-
-        if (Array.isArray(action.payload?.content)) {
-
-            state.employees =
-                action.payload.content;
-
-        } else if (Array.isArray(action.payload)) {
-
-            state.employees =
-                action.payload;
-
-        } else if (
-            Array.isArray(action.payload?.data)
-        ) {
-
-            state.employees =
-                action.payload.data;
-
-        } else if (
-            Array.isArray(action.payload?.employees)
-        ) {
-
-            state.employees =
-                action.payload.employees;
-
-        } else {
-
-            state.employees = [];
-        }
-    }
-)
-            /*
-             * =================================================
-             * GET ALL FAILED
-             * =================================================
-             */
-            .addCase(
-                getAllEmployees.rejected,
-                (state, action) => {
-
-                    state.isFetching = false;
-
-                    state.error =
-                        action.payload ||
-                        "Unable to load employees.";
-                }
-            )
+                        state.isSaving =
+                            false;
 
 
-            /*
-             * =================================================
-             * GET BY ID START
-             * =================================================
-             */
-            .addCase(
-                getEmployeeById.pending,
-                (state) => {
-
-                    state.isFetching = true;
-                    state.error = null;
-                }
-            )
-
-
-            /*
-             * =================================================
-             * GET BY ID SUCCESS
-             * =================================================
-             */
-            .addCase(
-                getEmployeeById.fulfilled,
-                (state, action) => {
-
-                    state.isFetching = false;
-                    state.error = null;
-
-                    state.selectedEmployee =
-                        action.payload;
-                }
-            )
-
-
-            /*
-             * =================================================
-             * GET BY ID FAILED
-             * =================================================
-             */
-            .addCase(
-                getEmployeeById.rejected,
-                (state, action) => {
-
-                    state.isFetching = false;
-
-                    state.error =
-                        action.payload ||
-                        "Unable to load employee.";
-                }
-            )
-
-           /*
- * =========================================================
- * UPDATE START
- * =========================================================
- */
-.addCase(
-    updateEmployee.pending,
-    (state) => {
-
-        state.isUpdating = true;
-        state.error = null;
-        state.success = false;
-    }
-)
-
-
-/*
- * =========================================================
- * UPDATE SUCCESS
- * =========================================================
- */
-.addCase(
-    updateEmployee.fulfilled,
-    (state, action) => {
-
-        state.isUpdating = false;
-        state.success = true;
-        state.error = null;
-
-        /*
-         * Updated employee returned by backend
-         */
-        const updatedEmployee =
-            action.payload;
-
-        /*
-         * Find employee in Redux list
-         */
-        const index =
-            state.employees.findIndex(
-                (employee) =>
-                    employee.id ===
-                    updatedEmployee.id
-            );
-
-        /*
-         * Replace old employee
-         * with updated employee
-         */
-        if (index !== -1) {
-
-            state.employees[index] =
-                updatedEmployee;
-        }
-
-        /*
-         * Also update selected employee
-         * if it is currently selected.
-         */
-        if (
-            state.selectedEmployee?.id ===
-            updatedEmployee.id
-        ) {
-
-            state.selectedEmployee =
-                updatedEmployee;
-        }
-    }
-)
-
-
-/*
- * =========================================================
- * UPDATE FAILED
- * =========================================================
- */
-.addCase(
-    updateEmployee.rejected,
-    (state, action) => {
-
-        state.isUpdating = false;
-        state.success = false;
-
-        state.error =
-            action.payload ||
-            "Unable to update employee.";
-    }
-)
-            /*
-             * =================================================
-             * DELETE START
-             * =================================================
-             */
-            .addCase(
-                deleteEmployee.pending,
-                (state) => {
-
-                    state.isDeleting = true;
-                    state.error = null;
-                }
-            )
-
-
-            /*
-             * =================================================
-             * DELETE SUCCESS
-             * =================================================
-             */
-            .addCase(
-                deleteEmployee.fulfilled,
-                (state, action) => {
-
-                    state.isDeleting = false;
-                    state.error = null;
-
-                    /*
-                     * Remove deleted employee
-                     * from Redux list.
-                     */
-                    state.employees =
-                        state.employees.filter(
-                            (employee) =>
-                                employee.id !==
-                                action.payload
+                        /*
+                         * Add newly created employee
+                         * to Redux list immediately.
+                         */
+                        state.employees.unshift(
+                            action.payload
                         );
-                }
-            )
+                    }
+                )
+
+
+                .addCase(
+                    createEmployee.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isSaving =
+                            false;
+
+                        state.error =
+                            action.payload ||
+                            "Failed to create employee.";
+                    }
+                );
 
 
             /*
-             * =================================================
-             * DELETE FAILED
-             * =================================================
+             * -------------------------------------------------------
+             * UPDATE EMPLOYEE
+             * -------------------------------------------------------
              */
-            .addCase(
-                deleteEmployee.rejected,
-                (state, action) => {
 
-                    state.isDeleting = false;
+            builder
 
-                    state.error =
-                        action.payload ||
-                        "Unable to delete employee.";
-                }
-            );
-    },
-});
+                .addCase(
+                    updateEmployee.pending,
+                    (state) => {
+
+                        state.isSaving =
+                            true;
+
+                        state.error = null;
+                    }
+                )
+
+
+                .addCase(
+                    updateEmployee.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isSaving =
+                            false;
+
+
+                        const updatedEmployee =
+                            action.payload;
+
+
+                        const index =
+                            state.employees.findIndex(
+                                (employee) =>
+                                    employee.id ===
+                                    updatedEmployee.id
+                            );
+
+
+                        if (index !== -1) {
+
+                            state.employees[
+                                index
+                            ] = {
+                                ...state
+                                    .employees[
+                                        index
+                                    ],
+
+                                ...updatedEmployee,
+                            };
+                        }
+
+
+                        state.selectedEmployee =
+                            updatedEmployee;
+                    }
+                )
+
+
+                .addCase(
+                    updateEmployee.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.isSaving =
+                            false;
+
+                        state.error =
+                            action.payload ||
+                            "Failed to update employee.";
+                    }
+                );
+        },
+    });
 
 
 export const {
     clearEmployeeError,
-    clearEmployeeSuccess,
     clearSelectedEmployee,
 } = employeeSlice.actions;
 

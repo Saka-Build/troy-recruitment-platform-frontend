@@ -1,1041 +1,3 @@
-// import {
-//     useMemo,
-//     useRef,
-//     useState,
-// } from "react";
-
-// import {
-//     useDispatch,
-//     useSelector,
-// } from "react-redux";
-
-// import "./Employees.css";
-
-// import EmployeeModal from "./EmployeeModal";
-
-// import {
-//     createEmployee,
-//     clearEmployeeError,
-// } from "../../Redux/Slice/employeeSlice";
-
-
-// const INITIAL_EMPLOYEES = [];
-
-
-// function generateEmployeeId() {
-
-//     return `EMP${Math.floor(
-//         100 + Math.random() * 900
-//     )}`;
-// }
-
-
-// function Employees() {
-
-//     const dispatch = useDispatch();
-
-
-//     /*
-//      * Redux employee state
-//      */
-//     const {
-//         isLoading,
-//         error,
-//     } = useSelector(
-//         (state) => state.employees
-//     );
-
-
-//     /*
-//      * Local employee list
-//      *
-//      * We keep this for the current UI.
-//      */
-//     const [
-//         employees,
-//         setEmployees,
-//     ] = useState(INITIAL_EMPLOYEES);
-
-
-//     const [search, setSearch] =
-//         useState("");
-
-
-//     const [showModal, setShowModal] =
-//         useState(false);
-
-
-//     const [
-//         editingEmployee,
-//         setEditingEmployee,
-//     ] = useState(null);
-
-
-//     const fileInputRef =
-//         useRef(null);
-
-
-//     /*
-//      * SEARCH
-//      */
-//     const filteredEmployees =
-//         useMemo(() => {
-
-//             const query =
-//                 search
-//                     .trim()
-//                     .toLowerCase();
-
-
-//             if (!query) {
-//                 return employees;
-//             }
-
-
-//             return employees.filter(
-//                 (employee) => [
-
-//                     employee.fullName,
-
-//                     employee.employeeId,
-
-//                     employee.employeeCode,
-
-//                     employee.designation,
-
-//                     employee.contactNumber,
-
-//                     employee.phone,
-
-//                     employee.whatsappNumber,
-
-//                     employee.whatsapp,
-
-//                     employee.officialEmail,
-
-//                     employee.personalEmail,
-
-//                 ].some((value) =>
-//                     String(value || "")
-//                         .toLowerCase()
-//                         .includes(query)
-//                 )
-//             );
-
-//         }, [
-//             employees,
-//             search,
-//         ]);
-
-
-//     /*
-//      * DESIGNATIONS
-//      */
-//     const designations =
-//         useMemo(() => {
-
-//             return [
-//                 ...new Set(
-//                     employees.map(
-//                         (employee) =>
-//                             employee.designation
-//                     )
-//                 ),
-//             ]
-//                 .filter(Boolean)
-//                 .sort();
-
-//         }, [employees]);
-
-
-//     /*
-//      * OPEN ADD
-//      */
-//     const openAddModal = () => {
-
-//         dispatch(
-//             clearEmployeeError()
-//         );
-
-//         setEditingEmployee(null);
-
-//         setShowModal(true);
-//     };
-
-
-//     /*
-//      * OPEN EDIT
-//      */
-//     const openEditModal =
-//         (employee) => {
-
-//             dispatch(
-//                 clearEmployeeError()
-//             );
-
-//             setEditingEmployee(
-//                 employee
-//             );
-
-//             setShowModal(true);
-//         };
-
-
-//     /*
-//      * CLOSE
-//      */
-//     const closeModal = () => {
-
-//         if (isLoading) {
-//             return;
-//         }
-
-//         setShowModal(false);
-
-//         setEditingEmployee(null);
-//     };
-
-
-//     /*
-//      * SAVE EMPLOYEE
-//      */
-//     const handleSaveEmployee =
-//         async (employeeData) => {
-
-//             /*
-//              * EDIT MODE
-//              *
-//              * Currently keep your
-//              * existing local edit behavior.
-//              */
-//             if (editingEmployee) {
-
-//                 setEmployees(
-//                     (current) =>
-//                         current.map(
-//                             (employee) =>
-//                                 employee.id ===
-//                                     editingEmployee.id
-//                                     ? {
-//                                         ...employee,
-//                                         ...employeeData,
-//                                     }
-//                                     : employee
-//                         )
-//                 );
-
-//                 closeModal();
-
-//                 return;
-//             }
-
-
-//             /*
-//              * CREATE MODE
-//              */
-
-
-//             /*
-//              * Convert frontend names
-//              * to backend names.
-//              */
-//             const apiEmployeeData = {
-
-//                 employeeCode:
-//                     employeeData.employeeId,
-
-//                 fullName:
-//                     employeeData.fullName,
-
-//                 designation:
-//                     employeeData.designation,
-
-//                 officialEmail:
-//                     employeeData.officialEmail,
-
-//                 personalEmail:
-//                     employeeData.personalEmail,
-
-//                 phone:
-//                     employeeData.contactNumber,
-
-//                 whatsapp:
-//                     employeeData.whatsappNumber,
-
-//                 role:
-//                     employeeData.role,
-
-//                 password:
-//                     employeeData.password,
-
-//                 isActive:
-//                     employeeData.isActive,
-
-//                 countryCode:
-//                     employeeData.countryCode,
-//             };
-
-
-//             console.log(
-//                 "Employee API Data:",
-//                 apiEmployeeData
-//             );
-
-
-//             try {
-
-//                 /*
-//                  * CALL CREATE EMPLOYEE API
-//                  */
-//                 const response =
-//                     await dispatch(
-//                         createEmployee({
-
-//                             employeeData:
-//                                 apiEmployeeData,
-
-//                             photoFile:
-//                                 employeeData.photo,
-//                         })
-//                     ).unwrap();
-
-
-//                 console.log(
-//                     "Employee created successfully:",
-//                     response
-//                 );
-
-
-//                 /*
-//                  * Add API response
-//                  * to local table.
-//                  *
-//                  * Merge submitted values because
-//                  * API response doesn't return
-//                  * personalEmail etc.
-//                  */
-//                 const newEmployee = {
-
-//                     ...employeeData,
-
-//                     ...response,
-
-//                     /*
-//                      * Keep frontend field names
-//                      */
-//                     employeeId:
-//                         response.employeeCode ||
-//                         employeeData.employeeId,
-
-//                     contactNumber:
-//                         response.phone ||
-//                         employeeData.contactNumber,
-
-//                     whatsappNumber:
-//                         response.whatsapp ||
-//                         employeeData.whatsappNumber,
-
-//                     photo:
-//                         employeeData.photoPreview,
-
-//                     id:
-//                         response.id ||
-//                         Date.now(),
-//                 };
-
-
-//                 setEmployees(
-//                     (current) => [
-//                         ...current,
-//                         newEmployee,
-//                     ]
-//                 );
-
-
-//                 /*
-//                  * Close modal
-//                  */
-//                 closeModal();
-
-
-//                 /*
-//                  * Optional success message
-//                  */
-//                 alert(
-//                     "Employee created successfully."
-//                 );
-
-
-//             } catch (error) {
-
-//                 /*
-//                  * Redux error is already
-//                  * stored in state.
-//                  */
-//                 console.error(
-//                     "Create employee failed:",
-//                     error
-//                 );
-//             }
-//         };
-
-
-//     /*
-//      * DELETE
-//      *
-//      * This is still local because
-//      * you haven't provided DELETE API yet.
-//      */
-//     const deleteEmployee =
-//         (id) => {
-
-//             const employee =
-//                 employees.find(
-//                     (currentEmployee) =>
-//                         currentEmployee.id === id
-//                 );
-
-
-//             if (!employee) {
-//                 return;
-//             }
-
-
-//             const confirmed =
-//                 window.confirm(
-//                     `Delete ${employee.fullName} from the employee directory?`
-//                 );
-
-
-//             if (!confirmed) {
-//                 return;
-//             }
-
-
-//             setEmployees(
-//                 (current) =>
-//                     current.filter(
-//                         (employee) =>
-//                             employee.id !== id
-//                     )
-//             );
-//         };
-
-
-//     /*
-//      * EXPORT CSV
-//      */
-//     const exportCsv = () => {
-
-//         if (employees.length === 0) {
-
-//             alert(
-//                 "There are no employees to export."
-//             );
-
-//             return;
-//         }
-
-
-//         const headers = [
-
-//             "Full Name",
-
-//             "Employee ID",
-
-//             "Designation",
-
-//             "Contact Number",
-
-//             "WhatsApp Number",
-
-//             "Official Email",
-
-//             "Personal Email",
-
-//         ];
-
-
-//         const rows =
-//             employees.map(
-//                 (employee) => [
-
-//                     employee.fullName,
-
-//                     employee.employeeId,
-
-//                     employee.designation,
-
-//                     employee.contactNumber,
-
-//                     employee.whatsappNumber,
-
-//                     employee.officialEmail,
-
-//                     employee.personalEmail,
-
-//                 ]
-//             );
-
-
-//         const csvContent = [
-
-//             headers,
-
-//             ...rows,
-
-//         ]
-
-//             .map((row) =>
-//                 row
-//                     .map(
-//                         (value) =>
-//                             `"${String(
-//                                 value || ""
-//                             ).replace(
-//                                 /"/g,
-//                                 '""'
-//                             )}"`
-//                     )
-//                     .join(",")
-//             )
-
-//             .join("\n");
-
-
-//         const blob =
-//             new Blob(
-//                 [csvContent],
-//                 {
-//                     type:
-//                         "text/csv;charset=utf-8;",
-//                 }
-//             );
-
-
-//         const url =
-//             URL.createObjectURL(
-//                 blob
-//             );
-
-
-//         const link =
-//             document.createElement(
-//                 "a"
-//             );
-
-
-//         link.href = url;
-
-//         link.download =
-//             "troy-employees.csv";
-
-
-//         document.body.appendChild(
-//             link
-//         );
-
-//         link.click();
-
-//         link.remove();
-
-
-//         URL.revokeObjectURL(
-//             url
-//         );
-//     };
-
-
-//     /*
-//      * INITIALS
-//      */
-//     const initials = (name) => {
-
-//         if (!name) {
-//             return "T";
-//         }
-
-
-//         return name
-//             .split(" ")
-//             .filter(Boolean)
-//             .slice(0, 2)
-//             .map(
-//                 (part) =>
-//                     part[0]
-//             )
-//             .join("")
-//             .toUpperCase();
-//     };
-
-
-//     return (
-
-//         <div className="employees-page">
-
-//             <div className="employees-content">
-
-
-//                 {/* HEADER */}
-
-//                 <div className="employees-header">
-
-//                     <div>
-
-//                         <h1>
-//                             Troy Employees
-//                         </h1>
-
-//                         <p>
-
-//                             {employees.length}{" "}
-
-//                             {employees.length === 1
-//                                 ? "team member"
-//                                 : "team members"}
-
-//                         </p>
-
-//                     </div>
-
-
-//                     <div className="employees-header-actions">
-
-//                         <button
-//                             type="button"
-//                             className="employee-export-btn"
-//                             onClick={
-//                                 exportCsv
-//                             }
-//                         >
-
-//                             <i className="bi bi-download"></i>
-
-//                             Export CSV
-
-//                         </button>
-
-
-//                         <button
-//                             type="button"
-//                             className="employee-add-btn"
-//                             onClick={
-//                                 openAddModal
-//                             }
-//                         >
-
-//                             <i className="bi bi-plus-lg"></i>
-
-//                             Add employee
-
-//                         </button>
-
-//                     </div>
-
-//                 </div>
-
-
-//                 {/* ERROR FROM API */}
-
-//                 {error && (
-
-//                     <div className="employee-api-error">
-
-//                         {error}
-
-//                     </div>
-//                 )}
-
-
-//                 {/* STATS */}
-
-//                 <div className="employee-stats">
-
-//                     <div className="employee-stat-card">
-
-//                         <div className="employee-stat-value">
-
-//                             {employees.length}
-
-//                         </div>
-
-//                         <div className="employee-stat-label">
-
-//                             Total
-
-//                         </div>
-
-//                     </div>
-
-
-//                     <div className="employee-stat-card">
-
-//                         <div className="employee-stat-value">
-
-//                             {designations.length}
-
-//                         </div>
-
-//                         <div className="employee-stat-label">
-
-//                             Designations
-
-//                         </div>
-
-//                     </div>
-
-//                 </div>
-
-
-//                 {/* SEARCH */}
-
-//                 <div className="employee-search-wrapper">
-
-//                     <i className="bi bi-search"></i>
-
-//                     <input
-//                         type="text"
-//                         value={search}
-//                         onChange={(event) =>
-//                             setSearch(
-//                                 event.target.value
-//                             )
-//                         }
-//                         placeholder="Search name, ID, designation, email..."
-//                     />
-
-//                 </div>
-
-
-//                 {/* TABLE */}
-
-//                 {filteredEmployees.length > 0 ? (
-
-//                     <div className="employees-table-wrapper">
-
-//                         <table className="employees-table">
-
-//                             <thead>
-
-//                                 <tr>
-
-//                                     <th>
-//                                         EMPLOYEE
-//                                     </th>
-
-//                                     <th>
-//                                         EMP ID
-//                                     </th>
-
-//                                     <th>
-//                                         DESIGNATION
-//                                     </th>
-
-//                                     <th>
-//                                         CONTACT
-//                                     </th>
-
-//                                     <th>
-//                                         OFFICIAL EMAIL
-//                                     </th>
-
-//                                     <th>
-//                                         ACTIONS
-//                                     </th>
-
-//                                 </tr>
-
-//                             </thead>
-
-
-//                             <tbody>
-
-//                                 {filteredEmployees.map(
-//                                     (employee) => (
-
-//                                         <tr
-//                                             key={
-//                                                 employee.id
-//                                             }
-//                                         >
-
-//                                             {/* EMPLOYEE */}
-
-//                                             <td>
-
-//                                                 <div className="employee-person">
-
-//                                                     {employee.photo ? (
-
-//                                                         <img
-//                                                             src={
-//                                                                 employee.photo
-//                                                             }
-//                                                             alt={
-//                                                                 employee.fullName
-//                                                             }
-//                                                             className="employee-avatar employee-avatar-image"
-//                                                         />
-
-//                                                     ) : (
-
-//                                                         <div className="employee-avatar">
-
-//                                                             {initials(
-//                                                                 employee.fullName
-//                                                             )}
-
-//                                                         </div>
-//                                                     )}
-
-
-//                                                     <div className="employee-person-info">
-
-//                                                         <strong>
-
-//                                                             {
-//                                                                 employee.fullName
-//                                                             }
-
-//                                                         </strong>
-
-
-//                                                         <span>
-
-//                                                             {
-//                                                                 employee.personalEmail ||
-//                                                                 "—"
-//                                                             }
-
-//                                                         </span>
-
-//                                                     </div>
-
-//                                                 </div>
-
-//                                             </td>
-
-
-//                                             {/* EMPLOYEE ID */}
-
-//                                             <td>
-
-//                                                 <span className="employee-id">
-
-//                                                     {
-//                                                         employee.employeeId ||
-//                                                         employee.employeeCode
-//                                                     }
-
-//                                                 </span>
-
-//                                             </td>
-
-
-//                                             {/* DESIGNATION */}
-
-//                                             <td>
-
-//                                                 <span className="designation-text">
-
-//                                                     {
-//                                                         employee.designation
-//                                                     }
-
-//                                                 </span>
-
-//                                             </td>
-
-
-//                                             {/* CONTACT */}
-
-//                                             <td>
-
-//                                                 <div className="employee-contact">
-
-//                                                     <span>
-
-//                                                         {
-//                                                             employee.contactNumber ||
-//                                                             employee.phone
-//                                                         }
-
-//                                                     </span>
-
-
-//                                                     <div className="employee-comms">
-
-//                                                         <a
-//                                                             href={`tel:${
-//                                                                 employee.contactNumber ||
-//                                                                 employee.phone
-//                                                             }`}
-//                                                             title="Call"
-//                                                         >
-
-//                                                             <i className="bi bi-telephone"></i>
-
-//                                                         </a>
-
-
-//                                                         <a
-//                                                             href={`https://wa.me/${(
-//                                                                 employee.whatsappNumber ||
-//                                                                 employee.whatsapp ||
-//                                                                 ""
-//                                                             ).replace(
-//                                                                 /[^0-9]/g,
-//                                                                 ""
-//                                                             )}`}
-//                                                             target="_blank"
-//                                                             rel="noreferrer"
-//                                                             title="WhatsApp"
-//                                                         >
-
-//                                                             <i className="bi bi-whatsapp"></i>
-
-//                                                         </a>
-
-
-//                                                         <a
-//                                                             href={`mailto:${employee.officialEmail}`}
-//                                                             title="Email"
-//                                                         >
-
-//                                                             <i className="bi bi-envelope"></i>
-
-//                                                         </a>
-
-//                                                     </div>
-
-//                                                 </div>
-
-//                                             </td>
-
-
-//                                             {/* EMAIL */}
-
-//                                             <td>
-
-//                                                 <a
-//                                                     href={`mailto:${employee.officialEmail}`}
-//                                                     className="employee-email"
-//                                                 >
-
-//                                                     {
-//                                                         employee.officialEmail
-//                                                     }
-
-//                                                 </a>
-
-//                                             </td>
-
-
-//                                             {/* ACTIONS */}
-
-//                                             <td>
-
-//                                                 <div className="employee-actions">
-
-//                                                     <button
-//                                                         type="button"
-//                                                         onClick={() =>
-//                                                             openEditModal(
-//                                                                 employee
-//                                                             )
-//                                                         }
-//                                                     >
-//                                                         Edit
-//                                                     </button>
-
-
-//                                                     <button
-//                                                         type="button"
-//                                                         className="employee-delete-action"
-//                                                         onClick={() =>
-//                                                             deleteEmployee(
-//                                                                 employee.id
-//                                                             )
-//                                                         }
-//                                                     >
-//                                                         Delete
-//                                                     </button>
-
-//                                                 </div>
-
-//                                             </td>
-
-//                                         </tr>
-
-//                                     )
-//                                 )}
-
-//                             </tbody>
-
-//                         </table>
-
-//                     </div>
-
-//                 ) : (
-
-//                     <div className="employees-empty-state">
-
-//                         <div className="empty-employee-icon">
-
-//                             <i className="bi bi-person-fill"></i>
-
-//                         </div>
-
-
-//                         <p>
-
-//                             {search
-//                                 ? "No employees found matching your search."
-//                                 : 'No employees yet. Click "+ Add employee" to add your team.'}
-
-//                         </p>
-
-//                     </div>
-//                 )}
-
-//             </div>
-
-
-//             {/* MODAL */}
-
-//             {showModal && (
-
-//                 <EmployeeModal
-//                     employee={
-//                         editingEmployee
-//                     }
-
-//                     onClose={
-//                         closeModal
-//                     }
-
-//                     onSave={
-//                         handleSaveEmployee
-//                     }
-
-//                     generateEmployeeId={
-//                         generateEmployeeId
-//                     }
-
-//                     isSubmitting={
-//                         isLoading
-//                     }
-//                 />
-//             )}
-
-//         </div>
-//     );
-// }
-
-
-// export default Employees;
-
-
 import {
     useEffect,
     useMemo,
@@ -1052,10 +14,10 @@ import "./Employees.css";
 import EmployeeModal from "./EmployeeModal";
 
 import {
-    createEmployee,
     getAllEmployees,
-    getEmployeeById,
-    deleteEmployee as deleteEmployeeApi,
+    getCountries,
+    createEmployee,
+    updateEmployee,
     clearEmployeeError,
 } from "../../Redux/Slice/employeeSlice";
 
@@ -1070,35 +32,46 @@ function generateEmployeeId() {
 
 function Employees() {
 
-    const dispatch = useDispatch();
+    const dispatch =
+        useDispatch();
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * REDUX STATE
-     * =========================================================
+     * ---------------------------------------------------------------
      */
+
     const {
-        employees,
+        employees = [],
+        countries = [],
         isLoading,
-        isFetching,
-        isDeleting,
+        isSaving,
+        countriesLoading,
         error,
     } = useSelector(
-        (state) => state.employees
+        (state) =>
+            state.employees
     );
 
 
     /*
-     * =========================================================
-     * LOCAL UI STATE
-     * =========================================================
+     * ---------------------------------------------------------------
+     * LOCAL STATE
+     * ---------------------------------------------------------------
      */
-    const [search, setSearch] =
-        useState("");
 
-    const [showModal, setShowModal] =
-        useState(false);
+    const [
+        search,
+        setSearch,
+    ] = useState("");
+
+
+    const [
+        showModal,
+        setShowModal,
+    ] = useState(false);
+
 
     const [
         editingEmployee,
@@ -1107,26 +80,30 @@ function Employees() {
 
 
     /*
-     * =========================================================
-     * GET ALL EMPLOYEES
-     *
-     * Runs when page opens.
-     * =========================================================
+     * ---------------------------------------------------------------
+     * INITIAL API CALLS
+     * ---------------------------------------------------------------
      */
+
     useEffect(() => {
 
         dispatch(
             getAllEmployees()
         );
 
+        dispatch(
+            getCountries()
+        );
+
     }, [dispatch]);
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * SEARCH
-     * =========================================================
+     * ---------------------------------------------------------------
      */
+
     const filteredEmployees =
         useMemo(() => {
 
@@ -1137,6 +114,7 @@ function Employees() {
 
 
             if (!query) {
+
                 return employees;
             }
 
@@ -1146,17 +124,11 @@ function Employees() {
 
                     employee.fullName,
 
-                    employee.employeeId,
-
                     employee.employeeCode,
 
                     employee.designation,
 
-                    employee.contactNumber,
-
                     employee.phone,
-
-                    employee.whatsappNumber,
 
                     employee.whatsapp,
 
@@ -1164,10 +136,21 @@ function Employees() {
 
                     employee.personalEmail,
 
-                ].some((value) =>
-                    String(value || "")
-                        .toLowerCase()
-                        .includes(query)
+                    employee.role,
+
+                    employee.country?.name,
+
+                    employee.country?.code,
+
+                ].some(
+                    (value) =>
+                        String(
+                            value || ""
+                        )
+                            .toLowerCase()
+                            .includes(
+                                query
+                            )
                 )
             );
 
@@ -1178,287 +161,360 @@ function Employees() {
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * DESIGNATIONS
-     * =========================================================
+     * ---------------------------------------------------------------
      */
+
     const designations =
         useMemo(() => {
 
             return [
                 ...new Set(
-                    employees.map(
-                        (employee) =>
-                            employee.designation
-                    )
+                    employees
+                        .map(
+                            (employee) =>
+                                employee.designation
+                        )
                 ),
             ]
                 .filter(Boolean)
                 .sort();
 
-        }, [employees]);
+        }, [
+            employees,
+        ]);
 
 
     /*
-     * =========================================================
-     * OPEN ADD MODAL
-     * =========================================================
+     * ---------------------------------------------------------------
+     * ADD
+     * ---------------------------------------------------------------
      */
+
     const openAddModal = () => {
 
         dispatch(
             clearEmployeeError()
         );
 
-        setEditingEmployee(null);
-
-        setShowModal(true);
-    };
-
-
-    /*
-     * =========================================================
-     * OPEN EDIT MODAL
-     *
-     * First call GET BY ID.
-     * =========================================================
-     */
-    const openEditModal = async (employee) => {
-
-        dispatch(
-            clearEmployeeError()
+        setEditingEmployee(
+            null
         );
 
-        try {
-
-            const response =
-                await dispatch(
-                    getEmployeeById(
-                        employee.id
-                    )
-                ).unwrap();
-
-
-            console.log(
-                "Employee By ID:",
-                response
-            );
-
-
-            /*
-             * Backend response uses:
-             *
-             * employeeCode
-             * phone
-             * whatsapp
-             *
-             * Frontend modal uses:
-             *
-             * employeeId
-             * contactNumber
-             * whatsappNumber
-             */
-            const employeeForModal = {
-
-                ...employee,
-
-                ...response,
-
-                id:
-                    response.id ||
-                    employee.id,
-
-                employeeId:
-                    response.employeeCode ||
-                    employee.employeeId,
-
-                contactNumber:
-                    response.phone ||
-                    employee.contactNumber,
-
-                whatsappNumber:
-                    response.whatsapp ||
-                    employee.whatsappNumber,
-
-                officialEmail:
-                    response.officialEmail ||
-                    employee.officialEmail,
-
-                personalEmail:
-                    response.personalEmail ||
-                    employee.personalEmail,
-
-                photo:
-                    response.photoUrl ||
-                    employee.photo ||
-                    "",
-            };
-
-
-            setEditingEmployee(
-                employeeForModal
-            );
-
-            setShowModal(true);
-
-        } catch (error) {
-
-            console.error(
-                "Unable to get employee:",
-                error
-            );
-
-            alert(
-                error ||
-                "Unable to load employee."
-            );
-        }
+        setShowModal(
+            true
+        );
     };
 
 
     /*
-     * =========================================================
-     * CLOSE MODAL
-     * =========================================================
+     * ---------------------------------------------------------------
+     * EDIT
+     * ---------------------------------------------------------------
      */
+
+    const openEditModal =
+        (employee) => {
+
+            dispatch(
+                clearEmployeeError()
+            );
+
+            setEditingEmployee(
+                employee
+            );
+
+            setShowModal(
+                true
+            );
+        };
+
+
+    /*
+     * ---------------------------------------------------------------
+     * CLOSE MODAL
+     * ---------------------------------------------------------------
+     */
+
     const closeModal = () => {
 
-        if (isLoading) {
+        if (isSaving) {
+
             return;
         }
 
-        setShowModal(false);
 
-        setEditingEmployee(null);
+        setShowModal(
+            false
+        );
+
+        setEditingEmployee(
+            null
+        );
     };
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * SAVE EMPLOYEE
-     * =========================================================
+     * ---------------------------------------------------------------
      */
+
     const handleSaveEmployee =
-        async (employeeData) => {
-
-
-            /*
-             * =====================================================
-             * EDIT
-             *
-             * No UPDATE API was provided yet.
-             * =====================================================
-             */
-            if (editingEmployee) {
-
-                alert(
-                    "Employee update API is not available yet."
-                );
-
-                return;
-            }
-
-
-            /*
-             * =====================================================
-             * CREATE
-             * =====================================================
-             */
-            const apiEmployeeData = {
-
-                employeeCode:
-                    employeeData.employeeId,
-
-                fullName:
-                    employeeData.fullName,
-
-                designation:
-                    employeeData.designation,
-
-                officialEmail:
-                    employeeData.officialEmail,
-
-                personalEmail:
-                    employeeData.personalEmail,
-
-                phone:
-                    employeeData.contactNumber,
-
-                whatsapp:
-                    employeeData.whatsappNumber,
-
-                role:
-                    employeeData.role,
-
-                password:
-                    employeeData.password,
-
-                isActive:
-                    employeeData.isActive,
-
-                countryCode:
-                    employeeData.countryCode,
-            };
-
-
-            console.log(
-                "Employee API Data:",
-                apiEmployeeData
-            );
-
+        async (
+            employeeData
+        ) => {
 
             try {
 
                 /*
-                 * Create API
+                 * ===================================================
+                 * EDIT
+                 * ===================================================
                  */
-                const response =
-                    await dispatch(
-                        createEmployee({
 
-                            employeeData:
-                                apiEmployeeData,
+              if (editingEmployee) {
 
-                            photoFile:
-                                employeeData.photo ||
-                                null,
+    const updateData = {};
 
-                        })
-                    ).unwrap();
+    /*
+     * -----------------------------------------------------------
+     * PARTIAL UPDATE
+     *
+     * PUT behaves like PATCH in this API.
+     * Send any fields that are provided by the modal.
+     * -----------------------------------------------------------
+     */
+
+
+    if (
+        employeeData.fullName !== undefined &&
+        employeeData.fullName !== null &&
+        employeeData.fullName.trim() !== ""
+    ) {
+
+        updateData.fullName =
+            employeeData.fullName.trim();
+    }
+
+
+    if (
+        employeeData.designation !== undefined &&
+        employeeData.designation !== null &&
+        employeeData.designation.trim() !== ""
+    ) {
+
+        updateData.designation =
+            employeeData.designation.trim();
+    }
+
+
+    if (
+        employeeData.officialEmail !== undefined &&
+        employeeData.officialEmail !== null &&
+        employeeData.officialEmail.trim() !== ""
+    ) {
+
+        updateData.officialEmail =
+            employeeData.officialEmail.trim();
+    }
+
+
+    if (
+        employeeData.personalEmail !== undefined &&
+        employeeData.personalEmail !== null &&
+        employeeData.personalEmail.trim() !== ""
+    ) {
+
+        updateData.personalEmail =
+            employeeData.personalEmail.trim();
+    }
+
+
+    if (
+        employeeData.contactNumber !== undefined &&
+        employeeData.contactNumber !== null &&
+        employeeData.contactNumber.trim() !== ""
+    ) {
+
+        updateData.phone =
+            employeeData.contactNumber.trim();
+    }
+
+
+    if (
+        employeeData.whatsappNumber !== undefined &&
+        employeeData.whatsappNumber !== null &&
+        employeeData.whatsappNumber.trim() !== ""
+    ) {
+
+        updateData.whatsapp =
+            employeeData.whatsappNumber.trim();
+    }
+
+
+    if (
+        employeeData.role !== undefined &&
+        employeeData.role !== null &&
+        employeeData.role.trim() !== ""
+    ) {
+
+        updateData.role =
+            employeeData.role.trim();
+    }
+
+
+    if (
+        employeeData.countryCode !== undefined &&
+        employeeData.countryCode !== null &&
+        employeeData.countryCode !== ""
+    ) {
+
+        updateData.countryCode =
+            employeeData.countryCode;
+    }
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Frontend modal uses isActive,
+     * backend update API expects active.
+     */
+    if (
+        employeeData.isActive !== undefined &&
+        employeeData.isActive !== null
+    ) {
+
+        updateData.active =
+            employeeData.isActive;
+    }
+
+
+    if (
+        employeeData.password !== undefined &&
+        employeeData.password !== null &&
+        employeeData.password.trim() !== ""
+    ) {
+
+        updateData.password =
+            employeeData.password.trim();
+    }
+
+
+    console.log(
+        "UPDATE EMPLOYEE PAYLOAD:",
+        updateData
+    );
+
+
+    await dispatch(
+        updateEmployee({
+
+            id:
+                editingEmployee.id,
+
+            employeeData:
+                updateData,
+
+        })
+    ).unwrap();
+
+
+    closeModal();
+
+
+    alert(
+        "Employee updated successfully."
+    );
+
+
+    return;
+}
+
+                /*
+                 * ===================================================
+                 * CREATE
+                 * ===================================================
+                 */
+
+                const apiEmployeeData = {
+
+                    employeeCode:
+                        employeeData.employeeId,
+
+                    fullName:
+                        employeeData.fullName,
+
+                    designation:
+                        employeeData.designation,
+
+                    officialEmail:
+                        employeeData.officialEmail,
+
+                    personalEmail:
+                        employeeData.personalEmail,
+
+                    phone:
+                        employeeData.contactNumber,
+
+                    whatsapp:
+                        employeeData.whatsappNumber,
+
+                    role:
+                        employeeData.role,
+
+                    password:
+                        employeeData.password,
+
+                    countryCode:
+                        employeeData.countryCode,
+                    isActive:
+                        employeeData.isActive,
+                };
 
 
                 console.log(
-                    "Employee created successfully:",
-                    response
+                    "Create Employee:",
+                    apiEmployeeData
                 );
 
 
-                /*
-                 * Close modal
-                 */
+                await dispatch(
+                    createEmployee({
+
+                        employeeData:
+                            apiEmployeeData,
+
+                        photoFile:
+                            employeeData.photo,
+
+                    })
+                ).unwrap();
+
+
                 closeModal();
-
-
-                /*
-                 * Reload from backend.
-                 *
-                 * This is better than manually adding
-                 * the response because GET ALL gives
-                 * us the actual backend list.
-                 */
-                dispatch(
-                    getAllEmployees()
-                );
 
 
                 alert(
                     "Employee created successfully."
                 );
 
+
+                /*
+                 * Fetch again so table contains
+                 * the exact backend data.
+                 */
+
+                dispatch(
+                    getAllEmployees()
+                );
+
             } catch (error) {
 
                 console.error(
-                    "Create employee failed:",
+                    "Employee save failed:",
                     error
                 );
             }
@@ -1466,70 +522,33 @@ function Employees() {
 
 
     /*
-     * =========================================================
-     * DELETE EMPLOYEE
-     * =========================================================
+     * ---------------------------------------------------------------
+     * DELETE
+     *
+     * NO DELETE API PROVIDED YET
+     * ---------------------------------------------------------------
      */
-    const handleDeleteEmployee =
-        async (employee) => {
 
-            if (!employee?.id) {
+    const deleteEmployee =
+        (employee) => {
 
-                alert(
-                    "Employee ID not found."
-                );
-
-                return;
-            }
-
-
-            const confirmed =
-                window.confirm(
-                    `Delete ${employee.fullName} from the employee directory?`
-                );
-
-
-            if (!confirmed) {
-                return;
-            }
-
-
-            try {
-
-                await dispatch(
-                    deleteEmployeeApi(
-                        employee.id
-                    )
-                ).unwrap();
-
-
-                alert(
-                    "Employee deleted successfully."
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Delete employee failed:",
-                    error
-                );
-
-                alert(
-                    error ||
-                    "Unable to delete employee."
-                );
-            }
+            alert(
+                `Delete API is not available yet for ${employee.fullName}.`
+            );
         };
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * EXPORT CSV
-     * =========================================================
+     * ---------------------------------------------------------------
      */
+
     const exportCsv = () => {
 
-        if (employees.length === 0) {
+        if (
+            employees.length === 0
+        ) {
 
             alert(
                 "There are no employees to export."
@@ -1555,6 +574,12 @@ function Employees() {
 
             "Personal Email",
 
+            "Role",
+
+            "Country",
+
+            "Status",
+
         ];
 
 
@@ -1564,20 +589,25 @@ function Employees() {
 
                     employee.fullName,
 
-                    employee.employeeCode ||
-                    employee.employeeId,
+                    employee.employeeCode,
 
                     employee.designation,
 
-                    employee.phone ||
-                    employee.contactNumber,
+                    employee.phone,
 
-                    employee.whatsapp ||
-                    employee.whatsappNumber,
+                    employee.whatsapp,
 
                     employee.officialEmail,
 
                     employee.personalEmail,
+
+                    employee.role,
+
+                    employee.country?.name,
+
+                    employee.active
+                        ? "Active"
+                        : "Inactive",
 
                 ]
             );
@@ -1591,18 +621,19 @@ function Employees() {
 
         ]
 
-            .map((row) =>
-                row
-                    .map(
-                        (value) =>
-                            `"${String(
-                                value || ""
-                            ).replace(
-                                /"/g,
-                                '""'
-                            )}"`
-                    )
-                    .join(",")
+            .map(
+                (row) =>
+                    row
+                        .map(
+                            (value) =>
+                                `"${String(
+                                    value || ""
+                                ).replace(
+                                    /"/g,
+                                    '""'
+                                )}"`
+                        )
+                        .join(",")
             )
 
             .join("\n");
@@ -1630,7 +661,8 @@ function Employees() {
             );
 
 
-        link.href = url;
+        link.href =
+            url;
 
         link.download =
             "troy-employees.csv";
@@ -1640,7 +672,9 @@ function Employees() {
             link
         );
 
+
         link.click();
+
 
         link.remove();
 
@@ -1652,198 +686,199 @@ function Employees() {
 
 
     /*
-     * =========================================================
+     * ---------------------------------------------------------------
      * INITIALS
-     * =========================================================
+     * ---------------------------------------------------------------
      */
-    const initials = (name) => {
 
-        if (!name) {
-            return "T";
-        }
+    const initials =
+        (name) => {
+
+            if (!name) {
+
+                return "T";
+            }
 
 
-        return name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(
-                (part) =>
-                    part[0]
-            )
-            .join("")
-            .toUpperCase();
-    };
+            return name
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(
+                    (part) =>
+                        part[0]
+                )
+                .join("")
+                .toUpperCase();
+        };
 
+
+    /*
+     * ---------------------------------------------------------------
+     * RENDER
+     * ---------------------------------------------------------------
+     */
 
     return (
 
-        <div className="page">
+        <div className="employees-page">
 
-            {/* <div className="page-content"> */}
+            <div className="employees-content">
+
+                {/* HEADER */}
+
+                <div className="employees-header">
+
+                    <div>
+
+                        <h1>
+                            Troy Employees
+                        </h1>
+
+                        <p>
+
+                            {employees.length}{" "}
+
+                            {employees.length === 1
+                                ? "team member"
+                                : "team members"}
+
+                        </p>
+
+                    </div>
 
 
-            {/* =================================================
-                    HEADER
-                ================================================= */}
+                    <div className="employees-header-actions">
 
-            <div className="page-header">
+                        <button
+                            type="button"
+                            className="employee-export-btn"
+                            onClick={
+                                exportCsv
+                            }
+                        >
 
-                <div>
+                            <i className="bi bi-download"></i>
 
-                    <h1 className="page-title">
-                        Troy Employees
-                    </h1>
+                            Export CSV
 
-                    <p className="page-subtitle">
+                        </button>
 
-                        {employees.length}{" "}
 
-                        {employees.length === 1
-                            ? "team member"
-                            : "team members"}
+                        <button
+                            type="button"
+                            className="employee-add-btn"
+                            onClick={
+                                openAddModal
+                            }
+                        >
 
-                    </p>
+                            <i className="bi bi-plus-lg"></i>
+
+                            Add employee
+
+                        </button>
+
+                    </div>
 
                 </div>
 
 
-                <div className="page-header-actions">
+                {/* ERROR */}
 
-                    <button
-                        type="button"
-                        className="outline-btn"
-                        onClick={
-                            exportCsv
+                {error && (
+
+                    <div className="employee-api-error">
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {/* STATS */}
+
+                <div className="employee-stats">
+
+                    <div className="employee-stat-card">
+
+                        <div className="employee-stat-value">
+
+                            {employees.length}
+
+                        </div>
+
+                        <div className="employee-stat-label">
+
+                            Total
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="employee-stat-card">
+
+                        <div className="employee-stat-value">
+
+                            {designations.length}
+
+                        </div>
+
+                        <div className="employee-stat-label">
+
+                            Designations
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {/* SEARCH */}
+
+                <div className="employee-search-wrapper">
+
+                    <i className="bi bi-search"></i>
+
+                    <input
+                        type="text"
+                        value={
+                            search
                         }
-                    >
-
-                        <i className="bi bi-download"></i>
-
-                        Export CSV
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        className="primary-btn"
-                        onClick={
-                            openAddModal
+                        onChange={
+                            (event) =>
+                                setSearch(
+                                    event.target.value
+                                )
                         }
-                    >
-
-                        <i className="bi bi-plus-lg"></i>
-
-                        Add employee
-
-                    </button>
+                        placeholder="Search name, ID, designation, email..."
+                    />
 
                 </div>
 
-            </div>
 
+                {/* LOADING */}
 
-            {/* =================================================
-                    API ERROR
-                ================================================= */}
+                {isLoading ? (
 
-            {error && (
+                    <div className="employees-empty-state">
 
-                <div className="employee-api-error">
+                        <div className="empty-employee-icon">
 
-                    {error}
+                            <i className="bi bi-arrow-repeat"></i>
 
-                </div>
+                        </div>
 
-            )}
-
-
-            {/* =================================================
-                    STATS
-                ================================================= */}
-
-            <div className="employee-stats">
-
-                <div className="employee-stat-card">
-
-                    <div className="employee-stat-value">
-
-                        {employees.length}
+                        <p>
+                            Loading employees...
+                        </p>
 
                     </div>
 
-                    <div className="employee-stat-label">
-
-                        Total
-
-                    </div>
-
-                </div>
-
-
-                <div className="employee-stat-card">
-
-                    <div className="employee-stat-value">
-
-                        {designations.length}
-
-                    </div>
-
-                    <div className="employee-stat-label">
-
-                        Designations
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            {/* =================================================
-                    SEARCH
-                ================================================= */}
-
-            <div className="employee-search-wrapper common-search">
-
-                <i className="bi bi-search"></i>
-
-                <input
-                    type="text"
-                    value={search}
-                    onChange={(event) =>
-                        setSearch(
-                            event.target.value
-                        )
-                    }
-                    placeholder="Search name, ID, designation, email..."
-                />
-
-            </div>
-
-
-            {/* =================================================
-                    LOADING
-                ================================================= */}
-
-            {isFetching && (
-
-                <div className="employees-loading">
-
-                    Loading employees...
-
-                </div>
-
-            )}
-
-
-            {/* =================================================
-                    TABLE
-                ================================================= */}
-
-            {!isFetching &&
-                filteredEmployees.length > 0 && (
+                ) : filteredEmployees.length > 0 ? (
 
                     <div className="employees-table-wrapper">
 
@@ -1885,144 +920,124 @@ function Employees() {
                             <tbody>
 
                                 {filteredEmployees.map(
-                                    (employee) => {
+                                    (employee) => (
 
-                                        const employeeId =
-                                            employee.id;
+                                        <tr
+                                            key={
+                                                employee.id
+                                            }
+                                        >
 
-                                        const employeeCode =
-                                            employee.employeeCode ||
-                                            employee.employeeId;
+                                            {/* EMPLOYEE */}
 
-                                        const phone =
-                                            employee.phone ||
-                                            employee.contactNumber ||
-                                            "";
+                                            <td>
 
-                                        const whatsapp =
-                                            employee.whatsapp ||
-                                            employee.whatsappNumber ||
-                                            "";
+                                                <div className="employee-person">
 
+                                                    {employee.photoUrl ? (
 
-                                        return (
+                                                        <img
+                                                            src={
+                                                                employee.photoUrl
+                                                            }
+                                                            alt={
+                                                                employee.fullName
+                                                            }
+                                                            className="employee-avatar employee-avatar-image"
+                                                        />
 
-                                            <tr
-                                                key={
-                                                    employeeId
-                                                }
-                                            >
+                                                    ) : (
 
-                                                {/* EMPLOYEE */}
+                                                        <div className="employee-avatar">
 
-                                                <td>
-
-                                                    <div className="employee-person">
-
-                                                        {employee.photoUrl ||
-                                                            employee.photo ? (
-
-                                                            <img
-                                                                src={
-                                                                    employee.photoUrl ||
-                                                                    employee.photo
-                                                                }
-                                                                alt={
-                                                                    employee.fullName
-                                                                }
-                                                                className="employee-avatar employee-avatar-image"
-                                                            />
-
-                                                        ) : (
-
-                                                            <div className="employee-avatar">
-
-                                                                {initials(
-                                                                    employee.fullName
-                                                                )}
-
-                                                            </div>
-
-                                                        )}
-
-
-                                                        <div className="employee-person-info">
-
-                                                            <strong>
-
-                                                                {
-                                                                    employee.fullName
-                                                                }
-
-                                                            </strong>
-
-                                                            <span>
-
-                                                                {
-                                                                    employee.personalEmail ||
-                                                                    "—"
-                                                                }
-
-                                                            </span>
+                                                            {initials(
+                                                                employee.fullName
+                                                            )}
 
                                                         </div>
 
-                                                    </div>
-
-                                                </td>
+                                                    )}
 
 
-                                                {/* EMPLOYEE ID */}
+                                                    <div className="employee-person-info">
 
-                                                <td>
+                                                        <strong>
 
-                                                    <span className="employee-id">
+                                                            {
+                                                                employee.fullName
+                                                            }
 
-                                                        {
-                                                            employeeCode
-                                                        }
+                                                        </strong>
 
-                                                    </span>
-
-                                                </td>
-
-
-                                                {/* DESIGNATION */}
-
-                                                <td>
-
-                                                    <span className="designation-text">
-
-                                                        {
-                                                            employee.designation
-                                                        }
-
-                                                    </span>
-
-                                                </td>
-
-
-                                                {/* CONTACT */}
-
-                                                <td>
-
-                                                    <div className="employee-contact">
 
                                                         <span>
 
                                                             {
-                                                                phone
+                                                                employee.personalEmail ||
+                                                                "—"
                                                             }
 
                                                         </span>
 
+                                                    </div>
 
-                                                        <div className="employee-comms">
+                                                </div>
+
+                                            </td>
+
+
+                                            {/* EMPLOYEE ID */}
+
+                                            <td>
+
+                                                <span className="employee-id">
+
+                                                    {
+                                                        employee.employeeCode
+                                                    }
+
+                                                </span>
+
+                                            </td>
+
+
+                                            {/* DESIGNATION */}
+
+                                            <td>
+
+                                                <span className="designation-text">
+
+                                                    {
+                                                        employee.designation
+                                                    }
+
+                                                </span>
+
+                                            </td>
+
+
+                                            {/* CONTACT */}
+
+                                            <td>
+
+                                                <div className="employee-contact">
+
+                                                    <span>
+
+                                                        {
+                                                            employee.phone ||
+                                                            "—"
+                                                        }
+
+                                                    </span>
+
+
+                                                    <div className="employee-comms">
+
+                                                        {employee.phone && (
 
                                                             <a
-                                                                href={
-                                                                    `tel:${phone}`
-                                                                }
+                                                                href={`tel:${employee.phone}`}
                                                                 title="Call"
                                                             >
 
@@ -2030,14 +1045,16 @@ function Employees() {
 
                                                             </a>
 
+                                                        )}
+
+
+                                                        {employee.whatsapp && (
 
                                                             <a
-                                                                href={
-                                                                    `https://wa.me/${whatsapp.replace(
-                                                                        /[^0-9]/g,
-                                                                        ""
-                                                                    )}`
-                                                                }
+                                                                href={`https://wa.me/${employee.whatsapp.replace(
+                                                                    /[^0-9]/g,
+                                                                    ""
+                                                                )}`}
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 title="WhatsApp"
@@ -2047,11 +1064,13 @@ function Employees() {
 
                                                             </a>
 
+                                                        )}
+
+
+                                                        {employee.officialEmail && (
 
                                                             <a
-                                                                href={
-                                                                    `mailto:${employee.officialEmail}`
-                                                                }
+                                                                href={`mailto:${employee.officialEmail}`}
                                                                 title="Email"
                                                             >
 
@@ -2059,81 +1078,71 @@ function Employees() {
 
                                                             </a>
 
-                                                        </div>
+                                                        )}
 
                                                     </div>
 
-                                                </td>
+                                                </div>
+
+                                            </td>
 
 
-                                                {/* EMAIL */}
+                                            {/* EMAIL */}
 
-                                                <td>
+                                            <td>
 
-                                                    <a
-                                                        href={
-                                                            `mailto:${employee.officialEmail}`
+                                                <a
+                                                    href={`mailto:${employee.officialEmail}`}
+                                                    className="employee-email"
+                                                >
+
+                                                    {
+                                                        employee.officialEmail
+                                                    }
+
+                                                </a>
+
+                                            </td>
+
+
+                                            {/* ACTIONS */}
+
+                                            <td>
+
+                                                <div className="employee-actions">
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            openEditModal(
+                                                                employee
+                                                            )
                                                         }
-                                                        className="employee-email"
                                                     >
+                                                        Edit
+                                                    </button>
 
-                                                        {
-                                                            employee.officialEmail
+
+                                                    <button
+                                                        type="button"
+                                                        className="employee-delete-action"
+                                                        onClick={() =>
+                                                            deleteEmployee(
+                                                                employee
+                                                            )
                                                         }
+                                                    >
+                                                        Delete
+                                                    </button>
 
-                                                    </a>
+                                                </div>
 
-                                                </td>
+                                            </td>
 
+                                        </tr>
 
-                                                {/* ACTIONS */}
-
-                                                <td>
-
-                                                    <div className="employee-actions">
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                openEditModal(
-                                                                    employee
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                isDeleting ||
-                                                                isFetching
-                                                            }
-                                                        >
-                                                            Edit
-                                                        </button>
-
-
-                                                        <button
-                                                            type="button"
-                                                            className="employee-delete-action"
-                                                            onClick={() =>
-                                                                handleDeleteEmployee(
-                                                                    employee
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                isDeleting
-                                                            }
-                                                        >
-                                                            {isDeleting
-                                                                ? "Deleting..."
-                                                                : "Delete"}
-                                                        </button>
-
-                                                    </div>
-
-                                                </td>
-
-                                            </tr>
-
-                                        );
-
-                                    })}
+                                    )
+                                )}
 
                             </tbody>
 
@@ -2141,15 +1150,7 @@ function Employees() {
 
                     </div>
 
-                )}
-
-
-            {/* =================================================
-                    EMPTY STATE
-                ================================================= */}
-
-            {!isFetching &&
-                filteredEmployees.length === 0 && (
+                ) : (
 
                     <div className="employees-empty-state">
 
@@ -2172,12 +1173,10 @@ function Employees() {
 
                 )}
 
-            {/* </div> */}
+            </div>
 
 
-            {/* =================================================
-                MODAL
-            ================================================= */}
+            {/* MODAL */}
 
             {showModal && (
 
@@ -2185,6 +1184,14 @@ function Employees() {
 
                     employee={
                         editingEmployee
+                    }
+
+                    countries={
+                        countries
+                    }
+
+                    countriesLoading={
+                        countriesLoading
                     }
 
                     onClose={
@@ -2200,7 +1207,7 @@ function Employees() {
                     }
 
                     isSubmitting={
-                        isLoading
+                        isSaving
                     }
 
                 />

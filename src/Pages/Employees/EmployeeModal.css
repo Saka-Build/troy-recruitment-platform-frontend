@@ -4,21 +4,24 @@
 
 .employee-modal-overlay {
     position: fixed;
-
     inset: 0;
-
     z-index: 1000;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     padding: 20px;
-
     background: rgba(17, 30, 50, 0.58);
-
     backdrop-filter: blur(3px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 
@@ -28,21 +31,25 @@
 
 .employee-modal {
     width: min(520px, 100%);
-
     max-height: calc(100vh - 40px);
-
     overflow-y: auto;
-
-    background: #fff;
-
+    background: #ffffff;
     border: 1px solid #dbe4ef;
-
     border-radius: 14px;
-
-    box-shadow:
-        0 20px 50px rgba(18, 39, 68, 0.24);
-
+    box-shadow: 0 20px 50px rgba(18, 39, 68, 0.24);
     color: #193252;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .employee-modal::-webkit-scrollbar {
@@ -58,6 +65,10 @@
     border-radius: 10px;
 }
 
+.employee-modal::-webkit-scrollbar-thumb:hover {
+    background: #a8b7ca;
+}
+
 
 /* =========================================================
    MODAL HEADER
@@ -65,364 +76,449 @@
 
 .employee-modal-header {
     min-height: 52px;
-
-    padding: 0 18px;
-
+    padding: 16px 24px;
     display: flex;
-
     align-items: center;
     justify-content: space-between;
-
     border-bottom: 1px solid #e3e9f1;
+    background: #f8faff;
+    border-radius: 14px 14px 0 0;
+}
+
+.employee-modal-header > div {
+    flex: 1;
 }
 
 .employee-modal-header h2 {
     margin: 0;
-
     color: #172d4f;
-
     font-size: 18px;
-
     font-weight: 700;
+    letter-spacing: -0.3px;
 }
 
-.employee-modal-close {
-    width: 30px;
-    height: 30px;
+.employee-modal-header p {
+    margin: 4px 0 0 0;
+    color: #71839d;
+    font-size: 13px;
+    font-weight: 400;
+}
 
+.employee-modal-close-btn {
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     padding: 0;
-
-    border: 0;
-
+    border: 1px solid transparent;
+    border-radius: 8px;
     background: transparent;
-
     color: #71839d;
-
-    font-size: 25px;
-
+    font-size: 18px;
     line-height: 1;
-
     cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 12px;
 }
 
-.employee-modal-close:hover {
+.employee-modal-close-btn:hover:not(:disabled) {
+    background: #f0f4fa;
+    border-color: #dce5f0;
     color: #263d5d;
 }
 
-
-/* =========================================================
-   BODY
-========================================================= */
-
-.employee-modal-body {
-    padding: 19px;
+.employee-modal-close-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 
 /* =========================================================
-   PHOTO
+   MODAL BODY
+========================================================= */
+
+.employee-modal-body {
+    padding: 24px;
+}
+
+
+/* =========================================================
+   PHOTO SECTION
 ========================================================= */
 
 .employee-photo-section {
     display: flex;
     align-items: center;
-
-    gap: 12px;
-
-    margin-bottom: 16px;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8faff;
+    border-radius: 10px;
+    border: 1px dashed #dbe4ef;
 }
 
 .employee-photo-preview {
-    width: 52px;
-    height: 52px;
-
-    flex: 0 0 52px;
-
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
     overflow: hidden;
-
     border-radius: 50%;
+    background: #e9f2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .employee-photo-preview img {
     width: 100%;
     height: 100%;
-
     object-fit: cover;
-
     display: block;
 }
 
-.employee-photo-placeholder {
-    width: 52px;
-    height: 52px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #e9f2ff;
-
+.employee-photo-preview i {
+    font-size: 28px;
     color: #2176d8;
-
-    border-radius: 50%;
 }
 
-.employee-photo-placeholder i {
-    font-size: 26px;
-}
-
-.employee-photo-actions {
+.employee-photo-section > div:last-child {
     display: flex;
     flex-direction: column;
-
-    align-items: flex-start;
-
-    gap: 3px;
+    gap: 6px;
+    flex: 1;
 }
 
-.upload-photo-btn {
-    min-height: 31px;
-
-    padding: 0 11px;
-
+.employee-upload-btn {
+    min-height: 32px;
+    padding: 0 16px;
     display: inline-flex;
     align-items: center;
-
+    justify-content: center;
     gap: 6px;
-
     border: 1px solid #dce5f0;
-
     border-radius: 6px;
-
-    background: #fff;
-
+    background: #ffffff;
     color: #243b5a;
-
     font-size: 12px;
-    font-weight: 700;
-
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+    width: fit-content;
 }
 
-.upload-photo-btn:hover {
+.employee-upload-btn:hover:not(:disabled) {
     background: #f5f8fc;
+    border-color: #b8c9dd;
 }
 
-.employee-photo-actions>span {
+.employee-upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.employee-upload-btn i {
+    font-size: 14px;
+}
+
+.employee-photo-section small {
     color: #8494aa;
-
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 400;
 }
 
-.remove-photo-btn {
-    padding: 0;
 
-    border: 0;
+/* =========================================================
+   FORM ROW
+========================================================= */
 
-    background: transparent;
+.employee-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
 
-    color: #c4414d;
+.employee-form-row:last-of-type {
+    margin-bottom: 0;
+}
 
-    font-size: 10px;
 
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.employee-form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.employee-form-group label {
+    margin-bottom: 6px;
+    color: #526984;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+}
+
+.employee-form-group label span {
+    color: #e14a58;
+    margin-left: 2px;
+}
+
+.employee-form-group input,
+.employee-form-group select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d8e3ef;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #243c5c;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.employee-form-group input:focus,
+.employee-form-group select:focus {
+    border-color: #5b8ff4;
+    box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.08);
+}
+
+.employee-form-group input:hover:not(:disabled),
+.employee-form-group select:hover:not(:disabled) {
+    border-color: #b8c9dd;
+}
+
+.employee-form-group input:disabled,
+.employee-form-group select:disabled {
+    background: #f5f8fc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.employee-form-group input::placeholder {
+    color: #9aa8ba;
+    font-size: 12px;
+}
+
+.employee-form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371839d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
     cursor: pointer;
 }
 
-.remove-photo-btn:hover {
-    text-decoration: underline;
+.employee-form-group select:disabled {
+    cursor: not-allowed;
 }
 
 
 /* =========================================================
-   FORM GRID
-========================================================= */
-
-.employee-form-grid {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    column-gap: 12px;
-
-    row-gap: 12px;
-}
-
-
-/* =========================================================
-   FORM FIELD
-========================================================= */
-
-.employee-form-field {
-    min-width: 0;
-
-    display: flex;
-
-    flex-direction: column;
-}
-
-.employee-form-field label {
-    margin-bottom: 5px;
-
-    color: #526984;
-
-    font-size: 11px;
-
-    line-height: 1.2;
-
-    font-weight: 700;
-}
-
-.employee-form-field label span {
-    color: #e14a58;
-}
-
-.employee-form-field input {
-    width: 100%;
-
-    height: 36px;
-
-    padding: 0 10px;
-
-    border: 1px solid #d8e3ef;
-
-    border-radius: 7px;
-
-    outline: none;
-
-    background: #fff;
-
-    color: #243c5c;
-
-    font-family: inherit;
-
-    font-size: 12px;
-
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.employee-form-field input:focus {
-    border-color: #5b8ff4;
-
-    box-shadow:
-        0 0 0 2px rgba(47, 109, 246, 0.08);
-}
-
-.employee-form-field input::placeholder {
-    color: #9aa8ba;
-}
-
-
-/* =========================================================
-   VALIDATION ERROR
-========================================================= */
-
-.field-error {
-    margin-top: 4px;
-
-    color: #d04450;
-
-    font-size: 10px;
-
-    line-height: 1.2;
-}
-
-
-/* =========================================================
-   FOOTER
+   MODAL FOOTER
 ========================================================= */
 
 .employee-modal-footer {
-    min-height: 60px;
-
-    padding: 10px 18px;
-
+    min-height: 64px;
+    padding: 16px 24px;
     display: flex;
-
     align-items: center;
     justify-content: flex-end;
-
-    gap: 8px;
-
+    gap: 10px;
     border-top: 1px solid #e3e9f1;
+    background: #fafcff;
+    border-radius: 0 0 14px 14px;
 }
 
-.employee-cancel-btn,
-.employee-save-btn {
-    height: 36px;
-
-    padding: 0 15px;
-
-    border-radius: 7px;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
+.employee-modal-cancel-btn,
+.employee-modal-save-btn {
+    height: 38px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
-.employee-cancel-btn {
+.employee-modal-cancel-btn {
     border: 1px solid #dce5f0;
-
-    background: #fff;
-
+    background: #ffffff;
     color: #263d5d;
 }
 
-.employee-cancel-btn:hover {
+.employee-modal-cancel-btn:hover:not(:disabled) {
     background: #f5f8fc;
+    border-color: #b8c9dd;
 }
 
-.employee-save-btn {
+.employee-modal-save-btn {
     border: 1px solid #2f6df6;
-
     background: #2f6df6;
-
-    color: #fff;
-
-    box-shadow: 0 3px 8px rgba(47, 109, 246, 0.15);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(47, 109, 246, 0.25);
 }
 
-.employee-save-btn:hover {
+.employee-modal-save-btn:hover:not(:disabled) {
     background: #245edb;
+    border-color: #245edb;
+    box-shadow: 0 6px 16px rgba(47, 109, 246, 0.3);
+    transform: translateY(-1px);
+}
+
+.employee-modal-save-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.employee-modal-cancel-btn:disabled,
+.employee-modal-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.employee-modal-save-btn i {
+    font-size: 14px;
 }
 
 
 /* =========================================================
-   MOBILE
+   LOADING STATE
+========================================================= */
+
+.employee-modal-save-btn .bi-arrow-repeat {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
 ========================================================= */
 
 @media (max-width: 600px) {
-
     .employee-modal-overlay {
         padding: 10px;
+        align-items: flex-end;
     }
 
     .employee-modal {
         max-height: calc(100vh - 20px);
-
-        border-radius: 11px;
+        border-radius: 14px 14px 0 0;
+        animation: slideUpMobile 0.3s ease-out;
     }
 
-    .employee-form-grid {
-        grid-template-columns: 1fr;
+    @keyframes slideUpMobile {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .employee-modal-header {
+        padding: 14px 16px;
+        border-radius: 14px 14px 0 0;
+    }
+
+    .employee-modal-header h2 {
+        font-size: 17px;
+    }
+
+    .employee-modal-header p {
+        font-size: 12px;
     }
 
     .employee-modal-body {
         padding: 16px;
     }
 
-    .employee-modal-header {
-        padding: 0 16px;
+    .employee-form-row {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .employee-form-row:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .employee-photo-section {
+        padding: 14px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .employee-photo-section > div:last-child {
+        align-items: center;
+    }
+
+    .employee-upload-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .employee-modal-footer {
-        padding: 9px 16px;
+        padding: 12px 16px;
+        flex-direction: column-reverse;
+        gap: 8px;
+        border-radius: 0 0 14px 14px;
     }
+
+    .employee-modal-cancel-btn,
+    .employee-modal-save-btn {
+        width: 100%;
+        justify-content: center;
+        height: 42px;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+    .employee-modal {
+        width: min(90%, 500px);
+    }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.employee-modal-cancel-btn:focus-visible,
+.employee-modal-save-btn:focus-visible,
+.employee-upload-btn:focus-visible,
+.employee-modal-close-btn:focus-visible {
+    outline: 2px solid #2f6df6;
+    outline-offset: 2px;
+}
+
+.employee-modal input:focus-visible,
+.employee-modal select:focus-visible {
+    outline: none;
+    border-color: #5b8ff4;
+    box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.15);
 }
