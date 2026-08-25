@@ -15,14 +15,16 @@ function EmployeeModal({
     onSave,
     generateEmployeeId,
     isSubmitting = false,
+    error = null,
+    onClearError,
 }) {
 
-    const fileInputRef =
-        useRef(null);
+    const fileInputRef = useRef(null);
 
 
-    const isEditMode =
-        Boolean(employee);
+    const isEditMode = Boolean(employee);
+
+    const [validationError, setValidationError,] = useState("");
 
 
     /*
@@ -75,17 +77,6 @@ function EmployeeModal({
             employee?.country?.code ||
             "",
 
-        /*
-         * IMPORTANT
-         *
-         * Backend GET response:
-         * active: true / false
-         *
-         * Create request:
-         * isActive: true / false
-         *
-         * We use isActive in frontend.
-         */
         isActive:
             employee?.active ??
             true,
@@ -147,13 +138,6 @@ function EmployeeModal({
                 employee?.country?.code ||
                 "",
 
-            /*
-             * Existing employee:
-             * use backend active value.
-             *
-             * New employee:
-             * default to true.
-             */
             isActive:
                 employee?.active ??
                 true,
@@ -175,7 +159,6 @@ function EmployeeModal({
      * INPUT CHANGE
      * ---------------------------------------------------------------
      */
-
     const handleChange =
         (event) => {
 
@@ -184,39 +167,32 @@ function EmployeeModal({
                 value,
             } = event.target;
 
+            // Clear errors when user starts correcting the form
+            setValidationError("");
 
-            /*
-             * SELECT VALUE IS ALWAYS STRING.
-             *
-             * Convert status back to boolean.
-             */
+            if (onClearError) {
+                onClearError();
+            }
+
             if (
                 name === "isActive"
             ) {
-
                 setForm(
                     (current) => ({
-
                         ...current,
-
                         isActive:
                             value === "true",
-
                     })
                 );
 
                 return;
             }
 
-
             setForm(
                 (current) => ({
-
                     ...current,
-
                     [name]:
                         value,
-
                 })
             );
         };
@@ -274,96 +250,72 @@ function EmployeeModal({
 
             event.preventDefault();
 
+            // Clear previous errors
+            setValidationError("");
 
-            if (
-                !form.fullName.trim()
-            ) {
+            if (onClearError) {
+                onClearError();
+            }
 
-                alert(
+            if (!form.fullName.trim()) {
+
+                setValidationError(
                     "Please enter full name."
                 );
 
                 return;
             }
 
+            if (!form.employeeId.trim()) {
 
-            if (
-                !form.employeeId.trim()
-            ) {
-
-                alert(
+                setValidationError(
                     "Please enter employee ID."
                 );
 
                 return;
             }
 
+            if (!form.designation.trim()) {
 
-            if (
-                !form.designation.trim()
-            ) {
-
-                alert(
+                setValidationError(
                     "Please enter designation."
                 );
 
                 return;
             }
 
+            if (!form.officialEmail.trim()) {
 
-            if (
-                !form.officialEmail.trim()
-            ) {
-
-                alert(
+                setValidationError(
                     "Please enter official email."
                 );
 
                 return;
             }
 
+            if (!form.countryCode) {
 
-            if (
-                !form.countryCode
-            ) {
-
-                alert(
+                setValidationError(
                     "Please select country."
                 );
 
                 return;
             }
 
-
-            /*
-             * Password required only
-             * while creating employee.
-             */
-
             if (
                 !isEditMode &&
                 !form.password
             ) {
 
-                alert(
+                setValidationError(
                     "Please enter password."
                 );
 
                 return;
             }
 
-
-            onSave(
-                form
-            );
+            onSave(form);
         };
-
-
-    /*
-     * ---------------------------------------------------------------
-     * CLOSE
-     * ---------------------------------------------------------------
-     */
 
     const handleClose = () => {
 
@@ -428,7 +380,19 @@ function EmployeeModal({
 
                 </div>
 
+                {(validationError || error) && (
 
+                    <div className="employee-modal-error">
+
+                        <i className="bi bi-exclamation-circle-fill"></i>
+
+                        <span>
+                            {validationError || error}
+                        </span>
+
+                    </div>
+
+                )}
                 {/* FORM */}
 
                 <form
@@ -439,7 +403,7 @@ function EmployeeModal({
 
                     <div className="employee-modal-body">
 
-                        {/* PHOTO */}
+                        {/* PHOTO SECTION */}
 
                         <div className="employee-photo-section">
 
@@ -450,6 +414,15 @@ function EmployeeModal({
                                     <img
                                         src={
                                             form.photoPreview
+                                        }
+                                        alt="Employee"
+                                    />
+
+                                ) : employee?.photoUrl ? (
+
+                                    <img
+                                        src={
+                                            employee.photoUrl
                                         }
                                         alt="Employee"
                                     />
@@ -507,385 +480,540 @@ function EmployeeModal({
                         </div>
 
 
-                        {/* FULL NAME + EMPLOYEE ID */}
+                        {isEditMode ? (
+                            /* 
+                             * ============================================================
+                             * EDIT MODE LAYOUT
+                             * ============================================================
+                             */
 
-                        <div className="employee-form-row">
+                            <>
+                                {/* FULL NAME + EMPLOYEE ID */}
+                                <div className="employee-form-row">
 
-                            <div className="employee-form-group">
+                                    <div className="employee-form-group">
 
-                                <label>
-                                    Full Name
-                                    <span>*</span>
-                                </label>
+                                        <label>
+                                            Full Name
+                                            <span>*</span>
+                                        </label>
 
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={form.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                            disabled={isSubmitting}
+                                        />
 
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={
-                                        form.fullName
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="Enter full name"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                    </div>
 
-                            </div>
+                                    <div className="employee-form-group">
 
+                                        <label>
+                                            Employee ID
+                                            <span>*</span>
+                                        </label>
 
-                            <div className="employee-form-group">
+                                        <input
+                                            type="text"
+                                            name="employeeId"
+                                            value={form.employeeId}
+                                            onChange={handleChange}
+                                            placeholder="EMP001"
+                                            disabled={isSubmitting}
+                                        />
 
-                                <label>
-                                    Employee ID
-                                    <span>*</span>
-                                </label>
+                                    </div>
 
+                                </div>
 
-                                <input
-                                    type="text"
-                                    name="employeeId"
-                                    value={
-                                        form.employeeId
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="EMP001"
-                                    disabled={
-                                        isSubmitting ||
-                                        isEditMode
-                                    }
-                                />
+                                {/* DESIGNATION + ROLE */}
+                                <div className="employee-form-row">
 
-                            </div>
+                                    <div className="employee-form-group">
 
-                        </div>
+                                        <label>
+                                            Designation
+                                            <span>*</span>
+                                        </label>
 
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Recruiter"
+                                            disabled={isSubmitting}
+                                        />
 
-                        {/* DESIGNATION + ROLE */}
+                                    </div>
 
-                        <div className="employee-form-row">
+                                    <div className="employee-form-group">
 
-                            <div className="employee-form-group">
+                                        <label>
+                                            Role
+                                            <span>*</span>
+                                        </label>
 
-                                <label>
-                                    Designation
-                                    <span>*</span>
-                                </label>
+                                        <select
+                                            name="role"
+                                            value={form.role}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
 
+                                            <option value="admin">Admin</option>
+                                            <option value="recruiter">Recruiter</option>
+                                            <option value="hr">HR</option>
 
-                                <input
-                                    type="text"
-                                    name="designation"
-                                    value={
-                                        form.designation
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="e.g. Recruiter"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                        </select>
 
-                            </div>
+                                    </div>
 
+                                </div>
 
-                            <div className="employee-form-group">
+                                {/* COUNTRY + STATUS */}
+                                <div className="employee-form-row">
 
-                                <label>
-                                    Role
-                                    <span>*</span>
-                                </label>
+                                    <div className="employee-form-group">
 
+                                        <label>
+                                            Country
+                                            <span>*</span>
+                                        </label>
 
-                                <select
-                                    name="role"
-                                    value={
-                                        form.role
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                >
+                                        <select
+                                            name="countryCode"
+                                            value={form.countryCode}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || countriesLoading}
+                                        >
 
-                                    <option value="admin">
-                                        Admin
-                                    </option>
-
-                                    <option value="recruiter">
-                                        Recruiter
-                                    </option>
-
-                                    <option value="hr">
-                                        HR
-                                    </option>
-
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* COUNTRY + STATUS */}
-
-                        <div className="employee-form-row">
-
-                            {/* COUNTRY */}
-
-                            <div className="employee-form-group">
-
-                                <label>
-                                    Country
-                                    <span>*</span>
-                                </label>
-
-
-                                <select
-                                    name="countryCode"
-                                    value={
-                                        form.countryCode
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        isSubmitting ||
-                                        countriesLoading
-                                    }
-                                >
-
-                                    <option value="">
-
-                                        {countriesLoading
-                                            ? "Loading countries..."
-                                            : "Select country"}
-
-                                    </option>
-
-
-                                    {countries.map(
-                                        (country) => (
-
-                                            <option
-                                                key={
-                                                    country.id ||
-                                                    country.code
-                                                }
-                                                value={
-                                                    country.code
-                                                }
-                                            >
-
-                                                {country.name}
-
+                                            <option value="">
+                                                {countriesLoading
+                                                    ? "Loading countries..."
+                                                    : "Select country"}
                                             </option>
 
-                                        )
-                                    )}
+                                            {countries.map(
+                                                (country) => (
 
-                                </select>
+                                                    <option
+                                                        key={country.id || country.code}
+                                                        value={country.code}
+                                                    >
+                                                        {country.name}
+                                                    </option>
 
-                            </div>
+                                                )
+                                            )}
 
+                                        </select>
 
-                            {/* STATUS */}
+                                    </div>
 
-                            <div className="employee-form-group">
+                                    <div className="employee-form-group">
 
-                                <label>
-                                    Status
-                                    <span>*</span>
-                                </label>
+                                        <label>
+                                            Status
+                                            <span>*</span>
+                                        </label>
 
+                                        <select
+                                            name="isActive"
+                                            value={String(form.isActive)}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
 
-                                <select
-                                    name="isActive"
-                                    value={
-                                        String(
-                                            form.isActive
-                                        )
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                >
+                                            <option value="true">True</option>
+                                            <option value="false">False</option>
 
-                                    <option value="true">
-                                        True
-                                    </option>
+                                        </select>
 
-                                    <option value="false">
-                                        False
-                                    </option>
+                                    </div>
 
-                                </select>
+                                </div>
 
-                            </div>
+                                {/* OFFICIAL EMAIL + PASSWORD */}
+                                <div className="employee-form-row">
 
-                        </div>
+                                    <div className="employee-form-group">
 
+                                        <label>
+                                            Official Email
+                                            <span>*</span>
+                                        </label>
 
-                        {/* EMAIL ROW */}
+                                        <input
+                                            type="email"
+                                            name="officialEmail"
+                                            value={form.officialEmail}
+                                            onChange={handleChange}
+                                            placeholder="name@troy.com"
+                                            disabled={isSubmitting}
+                                        />
 
-                        <div className="employee-form-row">
+                                    </div>
 
-                            <div className="employee-form-group">
+                                    <div className="employee-form-group">
 
-                                <label>
-                                    Official Email
-                                    <span>*</span>
-                                </label>
+                                        <label>
+                                            Password
+                                        </label>
 
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            value={form.password}
+                                            onChange={handleChange}
+                                            placeholder="Leave blank to keep current password"
+                                            disabled={isSubmitting}
+                                        />
 
-                                <input
-                                    type="email"
-                                    name="officialEmail"
-                                    value={
-                                        form.officialEmail
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="name@troy.com"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                    </div>
 
-                            </div>
+                                </div>
 
+                                {/* CONTACT + WHATSAPP */}
+                                <div className="employee-form-row">
 
-                            <div className="employee-form-group">
+                                    <div className="employee-form-group">
 
-                                <label>
-                                    Personal Email
-                                </label>
+                                        <label>
+                                            Contact Number
+                                        </label>
 
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="contactNumber"
+                                                value={form.contactNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        contactNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter phone number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
 
-                                <input
-                                    type="email"
-                                    name="personalEmail"
-                                    value={
-                                        form.personalEmail
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="personal@gmail.com"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                    </div>
 
-                            </div>
+                                    <div className="employee-form-group">
 
-                        </div>
+                                        <label>
+                                            WhatsApp Number
+                                        </label>
 
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="whatsappNumber"
+                                                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        whatsappNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter WhatsApp number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
 
-                        {/* CONTACT ROW */}
+                                    </div>
 
-                        <div className="employee-form-row">
+                                </div>
+                            </>
 
-                            <div className="employee-form-group">
+                        ) : (
+                            /* 
+                             * ============================================================
+                             * CREATE MODE LAYOUT (ORIGINAL)
+                             * ============================================================
+                             */
 
-                                <label>
-                                    Contact Number
-                                </label>
+                            <>
+                                {/* FULL NAME + EMPLOYEE ID */}
+                                <div className="employee-form-row">
 
+                                    <div className="employee-form-group">
 
-                                <input
-                                    type="text"
-                                    name="contactNumber"
-                                    value={
-                                        form.contactNumber
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="+919876543210"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                        <label>
+                                            Full Name
+                                            <span>*</span>
+                                        </label>
 
-                            </div>
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={form.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                            disabled={isSubmitting}
+                                        />
 
+                                    </div>
 
-                            <div className="employee-form-group">
+                                    <div className="employee-form-group">
 
-                                <label>
-                                    WhatsApp Number
-                                </label>
+                                        <label>
+                                            Employee ID
+                                            <span>*</span>
+                                        </label>
 
+                                        <input
+                                            type="text"
+                                            name="employeeId"
+                                            value={form.employeeId}
+                                            onChange={handleChange}
+                                            placeholder="EMP001"
+                                            disabled={isSubmitting}
+                                        />
 
-                                <input
-                                    type="text"
-                                    name="whatsappNumber"
-                                    value={
-                                        form.whatsappNumber
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="+919876543210"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
+                                    </div>
 
-                            </div>
+                                </div>
 
-                        </div>
+                                {/* DESIGNATION + ROLE */}
+                                <div className="employee-form-row">
 
+                                    <div className="employee-form-group">
 
-                        {/* PASSWORD */}
+                                        <label>
+                                            Designation
+                                            <span>*</span>
+                                        </label>
 
-                        <div className="employee-form-group">
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Recruiter"
+                                            disabled={isSubmitting}
+                                        />
 
-                            <label>
+                                    </div>
 
-                                Password
+                                    <div className="employee-form-group">
 
-                                {!isEditMode && (
-                                    <span>*</span>
-                                )}
+                                        <label>
+                                            Role
+                                            <span>*</span>
+                                        </label>
 
-                            </label>
+                                        <select
+                                            name="role"
+                                            value={form.role}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
 
+                                            <option value="admin">Admin</option>
+                                            <option value="recruiter">Recruiter</option>
+                                            <option value="hr">HR</option>
 
-                            <input
-                                type="password"
-                                name="password"
-                                value={
-                                    form.password
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                placeholder={
-                                    isEditMode
-                                        ? "Leave blank to keep current password"
-                                        : "Enter password"
-                                }
-                                disabled={
-                                    isSubmitting
-                                }
-                            />
+                                        </select>
 
-                        </div>
+                                    </div>
+
+                                </div>
+
+                                {/* COUNTRY + STATUS */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Country
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="countryCode"
+                                            value={form.countryCode}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || countriesLoading}
+                                        >
+
+                                            <option value="">
+                                                {countriesLoading
+                                                    ? "Loading countries..."
+                                                    : "Select country"}
+                                            </option>
+
+                                            {countries.map(
+                                                (country) => (
+
+                                                    <option
+                                                        key={country.id || country.code}
+                                                        value={country.code}
+                                                    >
+                                                        {country.name}
+                                                    </option>
+
+                                                )
+                                            )}
+
+                                        </select>
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Status
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="isActive"
+                                            value={String(form.isActive)}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || !isEditMode}
+                                        >
+
+                                            <option value="true">True</option>
+                                            <option value="false">False</option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                                {/* OFFICIAL EMAIL + PERSONAL EMAIL */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Official Email
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            name="officialEmail"
+                                            value={form.officialEmail}
+                                            onChange={handleChange}
+                                            placeholder="name@troy.com"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Personal Email
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            name="personalEmail"
+                                            value={form.personalEmail}
+                                            onChange={handleChange}
+                                            placeholder="personal@gmail.com"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                {/* CONTACT + WHATSAPP */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Contact Number
+                                        </label>
+
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="contactNumber"
+                                                value={form.contactNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        contactNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter phone number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            WhatsApp Number
+                                        </label>
+
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="whatsappNumber"
+                                                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        whatsappNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter WhatsApp number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* PASSWORD */}
+                                <div className="employee-form-group">
+
+                                    <label>
+                                        Password
+                                        <span>*</span>
+                                    </label>
+
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        placeholder="Enter password"
+                                        disabled={isSubmitting}
+                                    />
+
+                                </div>
+                            </>
+                        )}
 
                     </div>
 
@@ -897,12 +1025,8 @@ function EmployeeModal({
                         <button
                             type="button"
                             className="employee-modal-cancel-btn"
-                            onClick={
-                                handleClose
-                            }
-                            disabled={
-                                isSubmitting
-                            }
+                            onClick={handleClose}
+                            disabled={isSubmitting}
                         >
 
                             Cancel
@@ -913,9 +1037,7 @@ function EmployeeModal({
                         <button
                             type="submit"
                             className="employee-modal-save-btn"
-                            disabled={
-                                isSubmitting
-                            }
+                            disabled={isSubmitting}
                         >
 
                             {isSubmitting ? (
@@ -932,7 +1054,7 @@ function EmployeeModal({
 
                                 <>
 
-                                    <i className="bi bi-check-lg"></i>
+                                    {/* <i className="bi bi-check-lg"></i> */}
 
                                     {isEditMode
                                         ? "Update Employee"
@@ -951,6 +1073,7 @@ function EmployeeModal({
             </div>
 
         </div>
+
     );
 }
 
