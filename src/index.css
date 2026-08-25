@@ -139,6 +139,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 0 18px;
   border: 1px solid var(--border-color);
   border-radius: 12px;

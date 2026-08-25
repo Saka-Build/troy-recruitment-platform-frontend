@@ -194,14 +194,14 @@ function JobPage() {
         </div>
 
         <div className="page-header-actions">
-          <button
-            className="outline-btn"
-            onClick={handleExport}
-            disabled={isFetching}
-          >
-            <span className="export-icon">⇩</span>
-            Export CSV
-          </button>
+        <button
+          className="outline-btn"
+          onClick={handleExport}
+          disabled={isFetching}
+        >
+          <i className="bi bi-download"></i>
+          Export CSV
+        </button>
 
           <button
             className="primary-btn"

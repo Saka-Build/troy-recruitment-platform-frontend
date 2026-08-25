@@ -47,6 +47,7 @@ function ManualCreationModal({
 
   const [recruiterDropdownOpen, setRecruiterDropdownOpen] =
     useState(false);
+    const [changedFields, setChangedFields] = useState({});
 
   const editJob = job || initialData;
 
@@ -183,65 +184,97 @@ function ManualCreationModal({
     });
   }, [editJob, isEdit]);
 
-  const handleChange = (e) => {
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = e.target;
+const handleChange = (e) => {
+  const {
+    name,
+    value,
+    type,
+    checked,
+  } = e.target;
 
-    setFormData((prev) => ({
+  const newValue =
+    type === "checkbox"
+      ? checked
+      : value;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: newValue,
+  }));
+
+  if (isEdit) {
+    setChangedFields((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
+      [name]: true,
     }));
-  };
+  }
+};
 
-  const handleClientChange = (e) => {
-    const clientId = e.target.value;
+const handleClientChange = (e) => {
+  const clientId = e.target.value;
 
-    const client = activeClients.find(
-      (item) => item.id === clientId
-    );
+  const client = activeClients.find(
+    (item) => item.id === clientId
+  );
 
-    setFormData((prev) => ({
+  const newCountryCode = client?.countryCode || "";
+
+  setFormData((prev) => ({
+    ...prev,
+    clientId,
+    endClientId: "",
+    countryCode: newCountryCode,
+  }));
+
+  if (isEdit) {
+    setChangedFields((prev) => ({
       ...prev,
-      clientId,
-      endClientId: "",
-      countryCode: client?.countryCode || "",
+      clientId: true,
+      endClientId: true,
+      countryCode: true,
     }));
-  };
+  }
+};
+const handleCountryChange = (e) => {
+  const value = e.target.value;
 
-  const handleCountryChange = (e) => {
-    setFormData((prev) => ({
+  setFormData((prev) => ({
+    ...prev,
+    countryCode: value,
+  }));
+
+  if (isEdit) {
+    setChangedFields((prev) => ({
       ...prev,
-      countryCode: e.target.value,
+      countryCode: true,
     }));
-  };
+  }
+};
+const handleRecruiterToggle = (recruiterId) => {
+  setFormData((prev) => {
+    const alreadySelected =
+      prev.assignedRecruiters.includes(recruiterId);
 
-  const handleRecruiterToggle = (recruiterId) => {
-    setFormData((prev) => {
-      const alreadySelected =
-        prev.assignedRecruiters.includes(
-          recruiterId
-        );
+    return {
+      ...prev,
+      assignedRecruiters: alreadySelected
+        ? prev.assignedRecruiters.filter(
+            (id) => id !== recruiterId
+          )
+        : [
+            ...prev.assignedRecruiters,
+            recruiterId,
+          ],
+    };
+  });
 
-      return {
-        ...prev,
-        assignedRecruiters: alreadySelected
-          ? prev.assignedRecruiters.filter(
-              (id) => id !== recruiterId
-            )
-          : [
-              ...prev.assignedRecruiters,
-              recruiterId,
-            ],
-      };
-    });
-  };
+  if (isEdit) {
+    setChangedFields((prev) => ({
+      ...prev,
+      assignedRecruiters: true,
+    }));
+  }
+};
 
   const selectedRecruiters = useMemo(() => {
     return activeEmployees.filter((employee) =>
@@ -292,45 +325,71 @@ function ManualCreationModal({
       .map((skill) => skill.trim())
       .filter(Boolean);
 
-    const payload = {
-      title: formData.title.trim(),
-      clientId: formData.clientId,
-      endClientId: formData.endClientId,
-      countryCode: formData.countryCode,
-      location: formData.location.trim(),
-      jobType: formData.jobType,
-      workMode: formData.workMode,
-      clientRateAmount:
-        formData.clientRateAmount !== ""
-          ? Number(formData.clientRateAmount)
-          : null,
-      clientRateCurrency:
-        formData.clientRateCurrency,
-      clientRatePeriod:
-        formData.clientRatePeriod,
-      candidateRateAmount:
-        formData.candidateRateAmount !== ""
-          ? Number(formData.candidateRateAmount)
-          : null,
-      candidateRateCurrency:
-        formData.candidateRateCurrency,
-      candidateRatePeriod:
-        formData.candidateRatePeriod,
-      skillsRequired,
-      priority: formData.priority,
-      status: formData.status,
-      ownerId: formData.ownerId,
-      assignedRecruiters:
-        formData.assignedRecruiters,
-      description:
-        formData.description.trim(),
-      descriptionSource: "manual",
-      leadNote:
-  formData.leadNote.trim(),
-      industry: formData.industry.trim(),
-      isTemplate: false,
-      templateName: null,
-    };
+const fullPayload = {
+  title: formData.title.trim(),
+  clientId: formData.clientId,
+  endClientId: formData.endClientId,
+  countryCode: formData.countryCode,
+  location: formData.location.trim(),
+  jobType: formData.jobType,
+  workMode: formData.workMode,
+
+  clientRateAmount:
+    formData.clientRateAmount !== ""
+      ? Number(formData.clientRateAmount)
+      : null,
+
+  clientRateCurrency:
+    formData.clientRateCurrency,
+
+  clientRatePeriod:
+    formData.clientRatePeriod,
+
+  candidateRateAmount:
+    formData.candidateRateAmount !== ""
+      ? Number(formData.candidateRateAmount)
+      : null,
+
+  candidateRateCurrency:
+    formData.candidateRateCurrency,
+
+  candidateRatePeriod:
+    formData.candidateRatePeriod,
+
+  skillsRequired,
+
+  priority: formData.priority,
+  status: formData.status,
+
+  ownerId: formData.ownerId,
+
+  assignedRecruiters:
+    formData.assignedRecruiters,
+
+  description:
+    formData.description.trim(),
+
+  descriptionSource: "manual",
+
+  leadNote:
+    formData.leadNote.trim(),
+
+  industry:
+    formData.industry.trim(),
+
+  isTemplate: false,
+  templateName: null,
+};
+
+const payload = isEdit
+  ? Object.keys(fullPayload).reduce((result, key) => {
+      result[key] = changedFields[key]
+        ? fullPayload[key]
+        : null;
+
+      return result;
+    }, {})
+  : fullPayload;
 
     console.log(
       isEdit
