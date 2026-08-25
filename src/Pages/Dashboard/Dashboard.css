@@ -78,59 +78,93 @@
   font-size: 18px;
 }
 
+/* =========================================================
+   WORLD CLOCK
+========================================================= */
+
 .timezone-card {
-  height: 93px;
-  padding: 13px 17px;
-}
-
-.timezone-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-bottom: 2px;
-}
-
-.timezone-country {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.timezone-badge {
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: #e9edf4;
-  color: #6c7788;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 18px;
 }
 
 .timezone-main {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
+  gap: 16px;
 }
 
-.country-code {
-  font-size: 20px;
+/* Flag section */
+
+.timezone-flag-container {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+  background: #f4f7fb;
+}
+
+.timezone-flag {
+  font-size: 32px;
+  line-height: 1;
+}
+
+/* Country + time section */
+
+.timezone-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.timezone-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.timezone-country {
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #526581;
+}
+
+.timezone-badge {
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: #edf1f6;
+  color: #60708a;
+
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .timezone-time {
   font-size: 23px;
   font-weight: 700;
-  letter-spacing: -0.4px;
-  color: var(--text-primary);
+  line-height: 1.1;
+  color: #09284b;
 }
 
 .timezone-date {
-  margin-left: 40px;
-  margin-top: -2px;
-  font-size: 12px;
-  color: var(--text-muted);
+  margin-top: 5px;
+
+  font-size: 11px;
+  color: #6680a3;
+}
+.country-flag {
+  width: 35px;
+  height: 30px;
+  object-fit: cover;
+  display: block;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .next-interview {
@@ -457,7 +491,7 @@
   }
 
   .timezone-card {
-    height: 93px;
+    height: auto;
   }
 }
 

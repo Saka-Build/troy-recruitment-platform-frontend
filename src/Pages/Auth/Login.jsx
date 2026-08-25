@@ -133,7 +133,7 @@ const Login = () => {
                                 className={`form-control login-input ${
                                     emailError ? "input-error" : ""
                                 }`}
-                                placeholder="admin@troy.com"
+                                placeholder="Enter your work email"
                                 value={email}
                                 disabled={isLoading}
                                 onChange={(e) => {
@@ -171,7 +171,7 @@ const Login = () => {
                                 className={`form-control login-input ${
                                     passwordError ? "input-error" : ""
                                 }`}
-                                placeholder="Password"
+                                placeholder="Enter your password"
                                 value={password}
                                 disabled={isLoading}
                                 onChange={(e) => {
