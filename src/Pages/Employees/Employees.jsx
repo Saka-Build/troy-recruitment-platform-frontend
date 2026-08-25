@@ -12,7 +12,7 @@ import {
 import "./Employees.css";
 
 import EmployeeModal from "./EmployeeModal";
-
+import Pagination from "../../Components/Pagination";
 import {
     getAllEmployees,
     getCountries,
@@ -34,14 +34,6 @@ function Employees() {
 
     const dispatch =
         useDispatch();
-
-
-    /*
-     * ---------------------------------------------------------------
-     * REDUX STATE
-     * ---------------------------------------------------------------
-     */
-
     const {
         employees = [],
         countries = [],
@@ -53,20 +45,17 @@ function Employees() {
         (state) =>
             state.employees
     );
-
-
-    /*
-     * ---------------------------------------------------------------
-     * LOCAL STATE
-     * ---------------------------------------------------------------
-     */
-
     const [
         search,
         setSearch,
     ] = useState("");
 
+    const [
+        currentPage,
+        setCurrentPage,
+    ] = useState(1);
 
+    const employeesPerPage = 10;
     const [
         showModal,
         setShowModal,
@@ -77,13 +66,6 @@ function Employees() {
         editingEmployee,
         setEditingEmployee,
     ] = useState(null);
-
-
-    /*
-     * ---------------------------------------------------------------
-     * INITIAL API CALLS
-     * ---------------------------------------------------------------
-     */
 
     useEffect(() => {
 
@@ -97,12 +79,12 @@ function Employees() {
 
     }, [dispatch]);
 
+    useEffect(() => {
 
-    /*
-     * ---------------------------------------------------------------
-     * SEARCH
-     * ---------------------------------------------------------------
-     */
+        setCurrentPage(1);
+
+    }, [search]);
+
 
     const filteredEmployees =
         useMemo(() => {
@@ -122,9 +104,9 @@ function Employees() {
             return employees.filter(
                 (employee) => [
 
-                    employee.fullName,
-
                     employee.employeeCode,
+
+                    employee.fullName,
 
                     employee.designation,
 
@@ -159,12 +141,33 @@ function Employees() {
             search,
         ]);
 
+    const totalPages = Math.ceil(
+        filteredEmployees.length /
+        employeesPerPage
+    );
 
-    /*
-     * ---------------------------------------------------------------
-     * DESIGNATIONS
-     * ---------------------------------------------------------------
-     */
+
+    const paginatedEmployees =
+        useMemo(() => {
+
+            const startIndex =
+                (currentPage - 1) *
+                employeesPerPage;
+
+            const endIndex =
+                startIndex +
+                employeesPerPage;
+
+            return filteredEmployees.slice(
+                startIndex,
+                endIndex
+            );
+
+        }, [
+            filteredEmployees,
+            currentPage,
+            employeesPerPage,
+        ]);
 
     const designations =
         useMemo(() => {
@@ -185,13 +188,6 @@ function Employees() {
             employees,
         ]);
 
-
-    /*
-     * ---------------------------------------------------------------
-     * ADD
-     * ---------------------------------------------------------------
-     */
-
     const openAddModal = () => {
 
         dispatch(
@@ -206,13 +202,6 @@ function Employees() {
             true
         );
     };
-
-
-    /*
-     * ---------------------------------------------------------------
-     * EDIT
-     * ---------------------------------------------------------------
-     */
 
     const openEditModal =
         (employee) => {
@@ -229,13 +218,6 @@ function Employees() {
                 true
             );
         };
-
-
-    /*
-     * ---------------------------------------------------------------
-     * CLOSE MODAL
-     * ---------------------------------------------------------------
-     */
 
     const closeModal = () => {
 
@@ -254,191 +236,159 @@ function Employees() {
         );
     };
 
-
-    /*
-     * ---------------------------------------------------------------
-     * SAVE EMPLOYEE
-     * ---------------------------------------------------------------
-     */
-
     const handleSaveEmployee =
         async (
             employeeData
         ) => {
 
             try {
+                if (editingEmployee) {
 
-                /*
-                 * ===================================================
-                 * EDIT
-                 * ===================================================
-                 */
+                    const updateData = {};
+                    if (
+                        employeeData.employeeId !== undefined &&
+                        employeeData.employeeId !== null &&
+                        employeeData.employeeId.trim() !== ""
+                    ) {
 
-              if (editingEmployee) {
+                        updateData.employeeCode =
+                            employeeData.employeeId.trim();
+                    }
+                    if (
+                        employeeData.fullName !== undefined &&
+                        employeeData.fullName !== null &&
+                        employeeData.fullName.trim() !== ""
+                    ) {
 
-    const updateData = {};
-
-    /*
-     * -----------------------------------------------------------
-     * PARTIAL UPDATE
-     *
-     * PUT behaves like PATCH in this API.
-     * Send any fields that are provided by the modal.
-     * -----------------------------------------------------------
-     */
-
-
-    if (
-        employeeData.fullName !== undefined &&
-        employeeData.fullName !== null &&
-        employeeData.fullName.trim() !== ""
-    ) {
-
-        updateData.fullName =
-            employeeData.fullName.trim();
-    }
+                        updateData.fullName =
+                            employeeData.fullName.trim();
+                    }
 
 
-    if (
-        employeeData.designation !== undefined &&
-        employeeData.designation !== null &&
-        employeeData.designation.trim() !== ""
-    ) {
+                    if (
+                        employeeData.designation !== undefined &&
+                        employeeData.designation !== null &&
+                        employeeData.designation.trim() !== ""
+                    ) {
 
-        updateData.designation =
-            employeeData.designation.trim();
-    }
-
-
-    if (
-        employeeData.officialEmail !== undefined &&
-        employeeData.officialEmail !== null &&
-        employeeData.officialEmail.trim() !== ""
-    ) {
-
-        updateData.officialEmail =
-            employeeData.officialEmail.trim();
-    }
+                        updateData.designation =
+                            employeeData.designation.trim();
+                    }
 
 
-    if (
-        employeeData.personalEmail !== undefined &&
-        employeeData.personalEmail !== null &&
-        employeeData.personalEmail.trim() !== ""
-    ) {
+                    if (
+                        employeeData.officialEmail !== undefined &&
+                        employeeData.officialEmail !== null &&
+                        employeeData.officialEmail.trim() !== ""
+                    ) {
 
-        updateData.personalEmail =
-            employeeData.personalEmail.trim();
-    }
-
-
-    if (
-        employeeData.contactNumber !== undefined &&
-        employeeData.contactNumber !== null &&
-        employeeData.contactNumber.trim() !== ""
-    ) {
-
-        updateData.phone =
-            employeeData.contactNumber.trim();
-    }
+                        updateData.officialEmail =
+                            employeeData.officialEmail.trim();
+                    }
 
 
-    if (
-        employeeData.whatsappNumber !== undefined &&
-        employeeData.whatsappNumber !== null &&
-        employeeData.whatsappNumber.trim() !== ""
-    ) {
+                    if (
+                        employeeData.personalEmail !== undefined &&
+                        employeeData.personalEmail !== null &&
+                        employeeData.personalEmail.trim() !== ""
+                    ) {
 
-        updateData.whatsapp =
-            employeeData.whatsappNumber.trim();
-    }
-
-
-    if (
-        employeeData.role !== undefined &&
-        employeeData.role !== null &&
-        employeeData.role.trim() !== ""
-    ) {
-
-        updateData.role =
-            employeeData.role.trim();
-    }
+                        updateData.personalEmail =
+                            employeeData.personalEmail.trim();
+                    }
 
 
-    if (
-        employeeData.countryCode !== undefined &&
-        employeeData.countryCode !== null &&
-        employeeData.countryCode !== ""
-    ) {
+                    if (
+                        employeeData.contactNumber !== undefined &&
+                        employeeData.contactNumber !== null &&
+                        employeeData.contactNumber.trim() !== ""
+                    ) {
 
-        updateData.countryCode =
-            employeeData.countryCode;
-    }
-
-
-    /*
-     * IMPORTANT:
-     *
-     * Frontend modal uses isActive,
-     * backend update API expects active.
-     */
-    if (
-        employeeData.isActive !== undefined &&
-        employeeData.isActive !== null
-    ) {
-
-        updateData.active =
-            employeeData.isActive;
-    }
+                        updateData.phone =
+                            employeeData.contactNumber.trim();
+                    }
 
 
-    if (
-        employeeData.password !== undefined &&
-        employeeData.password !== null &&
-        employeeData.password.trim() !== ""
-    ) {
+                    if (
+                        employeeData.whatsappNumber !== undefined &&
+                        employeeData.whatsappNumber !== null &&
+                        employeeData.whatsappNumber.trim() !== ""
+                    ) {
 
-        updateData.password =
-            employeeData.password.trim();
-    }
-
-
-    console.log(
-        "UPDATE EMPLOYEE PAYLOAD:",
-        updateData
-    );
+                        updateData.whatsapp =
+                            employeeData.whatsappNumber.trim();
+                    }
 
 
-    await dispatch(
-        updateEmployee({
+                    if (
+                        employeeData.role !== undefined &&
+                        employeeData.role !== null &&
+                        employeeData.role.trim() !== ""
+                    ) {
 
-            id:
-                editingEmployee.id,
-
-            employeeData:
-                updateData,
-
-        })
-    ).unwrap();
+                        updateData.role =
+                            employeeData.role.trim();
+                    }
 
 
-    closeModal();
+                    if (
+                        employeeData.countryCode !== undefined &&
+                        employeeData.countryCode !== null &&
+                        employeeData.countryCode !== ""
+                    ) {
+
+                        updateData.countryCode =
+                            employeeData.countryCode;
+                    }
 
 
-    alert(
-        "Employee updated successfully."
-    );
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Frontend modal uses isActive,
+                     * backend update API expects active.
+                     */
+                    if (
+                        employeeData.isActive !== undefined &&
+                        employeeData.isActive !== null
+                    ) {
+
+                        updateData.active =
+                            employeeData.isActive;
+                    }
 
 
-    return;
-}
+                    if (
+                        employeeData.password !== undefined &&
+                        employeeData.password !== null &&
+                        employeeData.password.trim() !== ""
+                    ) {
 
-                /*
-                 * ===================================================
-                 * CREATE
-                 * ===================================================
-                 */
+                        updateData.password =
+                            employeeData.password.trim();
+                    }
 
+
+                    console.log(
+                        "UPDATE EMPLOYEE PAYLOAD:",
+                        updateData
+                    );
+
+
+                    await dispatch(
+                        updateEmployee({
+
+                            id:
+                                editingEmployee.id,
+
+                            employeeData:
+                                updateData,
+
+                        })
+                    ).unwrap();
+                    closeModal();
+                    return;
+                }
                 const apiEmployeeData = {
 
                     employeeCode:
@@ -492,21 +442,7 @@ function Employees() {
 
                     })
                 ).unwrap();
-
-
                 closeModal();
-
-
-                alert(
-                    "Employee created successfully."
-                );
-
-
-                /*
-                 * Fetch again so table contains
-                 * the exact backend data.
-                 */
-
                 dispatch(
                     getAllEmployees()
                 );
@@ -520,15 +456,6 @@ function Employees() {
             }
         };
 
-
-    /*
-     * ---------------------------------------------------------------
-     * DELETE
-     *
-     * NO DELETE API PROVIDED YET
-     * ---------------------------------------------------------------
-     */
-
     const deleteEmployee =
         (employee) => {
 
@@ -536,13 +463,6 @@ function Employees() {
                 `Delete API is not available yet for ${employee.fullName}.`
             );
         };
-
-
-    /*
-     * ---------------------------------------------------------------
-     * EXPORT CSV
-     * ---------------------------------------------------------------
-     */
 
     const exportCsv = () => {
 
@@ -560,9 +480,9 @@ function Employees() {
 
         const headers = [
 
-            "Full Name",
-
             "Employee ID",
+
+            "Full Name",
 
             "Designation",
 
@@ -587,9 +507,9 @@ function Employees() {
             employees.map(
                 (employee) => [
 
-                    employee.fullName,
-
                     employee.employeeCode,
+
+                    employee.fullName,
 
                     employee.designation,
 
@@ -685,12 +605,6 @@ function Employees() {
     };
 
 
-    /*
-     * ---------------------------------------------------------------
-     * INITIALS
-     * ---------------------------------------------------------------
-     */
-
     const initials =
         (name) => {
 
@@ -712,12 +626,12 @@ function Employees() {
                 .toUpperCase();
         };
 
+    // Helper function to capitalize role
+    const capitalizeRole = (role) => {
+        if (!role) return "—";
+        return role.charAt(0).toUpperCase() + role.slice(1);
+    };
 
-    /*
-     * ---------------------------------------------------------------
-     * RENDER
-     * ---------------------------------------------------------------
-     */
 
     return (
 
@@ -782,21 +696,6 @@ function Employees() {
                     </div>
 
                 </div>
-
-
-                {/* ERROR */}
-
-                {error && (
-
-                    <div className="employee-api-error">
-
-                        {error}
-
-                    </div>
-
-                )}
-
-
                 {/* STATS */}
 
                 <div className="employee-stats">
@@ -854,7 +753,7 @@ function Employees() {
                                     event.target.value
                                 )
                         }
-                        placeholder="Search name, ID, designation, email..."
+                        placeholder="Search by ID, name, designation, email..."
                     />
 
                 </div>
@@ -889,11 +788,11 @@ function Employees() {
                                 <tr>
 
                                     <th>
-                                        EMPLOYEE
+                                        EMP ID
                                     </th>
 
                                     <th>
-                                        EMP ID
+                                        EMPLOYEE
                                     </th>
 
                                     <th>
@@ -919,7 +818,7 @@ function Employees() {
 
                             <tbody>
 
-                                {filteredEmployees.map(
+                                {paginatedEmployees.map(
                                     (employee) => (
 
                                         <tr
@@ -928,7 +827,21 @@ function Employees() {
                                             }
                                         >
 
-                                            {/* EMPLOYEE */}
+                                            {/* EMPLOYEE ID - First */}
+
+                                            <td>
+
+                                                <span className="employee-id">
+
+                                                    {
+                                                        employee.employeeCode
+                                                    }
+
+                                                </span>
+
+                                            </td>
+
+                                            {/* EMPLOYEE - Second with role below name */}
 
                                             <td>
 
@@ -969,34 +882,14 @@ function Employees() {
 
                                                         </strong>
 
-
-                                                        <span>
-
-                                                            {
-                                                                employee.personalEmail ||
-                                                                "—"
-                                                            }
-
+                                                        {/* Role displayed below name */}
+                                                        <span className="employee-role-badge">
+                                                            {capitalizeRole(employee.role)}
                                                         </span>
 
                                                     </div>
 
                                                 </div>
-
-                                            </td>
-
-
-                                            {/* EMPLOYEE ID */}
-
-                                            <td>
-
-                                                <span className="employee-id">
-
-                                                    {
-                                                        employee.employeeCode
-                                                    }
-
-                                                </span>
 
                                             </td>
 
@@ -1087,7 +980,7 @@ function Employees() {
                                             </td>
 
 
-                                            {/* EMAIL */}
+                                            {/* OFFICIAL EMAIL */}
 
                                             <td>
 
@@ -1147,8 +1040,10 @@ function Employees() {
                             </tbody>
 
                         </table>
-
                     </div>
+
+
+
 
                 ) : (
 
@@ -1172,6 +1067,13 @@ function Employees() {
                     </div>
 
                 )}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredEmployees.length}
+                    itemsPerPage={employeesPerPage}
+                    onPageChange={setCurrentPage}
+                />
 
             </div>
 
@@ -1179,42 +1081,23 @@ function Employees() {
             {/* MODAL */}
 
             {showModal && (
-
                 <EmployeeModal
-
-                    employee={
-                        editingEmployee
-                    }
-
-                    countries={
-                        countries
-                    }
-
-                    countriesLoading={
-                        countriesLoading
-                    }
-
-                    onClose={
-                        closeModal
-                    }
-
-                    onSave={
-                        handleSaveEmployee
-                    }
-
-                    generateEmployeeId={
-                        generateEmployeeId
-                    }
-
-                    isSubmitting={
-                        isSaving
-                    }
-
+                    employee={editingEmployee}
+                    countries={countries}
+                    countriesLoading={countriesLoading}
+                    onClose={closeModal}
+                    onSave={handleSaveEmployee}
+                    generateEmployeeId={generateEmployeeId}
+                    isSubmitting={isSaving}
+                    error={error}
+                    onClearError={() => dispatch(clearEmployeeError())}
                 />
 
             )}
 
         </div>
+
+
     );
 }
 
