@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./Dashboard.css";
-import Add_Edit_CandidateModal from "../Add_Edit_CandidateModal";
+import "flag-icons/css/flag-icons.min.css";
 import AddCandidateModal from "../Add_Edit_CandidateModal";
 
 
@@ -33,26 +33,29 @@ const summaryCards = [
   },
 ];
 
-  const timeZones = [
-    {
-      country: "India",
-      code: "IN",
-      timezone: "IST",
-      time: "08:25:21 PM",
-    },
-    {
-      country: "United Kingdom",
-      code: "GB",
-      timezone: "UK",
-      time: "03:55:21 PM",
-    },
-    {
-      country: "Qatar · Middle East",
-      code: "QA",
-      timezone: "AST",
-      time: "05:55:21 PM",
-    },
-  ];
+const timeZones = [
+  {
+    country: "India",
+    code: "IN",
+    flag: "🇮🇳",
+    timezone: "IST",
+    time: "08:25:21 PM",
+  },
+  {
+    country: "United Kingdom",
+    code: "GB",
+    flag: "🇬🇧",
+    timezone: "UK",
+    time: "03:55:21 PM",
+  },
+  {
+    country: "Qatar · Middle East",
+    code: "QA",
+    flag: "🇶🇦",
+    timezone: "AST",
+    time: "05:55:21 PM",
+  },
+];
 
 const statusCards = [
   {
@@ -219,48 +222,61 @@ const attentionItems = [
             WORLD CLOCKS
         ========================================= */}
 
-        <div className="row g-3 dashboard-row">
+{/* =========================================
+    WORLD CLOCKS
+========================================= */}
 
-          {timeZones.map((zone) => (
-            <div
-              className="col-12 col-md-4"
-              key={zone.country}
-            >
-              <div className="dashboard-card timezone-card">
+<div className="row g-3 dashboard-row">
 
-                <div className="timezone-header">
+  {timeZones.map((zone) => (
+    <div
+      className="col-12 col-md-4"
+      key={zone.country}
+    >
+      <div className="dashboard-card timezone-card">
 
-                  <span className="timezone-country">
-                    {zone.country}
-                  </span>
+        <div className="timezone-main">
 
-                  <span className="timezone-badge">
-                    {zone.timezone}
-                  </span>
+          <div className="timezone-flag-container">
+  <img
+    src={`https://flagcdn.com/w40/${zone.code.toLowerCase()}.png`}
+    alt={zone.country}
+    className="country-flag"
+  />
+          </div>
 
-                </div>
+          {/* COUNTRY + TIME DATA */}
+          <div className="timezone-info">
 
-                <div className="timezone-main">
+            <div className="timezone-header">
 
-                  <span className="country-code">
-                    {zone.code}
-                  </span>
+              <span className="timezone-country">
+                {zone.country}
+              </span>
 
-                  <span className="timezone-time">
-                    {zone.time}
-                  </span>
+              <span className="timezone-badge">
+                {zone.timezone}
+              </span>
 
-                </div>
-
-                <div className="timezone-date">
-                  Sun, Aug 02
-                </div>
-
-              </div>
             </div>
-          ))}
+
+            <div className="timezone-time">
+              {zone.time}
+            </div>
+
+            <div className="timezone-date">
+              Sun, Aug 02
+            </div>
+
+          </div>
 
         </div>
+
+      </div>
+    </div>
+  ))}
+
+</div>
 
 
         {/* =========================================
