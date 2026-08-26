@@ -21,10 +21,11 @@ import {
     deleteCandidate,
 } from "../../Redux/Slice/candidateSlice";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
-
+import { useNavigate } from "react-router-dom";
 const Candidates = () => {
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
 
     /*
@@ -274,7 +275,17 @@ const Candidates = () => {
         }
     };
 
+    const handleCandidateClick = (candidate) => {
 
+        if (!candidate?.id) {
+            console.error("Candidate ID is missing");
+            return;
+        }
+
+        navigate(
+            `/dashboard/candidates/${candidate.id}`
+        );
+    };
     const handleDelete = (candidate) => {
 
         if (!candidate?.id) {
@@ -1069,11 +1080,16 @@ const Candidates = () => {
 
                                         <td>
 
-                                            <div className="candidate-name">
-
-                                                {candidate.fullName ||
-                                                    "-"}
-
+                                            <div
+                                                className="candidate-name"
+                                                onClick={() =>
+                                                    handleCandidateClick(candidate)
+                                                }
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                {candidate.fullName || "-"}
                                             </div>
 
 

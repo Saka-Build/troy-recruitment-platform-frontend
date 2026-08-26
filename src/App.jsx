@@ -155,8 +155,8 @@ function App() {
                         element={<Pipeline />}
                     /> */}
                     {/* /dashboard/RecruitmentWorkflow */}
-                    <Route path="recruitment-Workflow" element={<RecruitmentWorkflow />}/>
-                    <Route path="recruitment-workflow/:stage" element={<RecruitmentWorkflowDetails />}/>
+                    <Route path="recruitment-Workflow" element={<RecruitmentWorkflow />} />
+                    <Route path="recruitment-workflow/:stage" element={<RecruitmentWorkflowDetails />} />
 
                     {/* /dashboard/candidates */}
                     {/* <Route
@@ -164,7 +164,7 @@ function App() {
                         element={<Candidates />}
                     /> */}
                     <Route path="candidates" element={<Candidates />} />
-                    <Route path="candidates/:name" element={<CandidateDetails />}/>
+                    <Route path="candidates/:id" element={<CandidateDetails />} />
 
                     {/* /dashboard/master-db */}
                     {/* <Route
@@ -179,7 +179,7 @@ function App() {
                     /> */}
                     <Route path="jobs" element={<JobPage />} />
                     <Route path="jobs/:id" element={<JobDetails />} />
-                    <Route path="jobs/new" element={<NewJob />}/>
+                    <Route path="jobs/new" element={<NewJob />} />
 
                     {/* /dashboard/clients */}
                     <Route
@@ -201,7 +201,7 @@ function App() {
                     path="*"
                     element={<Navigate to="/" replace />}
                 /> */}
-                <Route path="*" element={<PageNotFound />}/>
+                <Route path="*" element={<PageNotFound />} />
             </Routes>
 
         </BrowserRouter>
