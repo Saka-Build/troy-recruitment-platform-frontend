@@ -97,7 +97,7 @@ const CandidateModal = ({
   const [formData, setFormData] = useState(
     getInitialFormData()
   );
-
+const [changedFields, setChangedFields] = useState(new Set());
 
   /*
   |--------------------------------------------------------------------------
@@ -234,9 +234,9 @@ const CandidateModal = ({
       /*
        * ADD MODE
        */
-      setFormData(
-        getInitialFormData()
-      );
+setChangedFields(new Set());
+
+setFormData(getInitialFormData());
 
       setExistingOriginalCv("");
       setExistingTroyCv("");
@@ -255,19 +255,22 @@ const CandidateModal = ({
   |--------------------------------------------------------------------------
   */
 
-  const handleChange = (e) => {
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    const {
-      name,
-      value,
-    } = e.target;
+  setFormData((previous) => ({
+    ...previous,
+    [name]: value,
+  }));
 
-
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
+  if (mode === "edit") {
+    setChangedFields((previous) => {
+      const updated = new Set(previous);
+      updated.add(name);
+      return updated;
+    });
+  }
+};
 
 
   /*
@@ -276,27 +279,26 @@ const CandidateModal = ({
   |--------------------------------------------------------------------------
   */
 
-  const handleFileChange = (
-    e,
-    field
-  ) => {
+const handleFileChange = (e, field) => {
+  const file = e.target.files?.[0] || null;
 
-    const file =
-      e.target.files?.[0] ||
-      null;
+  if (!file) {
+    return;
+  }
 
+  setFormData((previous) => ({
+    ...previous,
+    [field]: file,
+  }));
 
-    if (!file) {
-      return;
-    }
-
-
-    setFormData((previous) => ({
-      ...previous,
-      [field]: file,
-    }));
-
-  };
+  if (mode === "edit") {
+    setChangedFields((previous) => {
+      const updated = new Set(previous);
+      updated.add(field);
+      return updated;
+    });
+  }
+};
 
 
   /*
@@ -304,15 +306,20 @@ const CandidateModal = ({
   | REMOVE SELECTED FILE
   |--------------------------------------------------------------------------
   */
+const removeFile = (field) => {
+  setFormData((previous) => ({
+    ...previous,
+    [field]: null,
+  }));
 
-  const removeFile = (field) => {
-
-    setFormData((previous) => ({
-      ...previous,
-      [field]: null,
-    }));
-
-  };
+  if (mode === "edit") {
+    setChangedFields((previous) => {
+      const updated = new Set(previous);
+      updated.add(field);
+      return updated;
+    });
+  }
+};
 
 
   /*
@@ -321,48 +328,44 @@ const CandidateModal = ({
   |--------------------------------------------------------------------------
   */
 
-  const handleSubmit = (e) => {
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  const convertedFormData = {
+    ...formData,
+    experience:
+      formData.experience === ""
+        ? ""
+        : Number(formData.experience),
+    noticePeriod:
+      formData.noticePeriod === ""
+        ? ""
+        : Number(formData.noticePeriod),
+    currentRateAmount:
+      formData.currentRateAmount === ""
+        ? ""
+        : Number(formData.currentRateAmount),
+    dayRateAmount:
+      formData.dayRateAmount === ""
+        ? ""
+        : Number(formData.dayRateAmount),
+  };
 
+  if (mode === "edit") {
+    const updateData = {};
 
-    /*
-     * Candidate.jsx will convert this object into
-     * FormData and create the JSON "candidate" field.
-     *
-     * We intentionally pass File objects here.
-     */
-
-    onSave({
-      ...formData,
-
-      /*
-       * Convert numeric fields to numbers.
-       * Empty values remain empty.
-       */
-
-      experience:
-        formData.experience === ""
-          ? ""
-          : Number(formData.experience),
-
-      noticePeriod:
-        formData.noticePeriod === ""
-          ? ""
-          : Number(formData.noticePeriod),
-
-      currentRateAmount:
-        formData.currentRateAmount === ""
-          ? ""
-          : Number(formData.currentRateAmount),
-
-      dayRateAmount:
-        formData.dayRateAmount === ""
-          ? ""
-          : Number(formData.dayRateAmount),
+    Object.keys(convertedFormData).forEach((field) => {
+      updateData[field] = changedFields.has(field)
+        ? convertedFormData[field]
+        : null;
     });
 
-  };
+    onSave(updateData);
+    return;
+  }
+
+  onSave(convertedFormData);
+};
 
 
   /*

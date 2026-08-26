@@ -923,13 +923,9 @@ function CandidateDetails() {
       )}
 
 
-      {activeTab === "History" && (
-
-        <HistoryTab
-          candidate={candidate}
-        />
-
-      )}
+{activeTab === "History" && (
+    <HistoryTab candidateId={candidate.id} />
+)}
 
     </div>
   );
