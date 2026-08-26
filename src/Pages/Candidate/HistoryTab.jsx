@@ -10,7 +10,7 @@ const HistoryTab = ({ candidateId }) => {
         candidateActivityLoading,
         candidateActivityError,
     } = useSelector((state) => state.candidate);
-
+   const [showAllActivities, setShowAllActivities] = useState(false);
     const [filters, setFilters] = useState({
         performedBy: "",
         fromDate: "",
@@ -69,6 +69,13 @@ const HistoryTab = ({ candidateId }) => {
 
         return true;
     });
+
+    const visibleActivities = showAllActivities
+    ? filteredActivities
+    : filteredActivities.slice(0, 5);
+
+const hasMoreActivities =
+    filteredActivities.length > 5;
 
     const hasActiveFilters =
         filters.performedBy ||
@@ -275,7 +282,7 @@ const HistoryTab = ({ candidateId }) => {
                 !candidateActivityError &&
                 filteredActivities.length > 0 && (
                     <div className="candidate-history-list">
-                        {filteredActivities.map((activity) => {
+                        {visibleActivities.map((activity) => {
                             const activityType =
                                 getActivityType(activity);
 
@@ -356,6 +363,22 @@ const HistoryTab = ({ candidateId }) => {
                         })}
                     </div>
                 )}
+                 {hasMoreActivities && (
+                <div className="candidate-history-read-more">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowAllActivities(
+                                (previous) => !previous
+                            )
+                        }
+                    >
+                        {showAllActivities
+                            ? "Show less"
+                            : `Read more (${filteredActivities.length - 5} more)`}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

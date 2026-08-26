@@ -50,6 +50,8 @@ function Employees() {
         setSearch,
     ] = useState("");
 
+    const [statusFilter, setStatusFilter] = useState("all");
+
     const [
         currentPage,
         setCurrentPage,
@@ -83,63 +85,53 @@ function Employees() {
 
         setCurrentPage(1);
 
-    }, [search]);
+    }, [search,statusFilter]);
 
 
-    const filteredEmployees =
-        useMemo(() => {
+const filteredEmployees = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-            const query =
-                search
-                    .trim()
-                    .toLowerCase();
+    return employees.filter((employee) => {
 
+        // Status filter
+        const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "active" && employee.active === true) ||
+            (statusFilter === "inactive" && employee.active === false);
 
-            if (!query) {
+        if (!matchesStatus) {
+            return false;
+        }
 
-                return employees;
-            }
+        // Search filter
+        if (!query) {
+            return true;
+        }
 
+        return [
+            employee.employeeCode,
+            employee.fullName,
+            employee.designation,
+            employee.phone,
+            employee.whatsapp,
+            employee.officialEmail,
+            employee.personalEmail,
+            employee.role,
+            employee.country?.name,
+            employee.country?.code,
+            employee.active ? "active" : "inactive",
+        ].some((value) =>
+            String(value || "")
+                .toLowerCase()
+                .includes(query)
+        );
+    });
 
-            return employees.filter(
-                (employee) => [
-
-                    employee.employeeCode,
-
-                    employee.fullName,
-
-                    employee.designation,
-
-                    employee.phone,
-
-                    employee.whatsapp,
-
-                    employee.officialEmail,
-
-                    employee.personalEmail,
-
-                    employee.role,
-
-                    employee.country?.name,
-
-                    employee.country?.code,
-
-                ].some(
-                    (value) =>
-                        String(
-                            value || ""
-                        )
-                            .toLowerCase()
-                            .includes(
-                                query
-                            )
-                )
-            );
-
-        }, [
-            employees,
-            search,
-        ]);
+}, [
+    employees,
+    search,
+    statusFilter,
+]);
 
     const totalPages = Math.ceil(
         filteredEmployees.length /
@@ -187,6 +179,18 @@ function Employees() {
         }, [
             employees,
         ]);
+
+        const activeEmployees = useMemo(() => {
+    return employees.filter(
+        (employee) => employee.active === true
+    ).length;
+}, [employees]);
+
+const inactiveEmployees = useMemo(() => {
+    return employees.filter(
+        (employee) => employee.active === false
+    ).length;
+}, [employees]);
 
     const openAddModal = () => {
 
@@ -635,9 +639,9 @@ function Employees() {
 
     return (
 
-        <div className="employees-page">
+        <div className="page">
 
-            <div className="employees-content">
+            {/* <div className="employees-content"> */}
 
                 {/* HEADER */}
 
@@ -698,63 +702,84 @@ function Employees() {
                 </div>
                 {/* STATS */}
 
-                <div className="employee-stats">
+                        <div className="employee-stats">
 
-                    <div className="employee-stat-card">
-
-                        <div className="employee-stat-value">
-
-                            {employees.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Total
-
-                        </div>
-
-                    </div>
-
-
-                    <div className="employee-stat-card">
-
-                        <div className="employee-stat-value">
-
-                            {designations.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Designations
-
-                        </div>
-
-                    </div>
-
+            {/* TOTAL */}
+            <div className="employee-stat-card">
+                <div className="employee-stat-value">
+                    {employees.length}
                 </div>
 
+                <div className="employee-stat-label">
+                    Total Employees
+                </div>
+            </div>
 
-                {/* SEARCH */}
+            {/* DESIGNATIONS */}
+            <div className="employee-stat-card">
+                <div className="employee-stat-value">
+                    {designations.length}
+                </div>
 
-                <div className="employee-search-wrapper">
+                <div className="employee-stat-label">
+                    Designations
+                </div>
+            </div>
 
-                    <i className="bi bi-search"></i>
+            {/* ACTIVE */}
+            <div className="employee-stat-card employee-stat-active">
+                <div className="employee-stat-value">
+                    {activeEmployees}
+                </div>
 
-                    <input
-                        type="text"
-                        value={
-                            search
-                        }
-                        onChange={
-                            (event) =>
-                                setSearch(
-                                    event.target.value
-                                )
-                        }
-                        placeholder="Search by ID, name, designation, email..."
-                    />
+                <div className="employee-stat-label">
+                    Active
+                </div>
+            </div>
+
+            {/* INACTIVE */}
+            <div className="employee-stat-card employee-stat-inactive">
+                <div className="employee-stat-value">
+                    {inactiveEmployees}
+                </div>
+
+                <div className="employee-stat-label">
+                    Inactive
+                </div>
+            </div>
+
+                      </div>
+                <div className="employee-filters">
+
+                    <div className="employee-search-wrapper">
+
+                        <i className="bi bi-search"></i>
+
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(event) =>
+                                setSearch(event.target.value)
+                            }
+                            placeholder="Search by ID, name, designation, email..."
+                        />
+
+                    </div>
+
+                    <div className="employee-status-filter">
+
+                        <select
+                            value={statusFilter}
+                            onChange={(event) =>
+                                setStatusFilter(event.target.value)
+                            }
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+
+                    </div>
 
                 </div>
 
@@ -874,20 +899,31 @@ function Employees() {
 
                                                     <div className="employee-person-info">
 
-                                                        <strong>
+    <strong>
+        {employee.fullName}
+    </strong>
 
-                                                            {
-                                                                employee.fullName
-                                                            }
+    {employee.personalEmail && (
+        <a
+            href={`mailto:${employee.personalEmail}`}
+            className="employee-personal-email"
+        >
+            {employee.personalEmail}
+        </a>
+    )}
 
-                                                        </strong>
+    <span
+        className={`employee-status-badge ${
+            employee.active
+                ? "employee-status-active"
+                : "employee-status-inactive"
+        }`}
+    >
+        <span className="employee-status-dot"></span>
+        {employee.active ? "Active" : "Inactive"}
+    </span>
 
-                                                        {/* Role displayed below name */}
-                                                        <span className="employee-role-badge">
-                                                            {capitalizeRole(employee.role)}
-                                                        </span>
-
-                                                    </div>
+</div>
 
                                                 </div>
 
@@ -1075,7 +1111,7 @@ function Employees() {
                     onPageChange={setCurrentPage}
                 />
 
-            </div>
+            {/* </div> */}
 
 
             {/* MODAL */}
