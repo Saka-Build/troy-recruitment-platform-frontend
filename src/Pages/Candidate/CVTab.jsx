@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import "./CVTab.css";
+
 const CVTab = ({ candidate }) => {
 
     if (!candidate) {
         return null;
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -13,8 +13,9 @@ const CVTab = ({ candidate }) => {
     |--------------------------------------------------------------------------
     */
 
-    const [previewFile, setPreviewFile] =
-        useState(null);
+    const [previewFile, setPreviewFile] = useState(null);
+    const [fileError, setFileError] = useState(null);
+    const [loadingFile, setLoadingFile] = useState(false);
 
 
     /*
@@ -50,7 +51,6 @@ const CVTab = ({ candidate }) => {
             candidate.originalCvUrl
         );
 
-
     const troyCvName =
         getFileName(
             candidate.troyCvUrl
@@ -59,29 +59,8 @@ const CVTab = ({ candidate }) => {
 
     /*
     |--------------------------------------------------------------------------
-    | FILE EXISTENCE
-    |--------------------------------------------------------------------------
-    */
-
-    const hasOriginalCv =
-        Boolean(candidate.originalCvUrl);
-
-
-    const hasTroyCv =
-        Boolean(candidate.troyCvUrl);
-
-
-    /*
-    |--------------------------------------------------------------------------
     | GET FILE URL
     |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | The API currently returns a server filesystem path.
-    |
-    | Once backend exposes a download/preview endpoint,
-    | change this function to that endpoint.
-    |
     */
 
     const getFileUrl = (fileUrl) => {
@@ -91,8 +70,7 @@ const CVTab = ({ candidate }) => {
         }
 
         /*
-         * If backend already returns a complete URL,
-         * use it directly.
+         * Already a complete URL
          */
 
         if (
@@ -103,8 +81,7 @@ const CVTab = ({ candidate }) => {
         }
 
         /*
-         * If backend returns a relative browser URL,
-         * attach API base URL.
+         * Relative URL
          */
 
         const API_BASE_URL =
@@ -116,11 +93,66 @@ const CVTab = ({ candidate }) => {
 
     /*
     |--------------------------------------------------------------------------
+    | FETCH FILE SAFELY
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | We fetch the file ourselves instead of directly putting the URL
+    | inside iframe / anchor.
+    |
+    | Therefore if backend returns 401, 403, 404, 500 etc.,
+    | we show an error instead of navigating to login.
+    |
+    */
+
+    const fetchFile = async (fileUrl) => {
+
+        const url =
+            getFileUrl(fileUrl);
+
+        if (!url) {
+            throw new Error("File URL not found");
+        }
+
+        const response =
+            await fetch(url, {
+                method: "GET",
+                credentials: "include",
+                redirect: "manual",
+            });
+
+        /*
+         * Any HTTP error should be handled here.
+         */
+
+        if (!response.ok) {
+            throw new Error(
+                `File request failed: ${response.status}`
+            );
+        }
+
+        /*
+         * Make sure the response actually contains data.
+         */
+
+        const blob =
+            await response.blob();
+
+        if (!blob || blob.size === 0) {
+            throw new Error("Empty file");
+        }
+
+        return blob;
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
     | PREVIEW
     |--------------------------------------------------------------------------
     */
 
-    const handlePreview = (
+    const handlePreview = async (
         fileUrl,
         fileName
     ) => {
@@ -129,13 +161,56 @@ const CVTab = ({ candidate }) => {
             return;
         }
 
-        const url =
-            getFileUrl(fileUrl);
+        /*
+         * Clear previous error
+         */
 
-        setPreviewFile({
-            url,
-            name: fileName,
-        });
+        setFileError(null);
+
+        setLoadingFile(true);
+
+        try {
+
+            const blob =
+                await fetchFile(fileUrl);
+
+            /*
+             * Create temporary browser URL
+             */
+
+            const blobUrl =
+                URL.createObjectURL(blob);
+
+            setPreviewFile({
+                url: blobUrl,
+                name: fileName,
+            });
+
+        } catch (error) {
+
+            console.error(
+                "CV preview failed:",
+                error
+            );
+
+            /*
+             * DO NOT redirect.
+             * DO NOT navigate to login.
+             */
+
+            setPreviewFile(null);
+
+            setFileError({
+                type: "preview",
+                name: fileName,
+                message: "Failed to open file.",
+            });
+
+        } finally {
+
+            setLoadingFile(false);
+
+        }
     };
 
 
@@ -145,7 +220,7 @@ const CVTab = ({ candidate }) => {
     |--------------------------------------------------------------------------
     */
 
-    const handleDownload = (
+    const handleDownload = async (
         fileUrl,
         fileName
     ) => {
@@ -154,24 +229,72 @@ const CVTab = ({ candidate }) => {
             return;
         }
 
-        const url =
-            getFileUrl(fileUrl);
+        setFileError(null);
 
-        const link =
-            document.createElement("a");
+        setLoadingFile(true);
 
-        link.href = url;
+        try {
 
-        link.download =
-            fileName;
+            const blob =
+                await fetchFile(fileUrl);
 
-        link.target = "_blank";
+            /*
+             * Create temporary URL
+             */
 
-        document.body.appendChild(link);
+            const blobUrl =
+                URL.createObjectURL(blob);
 
-        link.click();
+            /*
+             * Download file without opening
+             * a new tab.
+             */
 
-        document.body.removeChild(link);
+            const link =
+                document.createElement("a");
+
+            link.href =
+                blobUrl;
+
+            link.download =
+                fileName || "CV";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            document.body.removeChild(link);
+
+            /*
+             * Release temporary URL
+             */
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 1000);
+
+        } catch (error) {
+
+            console.error(
+                "CV download failed:",
+                error
+            );
+
+            /*
+             * DO NOT redirect.
+             */
+
+            setFileError({
+                type: "download",
+                name: fileName,
+                message: "Failed to open file.",
+            });
+
+        } finally {
+
+            setLoadingFile(false);
+
+        }
     };
 
 
@@ -183,8 +306,13 @@ const CVTab = ({ candidate }) => {
 
     const closePreview = () => {
 
-        setPreviewFile(null);
+        if (previewFile?.url) {
+            URL.revokeObjectURL(
+                previewFile.url
+            );
+        }
 
+        setPreviewFile(null);
     };
 
 
@@ -204,7 +332,6 @@ const CVTab = ({ candidate }) => {
         const hasFile =
             Boolean(fileUrl);
 
-
         return (
             <div className="candidate-cv-card">
 
@@ -212,13 +339,11 @@ const CVTab = ({ candidate }) => {
                     {title}
                 </h2>
 
-
                 <div className="cv-detail-row">
 
                     <span>
                         File
                     </span>
-
 
                     <strong>
                         {fileName}
@@ -247,6 +372,7 @@ const CVTab = ({ candidate }) => {
                             <button
                                 type="button"
                                 className="cv-preview-btn"
+                                disabled={loadingFile}
                                 onClick={() =>
                                     handlePreview(
                                         fileUrl,
@@ -254,9 +380,12 @@ const CVTab = ({ candidate }) => {
                                     )
                                 }
                             >
+
                                 <i className="fas fa-eye"></i>
 
-                                Preview
+                                {loadingFile
+                                    ? "Opening..."
+                                    : "Preview"}
 
                             </button>
 
@@ -264,6 +393,7 @@ const CVTab = ({ candidate }) => {
                             <button
                                 type="button"
                                 className="cv-download-btn"
+                                disabled={loadingFile}
                                 onClick={() =>
                                     handleDownload(
                                         fileUrl,
@@ -271,9 +401,12 @@ const CVTab = ({ candidate }) => {
                                     )
                                 }
                             >
+
                                 <i className="fas fa-download"></i>
 
-                                Download
+                                {loadingFile
+                                    ? "Opening..."
+                                    : "Download"}
 
                             </button>
 
@@ -296,8 +429,43 @@ const CVTab = ({ candidate }) => {
     };
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN
+    |--------------------------------------------------------------------------
+    */
+
     return (
         <div className="candidate-cv-tab">
+
+
+            {/* =====================================================
+                                FILE ERROR
+            ====================================================== */}
+
+            {fileError && (
+
+                <div className="cv-file-error">
+
+                    <i className="fas fa-exclamation-circle"></i>
+
+                    <span>
+                        Failed to open file.
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setFileError(null)
+                        }
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+            )}
+
 
             {/* =====================================================
                                 ORIGINAL CV
@@ -385,28 +553,15 @@ const CVTab = ({ candidate }) => {
 
                         <div className="cv-preview-body">
 
-                            {previewFile.url ? (
-
-                                <iframe
-                                    src={
-                                        previewFile.url
-                                    }
-                                    title={
-                                        previewFile.name
-                                    }
-                                    className="cv-preview-iframe"
-                                />
-
-                            ) : (
-
-                                <div className="cv-preview-error">
-
-                                    Unable to preview
-                                    this file.
-
-                                </div>
-
-                            )}
+                            <iframe
+                                src={
+                                    previewFile.url
+                                }
+                                title={
+                                    previewFile.name
+                                }
+                                className="cv-preview-iframe"
+                            />
 
                         </div>
 

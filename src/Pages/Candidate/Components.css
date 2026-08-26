@@ -952,3 +952,22 @@
     height: 16px;
     pointer-events: none;
 }
+
+.candidate-history-read-more {
+    display: flex;
+    justify-content: center;
+    padding: 18px 0 10px;
+}
+
+.candidate-history-read-more button {
+    border: none;
+    background: transparent;
+    color: #1683c4;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.candidate-history-read-more button:hover {
+    text-decoration: underline;
+}

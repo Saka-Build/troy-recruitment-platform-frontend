@@ -19,6 +19,7 @@
 // import CVTab from "./CVTab";
 // import NotesTab from "./NotesTab";
 // import HistoryTab from "./HistoryTab";
+// import ApplicationsTab from "./ApplicationsTab"; // Add this import
 
 // import {
 //   getCandidateById,
@@ -389,6 +390,7 @@
 //         {[
 //           "Profile",
 //           "CV",
+//           "Applications", // Add Applications tab
 //           "Notes",
 //           "History",
 //         ].map((tab) => (
@@ -434,6 +436,15 @@
 //       )}
 
 
+//       {activeTab === "Applications" && ( // Add Applications tab render
+
+//         <ApplicationsTab
+//           candidate={candidate}
+//         />
+
+//       )}
+
+
 //       {activeTab === "Notes" && (
 
 //         <NotesTab
@@ -447,13 +458,9 @@
 //       )}
 
 
-//       {activeTab === "History" && (
-
-//         <HistoryTab
-//           candidate={candidate}
-//         />
-
-//       )}
+// {activeTab === "History" && (
+//     <HistoryTab candidateId={candidate.id} />
+// )}
 
 //     </div>
 //   );
@@ -461,6 +468,7 @@
 
 
 // export default CandidateDetails;
+
 
 
 import React, {
@@ -484,11 +492,17 @@ import ProfileTab from "./ProfileTab";
 import CVTab from "./CVTab";
 import NotesTab from "./NotesTab";
 import HistoryTab from "./HistoryTab";
-import ApplicationsTab from "./ApplicationsTab"; // Add this import
+import ApplicationsTab from "./ApplicationsTab";
+
+import CandidateModal from "../Candidate/CandidateModal";
+import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 
 import {
   getCandidateById,
   clearCandidateDetails,
+  getAllEmployees,
+  updateCandidate,
+  deleteCandidate,
 } from "../../Redux/Slice/candidateSlice";
 
 
@@ -515,6 +529,12 @@ function CandidateDetails() {
     selectedCandidate,
     candidateDetailsLoading,
     candidateDetailsError,
+
+    employees = [],
+    employeesLoading = false,
+    employeeError = null,
+
+    adding = false,
   } = useSelector(
     (state) => state.candidate
   );
@@ -557,7 +577,41 @@ function CandidateDetails() {
 
   /*
   |--------------------------------------------------------------------------
-  | GET CANDIDATE BY ID
+  | EDIT / DELETE STATE
+  |--------------------------------------------------------------------------
+  */
+
+  const [
+    showEditModal,
+    setShowEditModal,
+  ] = useState(false);
+
+
+  const [
+    showDeleteModal,
+    setShowDeleteModal,
+  ] = useState(false);
+
+
+  const [
+    deleting,
+    setDeleting,
+  ] = useState(false);
+
+
+  const [
+    notification,
+    setNotification,
+  ] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | FETCH CANDIDATE
   |--------------------------------------------------------------------------
   */
 
@@ -569,6 +623,15 @@ function CandidateDetails() {
 
     dispatch(
       getCandidateById(id)
+    );
+
+    /*
+     * Employees are needed by CandidateModal
+     * when editing.
+     */
+
+    dispatch(
+      getAllEmployees()
     );
 
 
@@ -584,6 +647,36 @@ function CandidateDetails() {
     id,
     dispatch,
   ]);
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | NOTIFICATION
+  |--------------------------------------------------------------------------
+  */
+
+  const showNotification = (
+    type,
+    message
+  ) => {
+
+    setNotification({
+      show: true,
+      type,
+      message,
+    });
+
+
+    setTimeout(() => {
+
+      setNotification({
+        show: false,
+        type: "",
+        message: "",
+      });
+
+    }, 3000);
+  };
 
 
   /*
@@ -613,6 +706,336 @@ function CandidateDetails() {
 
 
     setNoteText("");
+  };
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | EDIT CANDIDATE
+  |--------------------------------------------------------------------------
+  */
+
+  const handleEditClick = () => {
+
+    if (!selectedCandidate?.id) {
+
+      showNotification(
+        "error",
+        "Candidate ID is missing"
+      );
+
+      return;
+    }
+
+
+    setShowEditModal(true);
+  };
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | SAVE EDIT
+  |--------------------------------------------------------------------------
+  */
+
+  const handleEditSave = async (data) => {
+
+    if (!selectedCandidate?.id) {
+
+      showNotification(
+        "error",
+        "Candidate ID is missing"
+      );
+
+      return;
+    }
+
+
+    const isNull = (value) =>
+      value === null;
+
+
+    const candidateData = {
+
+      fullName:
+        data.fullName,
+
+      currentDesignation:
+        data.designation,
+
+      cvOwnerId:
+        data.cvOwnerId,
+
+      referredBy:
+        data.referredBy,
+
+      referenceNote:
+        data.referenceNote,
+
+      email:
+        data.email,
+
+      phone:
+        data.phone,
+
+      whatsapp:
+        data.whatsapp,
+
+      nationality:
+        data.nationality,
+
+      location:
+        data.currentLocation,
+
+      currentEmployer:
+        data.currentCompany,
+
+      experienceYears:
+        isNull(data.experience)
+          ? null
+          : data.experience === ""
+            ? ""
+            : Number(data.experience),
+
+      skills:
+        isNull(data.primarySkills)
+          ? null
+          : data.primarySkills
+            ? data.primarySkills
+                .split(",")
+                .map(
+                  (skill) =>
+                    skill.trim()
+                )
+                .filter(Boolean)
+            : [],
+
+      noticePeriodDays:
+        isNull(data.noticePeriod)
+          ? null
+          : data.noticePeriod === ""
+            ? ""
+            : Number(data.noticePeriod),
+
+      visaStatus:
+        data.visaStatus,
+
+      source:
+        data.source,
+
+      linkedinUrl:
+        data.linkedinUrl,
+
+      status:
+        data.candidateStatus,
+
+      education:
+        data.education,
+
+      currentSalaryAmount:
+        isNull(data.currentRateAmount)
+          ? null
+          : data.currentRateAmount === ""
+            ? ""
+            : Number(
+                data.currentRateAmount
+              ),
+
+      currentSalaryCurrency:
+        data.currentRateCurrency,
+
+      currentSalaryPeriod:
+        data.currentRatePeriod,
+
+      expectedSalaryAmount:
+        isNull(data.dayRateAmount)
+          ? null
+          : data.dayRateAmount === ""
+            ? ""
+            : Number(
+                data.dayRateAmount
+              ),
+
+      expectedSalaryCurrency:
+        data.dayRateCurrency,
+
+      expectedSalaryPeriod:
+        data.dayRatePeriod,
+    };
+
+
+    console.log(
+      "UPDATING CANDIDATE FROM DETAILS:",
+      {
+        id: selectedCandidate.id,
+        candidateData,
+      }
+    );
+
+
+    try {
+
+      await dispatch(
+        updateCandidate({
+
+          id:
+            selectedCandidate.id,
+
+          candidateData,
+
+          originalCV:
+            data.originalCV,
+
+          troyCV:
+            data.troyCV,
+
+        })
+      ).unwrap();
+
+
+      showNotification(
+        "success",
+        "Candidate updated successfully"
+      );
+
+
+      /*
+       * Close modal
+       */
+
+      setShowEditModal(false);
+
+
+      /*
+       * Reload candidate details
+       */
+
+      await dispatch(
+        getCandidateById(
+          selectedCandidate.id
+        )
+      ).unwrap();
+
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE CANDIDATE ERROR:",
+        error
+      );
+
+
+      showNotification(
+        "error",
+        typeof error === "string"
+          ? error
+          : "Failed to update candidate"
+      );
+    }
+  };
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | DELETE CANDIDATE
+  |--------------------------------------------------------------------------
+  */
+
+  const handleDeleteClick = () => {
+
+    if (!selectedCandidate?.id) {
+
+      showNotification(
+        "error",
+        "Candidate ID is missing"
+      );
+
+      return;
+    }
+
+
+    setShowDeleteModal(true);
+  };
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | CONFIRM DELETE
+  |--------------------------------------------------------------------------
+  */
+
+  const handleConfirmDelete = async () => {
+
+    if (!selectedCandidate?.id) {
+      return;
+    }
+
+
+    try {
+
+      setDeleting(true);
+
+
+      console.log(
+        "DELETING CANDIDATE:",
+        selectedCandidate.id
+      );
+
+
+      await dispatch(
+        deleteCandidate(
+          selectedCandidate.id
+        )
+      ).unwrap();
+
+
+      /*
+       * Close modal
+       */
+
+      setShowDeleteModal(false);
+
+
+      showNotification(
+        "success",
+        "Candidate deleted successfully"
+      );
+
+
+      /*
+       * Give notification a moment to show,
+       * then return to Candidates.
+       */
+
+      setTimeout(() => {
+
+        navigate(
+          "/dashboard/candidates"
+        );
+
+      }, 800);
+
+
+    } catch (error) {
+
+      console.error(
+        "DELETE CANDIDATE ERROR:",
+        error
+      );
+
+
+      showNotification(
+        "error",
+        typeof error === "string"
+          ? error
+          : "Failed to delete candidate"
+      );
+
+    } finally {
+
+      setDeleting(false);
+
+    }
   };
 
 
@@ -756,9 +1179,10 @@ function CandidateDetails() {
 
     <div className="page">
 
+
       {/* =====================================================
-                                BACK BUTTON
-            ====================================================== */}
+                            BACK BUTTON
+      ====================================================== */}
 
       <div className="candidate-detail-top">
 
@@ -777,8 +1201,8 @@ function CandidateDetails() {
 
 
       {/* =====================================================
-                        CANDIDATE PROFILE HEADER
-            ====================================================== */}
+                    CANDIDATE PROFILE HEADER
+      ====================================================== */}
 
       <div className="candidate-profile-header">
 
@@ -823,21 +1247,42 @@ function CandidateDetails() {
         </div>
 
 
+        {/* =====================================================
+                            HEADER ACTIONS
+        ====================================================== */}
+
         <div className="page-header-actions">
 
-          <button className="primary-btn">
+          <button
+            className="primary-btn"
+          >
             Apply to job
           </button>
 
-          <button className="outline-btn">
+
+          <button
+            className="outline-btn"
+          >
             ✉ Message
           </button>
 
-          <button className="outline-btn">
+
+          <button
+            className="outline-btn"
+            onClick={
+              handleEditClick
+            }
+          >
             Edit
           </button>
 
-          <button className="outline-btn detail-delete-btn">
+
+          <button
+            className="outline-btn detail-delete-btn"
+            onClick={
+              handleDeleteClick
+            }
+          >
             Delete
           </button>
 
@@ -847,15 +1292,15 @@ function CandidateDetails() {
 
 
       {/* =====================================================
-                                TABS
-            ====================================================== */}
+                            TABS
+      ====================================================== */}
 
       <div className="candidate-detail-tabs">
 
         {[
           "Profile",
           "CV",
-          "Applications", // Add Applications tab
+          "Applications",
           "Notes",
           "History",
         ].map((tab) => (
@@ -880,8 +1325,8 @@ function CandidateDetails() {
 
 
       {/* =====================================================
-                            TAB COMPONENTS
-            ====================================================== */}
+                        TAB COMPONENTS
+      ====================================================== */}
 
       {activeTab === "Profile" && (
 
@@ -901,7 +1346,7 @@ function CandidateDetails() {
       )}
 
 
-      {activeTab === "Applications" && ( // Add Applications tab render
+      {activeTab === "Applications" && (
 
         <ApplicationsTab
           candidate={candidate}
@@ -923,9 +1368,158 @@ function CandidateDetails() {
       )}
 
 
-{activeTab === "History" && (
-    <HistoryTab candidateId={candidate.id} />
-)}
+      {activeTab === "History" && (
+
+        <HistoryTab
+          candidateId={
+            candidate.id
+          }
+        />
+
+      )}
+
+
+      {/* =====================================================
+                            NOTIFICATION
+      ====================================================== */}
+
+      {notification.show && (
+
+        <div
+          className={
+            `candidate-notification candidate-notification-${notification.type}`
+          }
+        >
+
+          <div className="candidate-notification-icon">
+
+            {notification.type === "success" && (
+              <i className="fas fa-check"></i>
+            )}
+
+            {notification.type === "error" && (
+              <i className="fas fa-times"></i>
+            )}
+
+            {notification.type === "info" && (
+              <i className="fas fa-info"></i>
+            )}
+
+          </div>
+
+
+          <span>
+            {notification.message}
+          </span>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              setNotification({
+                show: false,
+                type: "",
+                message: "",
+              })
+            }
+          >
+
+            <i className="fas fa-times"></i>
+
+          </button>
+
+        </div>
+
+      )}
+
+
+      {/* =====================================================
+                        EDIT MODAL
+      ====================================================== */}
+
+      {showEditModal && (
+
+        <CandidateModal
+          mode="edit"
+
+          initialData={
+            selectedCandidate
+          }
+
+          employees={
+            employees
+          }
+
+          employeesLoading={
+            employeesLoading
+          }
+
+          employeeError={
+            employeeError
+          }
+
+          adding={
+            adding
+          }
+
+          onClose={() => {
+
+            if (adding) {
+              return;
+            }
+
+            setShowEditModal(false);
+
+          }}
+
+          onSave={
+            handleEditSave
+          }
+
+        />
+
+      )}
+
+
+      {/* =====================================================
+                    DELETE CONFIRMATION MODAL
+      ====================================================== */}
+
+      <DeleteConfirmationModal
+
+        isOpen={
+          showDeleteModal
+        }
+
+        onClose={() => {
+
+          if (deleting) {
+            return;
+          }
+
+          setShowDeleteModal(false);
+
+        }}
+
+        onConfirm={
+          handleConfirmDelete
+        }
+
+        title="Delete candidate"
+
+        itemName={
+          candidate.fullName || ""
+        }
+
+        deleteText={
+          deleting
+            ? "Deleting..."
+            : "Delete"
+        }
+
+        cancelText="Cancel"
+
+      />
 
     </div>
   );
