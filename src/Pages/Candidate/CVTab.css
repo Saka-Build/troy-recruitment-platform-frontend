@@ -1,0 +1,146 @@
+/* =========================================================
+   CV FILE ACTIONS
+========================================================= */
+
+.cv-file-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+
+.cv-file-actions button {
+    border: 1px solid #d9e2ec;
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: 0.2s ease;
+}
+
+
+.cv-preview-btn {
+    color: #1683c4;
+}
+
+
+.cv-preview-btn:hover {
+    background: #f0f8fd;
+    border-color: #65b8ed;
+}
+
+
+.cv-download-btn {
+    color: #138f67;
+}
+
+
+.cv-download-btn:hover {
+    background: #eefaf5;
+    border-color: #63c29e;
+}
+
+
+/* =========================================================
+   CV PREVIEW OVERLAY
+========================================================= */
+
+.cv-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 30px;
+}
+
+
+/* =========================================================
+   PREVIEW MODAL
+========================================================= */
+
+.cv-preview-modal {
+    width: min(1000px, 95vw);
+    height: min(800px, 90vh);
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================================================
+   PREVIEW HEADER
+========================================================= */
+
+.cv-preview-header {
+    min-height: 70px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.cv-preview-header h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+}
+
+
+.cv-preview-header span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+
+.cv-preview-close {
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+
+.cv-preview-close:hover {
+    color: #111827;
+}
+
+
+/* =========================================================
+   PREVIEW BODY
+========================================================= */
+
+.cv-preview-body {
+    flex: 1;
+    min-height: 0;
+    background: #f5f7fa;
+}
+
+
+.cv-preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+
+.cv-preview-error {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c33443;
+}
