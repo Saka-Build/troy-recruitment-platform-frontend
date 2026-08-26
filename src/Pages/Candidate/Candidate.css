@@ -19,7 +19,7 @@
 .candidates-content {
     width: 100%;
     max-width: 100%;
-    padding: 24px 28px 35px;
+    /* padding: 24px 28px 35px; */
 }
 
 /* =========================================================
@@ -484,16 +484,16 @@
 ========================================================= */
 
 /* Large Desktop */
-@media (min-width: 1500px) {
+/* @media (min-width: 1500px) {
     .candidates-content {
         padding: 28px 32px 40px;
     }
-}
+} */
 
 /* Tablet */
 @media (max-width: 900px) {
     .candidates-content {
-        padding: 22px 20px 30px;
+        /* padding: 22px 20px 30px; */
     }
 
     .candidates-header {
@@ -533,7 +533,7 @@
 /* Mobile */
 @media (max-width: 600px) {
     .candidates-content {
-        padding: 16px 12px 25px;
+        /* padding: 16px 12px 25px; */
     }
 
     .candidates-header h1 {
@@ -597,4 +597,105 @@
     }
 }
 
+/* ==========================================================
+   CANDIDATE NOTIFICATION
+========================================================== */
 
+.candidate-notification {
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+
+    min-width: 360px;
+    max-width: 520px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 14px 18px;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.15);
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.candidate-notification span {
+    flex: 1;
+}
+
+.candidate-notification button {
+    border: none;
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    padding: 4px;
+
+    color: #6b6f78;
+}
+
+.candidate-notification button:hover {
+    color: #222222;
+}
+
+
+/* ICON */
+
+.candidate-notification-icon {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    flex-shrink: 0;
+}
+
+
+/* SUCCESS */
+
+.candidate-notification-success {
+    border-left: 4px solid #138f67;
+}
+
+.candidate-notification-success .candidate-notification-icon {
+    background: #e7f8ef;
+    color: #138f67;
+}
+
+
+/* ERROR */
+
+.candidate-notification-error {
+    border-left: 4px solid #c33443;
+}
+
+.candidate-notification-error .candidate-notification-icon {
+    background: #fff0f2;
+    color: #c33443;
+}
+
+
+/* INFO */
+
+.candidate-notification-info {
+    border-left: 4px solid #3578e5;
+}
+
+.candidate-notification-info .candidate-notification-icon {
+    background: #edf4ff;
+    color: #3578e5;
+}
