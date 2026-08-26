@@ -1,14 +1,217 @@
-import React from "react";
+import React, { useState } from "react";
+import "./CVTab.css";
+const CVTab = ({ candidate }) => {
 
-const CVTab = () => {
+    if (!candidate) {
+        return null;
+    }
 
-    return (
-        <div className="candidate-cv-tab">
 
-            {/* ORIGINAL CV CARD */}
+    /*
+    |--------------------------------------------------------------------------
+    | STATE
+    |--------------------------------------------------------------------------
+    */
+
+    const [previewFile, setPreviewFile] =
+        useState(null);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET FILE NAME
+    |--------------------------------------------------------------------------
+    */
+
+    const getFileName = (fileUrl) => {
+
+        if (!fileUrl) {
+            return "—";
+        }
+
+        const cleanPath =
+            fileUrl.split("?")[0];
+
+        const fileName =
+            cleanPath.split("/").pop();
+
+        return fileName || "—";
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | FILE NAMES
+    |--------------------------------------------------------------------------
+    */
+
+    const originalCvName =
+        getFileName(
+            candidate.originalCvUrl
+        );
+
+
+    const troyCvName =
+        getFileName(
+            candidate.troyCvUrl
+        );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | FILE EXISTENCE
+    |--------------------------------------------------------------------------
+    */
+
+    const hasOriginalCv =
+        Boolean(candidate.originalCvUrl);
+
+
+    const hasTroyCv =
+        Boolean(candidate.troyCvUrl);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET FILE URL
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | The API currently returns a server filesystem path.
+    |
+    | Once backend exposes a download/preview endpoint,
+    | change this function to that endpoint.
+    |
+    */
+
+    const getFileUrl = (fileUrl) => {
+
+        if (!fileUrl) {
+            return null;
+        }
+
+        /*
+         * If backend already returns a complete URL,
+         * use it directly.
+         */
+
+        if (
+            fileUrl.startsWith("http://") ||
+            fileUrl.startsWith("https://")
+        ) {
+            return fileUrl;
+        }
+
+        /*
+         * If backend returns a relative browser URL,
+         * attach API base URL.
+         */
+
+        const API_BASE_URL =
+            import.meta.env.VITE_API_BASE_URL || "";
+
+        return `${API_BASE_URL}${fileUrl}`;
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PREVIEW
+    |--------------------------------------------------------------------------
+    */
+
+    const handlePreview = (
+        fileUrl,
+        fileName
+    ) => {
+
+        if (!fileUrl) {
+            return;
+        }
+
+        const url =
+            getFileUrl(fileUrl);
+
+        setPreviewFile({
+            url,
+            name: fileName,
+        });
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOWNLOAD
+    |--------------------------------------------------------------------------
+    */
+
+    const handleDownload = (
+        fileUrl,
+        fileName
+    ) => {
+
+        if (!fileUrl) {
+            return;
+        }
+
+        const url =
+            getFileUrl(fileUrl);
+
+        const link =
+            document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            fileName;
+
+        link.target = "_blank";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLOSE PREVIEW
+    |--------------------------------------------------------------------------
+    */
+
+    const closePreview = () => {
+
+        setPreviewFile(null);
+
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CV CARD
+    |--------------------------------------------------------------------------
+    */
+
+    const CVCard = ({
+        title,
+        fileUrl,
+        fileName,
+        format,
+    }) => {
+
+        const hasFile =
+            Boolean(fileUrl);
+
+
+        return (
             <div className="candidate-cv-card">
 
-                <h2>Original CV</h2>
+                <h2>
+                    {title}
+                </h2>
+
 
                 <div className="cv-detail-row">
 
@@ -16,77 +219,202 @@ const CVTab = () => {
                         File
                     </span>
 
+
                     <strong>
-                        —
+                        {fileName}
                     </strong>
 
                 </div>
 
-                <div className="cv-no-file">
-                    No original file stored
-                </div>
+
+                {hasFile ? (
+
+                    <>
+
+                        <div className="cv-no-file">
+
+                            Format:{" "}
+
+                            {format || "DOCX"}
+
+                        </div>
+
+
+                        {/* ACTION BUTTONS */}
+
+                        <div className="cv-file-actions">
+
+                            <button
+                                type="button"
+                                className="cv-preview-btn"
+                                onClick={() =>
+                                    handlePreview(
+                                        fileUrl,
+                                        fileName
+                                    )
+                                }
+                            >
+                                <i className="fas fa-eye"></i>
+
+                                Preview
+
+                            </button>
+
+
+                            <button
+                                type="button"
+                                className="cv-download-btn"
+                                onClick={() =>
+                                    handleDownload(
+                                        fileUrl,
+                                        fileName
+                                    )
+                                }
+                            >
+                                <i className="fas fa-download"></i>
+
+                                Download
+
+                            </button>
+
+                        </div>
+
+                    </>
+
+                ) : (
+
+                    <div className="cv-no-file">
+
+                        No file stored
+
+                    </div>
+
+                )}
 
             </div>
+        );
+    };
 
 
-            {/* CV PREVIEW / EMPTY STATE */}
-            <div className="cv-preview-empty">
+    return (
+        <div className="candidate-cv-tab">
 
-                <div className="cv-document-icon">
+            {/* =====================================================
+                                ORIGINAL CV
+            ====================================================== */}
 
-                    <svg
-                        width="36"
-                        height="43"
-                        viewBox="0 0 36 43"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+            <CVCard
+                title="Original CV"
+                fileUrl={
+                    candidate.originalCvUrl
+                }
+                fileName={
+                    originalCvName
+                }
+                format={
+                    candidate.originalCvFormat
+                }
+            />
+
+
+            {/* =====================================================
+                            TROY FORMAT CV
+            ====================================================== */}
+
+            <CVCard
+                title="Troy Format CV"
+                fileUrl={
+                    candidate.troyCvUrl
+                }
+                fileName={
+                    troyCvName
+                }
+                format="DOCX"
+            />
+
+
+            {/* =====================================================
+                            PREVIEW MODAL
+            ====================================================== */}
+
+            {previewFile && (
+
+                <div
+                    className="cv-preview-overlay"
+                    onClick={closePreview}
+                >
+
+                    <div
+                        className="cv-preview-modal"
+                        onClick={(e) =>
+                            e.stopPropagation()
+                        }
                     >
 
-                        <path
-                            d="M5 1H23L34 12V42H5C2.79 42 1 40.21 1 38V5C1 2.79 2.79 1 5 1Z"
-                            fill="#F8FCFF"
-                            stroke="#65B8ED"
-                            strokeWidth="1.5"
-                        />
+                        {/* HEADER */}
 
-                        <path
-                            d="M23 1V12H34"
-                            stroke="#65B8ED"
-                            strokeWidth="1.5"
-                        />
+                        <div className="cv-preview-header">
 
-                        <path
-                            d="M9 20H27"
-                            stroke="#9ACCF0"
-                            strokeWidth="1.5"
-                        />
+                            <div>
 
-                        <path
-                            d="M9 25H27"
-                            stroke="#9ACCF0"
-                            strokeWidth="1.5"
-                        />
+                                <h2>
+                                    CV Preview
+                                </h2>
 
-                        <path
-                            d="M9 30H23"
-                            stroke="#9ACCF0"
-                            strokeWidth="1.5"
-                        />
+                                <span>
+                                    {previewFile.name}
+                                </span>
 
-                    </svg>
+                            </div>
+
+
+                            <button
+                                type="button"
+                                className="cv-preview-close"
+                                onClick={
+                                    closePreview
+                                }
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+
+                        {/* PREVIEW */}
+
+                        <div className="cv-preview-body">
+
+                            {previewFile.url ? (
+
+                                <iframe
+                                    src={
+                                        previewFile.url
+                                    }
+                                    title={
+                                        previewFile.name
+                                    }
+                                    className="cv-preview-iframe"
+                                />
+
+                            ) : (
+
+                                <div className="cv-preview-error">
+
+                                    Unable to preview
+                                    this file.
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-
-                <div className="cv-empty-title">
-                    No Troy Format CV yet.
-                </div>
-
-                <div className="cv-empty-description">
-                    Open Edit and upload the Troy Word CV.
-                </div>
-
-            </div>
+            )}
 
         </div>
     );
