@@ -52,7 +52,46 @@ export const getAllCandidates = createAsyncThunk(
         }
     }
 );
+/*
+|--------------------------------------------------------------------------
+| GET CANDIDATE BY ID
+|--------------------------------------------------------------------------
+*/
+export const getCandidateById = createAsyncThunk(
+    "candidates/getCandidateById",
+    async (id, { rejectWithValue }) => {
+        try {
 
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/candidates/${id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch candidate"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching candidate"
+            );
+        }
+    }
+);
 
 export const getAllEmployees = createAsyncThunk(
     "candidates/getAllEmployees",
@@ -557,12 +596,16 @@ const initialState = {
     candidates: [],
     employees: [],
 
+    selectedCandidate: null,
+
     loading: false,
     employeesLoading: false,
     adding: false,
+    candidateDetailsLoading: false,
 
     error: null,
     employeeError: null,
+    candidateDetailsError: null,
 };
 
 
@@ -578,6 +621,10 @@ const candidateSlice = createSlice({
 
         clearEmployeeError: (state) => {
             state.employeeError = null;
+        },
+        clearCandidateDetails: (state) => {
+            state.selectedCandidate = null;
+            state.candidateDetailsError = null;
         },
     },
 
@@ -615,7 +662,37 @@ const candidateSlice = createSlice({
                         "Failed to fetch candidates";
                 }
             )
+            /*
+|--------------------------------------------------------------------------
+| GET CANDIDATE BY ID
+|--------------------------------------------------------------------------
+*/
+            .addCase(
+                getCandidateById.pending,
+                (state) => {
+                    state.candidateDetailsLoading = true;
+                    state.candidateDetailsError = null;
+                    state.selectedCandidate = null;
+                }
+            )
 
+            .addCase(
+                getCandidateById.fulfilled,
+                (state, action) => {
+                    state.candidateDetailsLoading = false;
+                    state.selectedCandidate = action.payload;
+                }
+            )
+
+            .addCase(
+                getCandidateById.rejected,
+                (state, action) => {
+                    state.candidateDetailsLoading = false;
+                    state.candidateDetailsError =
+                        action.payload ||
+                        "Failed to fetch candidate";
+                }
+            )
 
             /*
             |--------------------------------------------------------------------------
@@ -774,6 +851,7 @@ const candidateSlice = createSlice({
 export const {
     clearCandidateError,
     clearEmployeeError,
+    clearCandidateDetails,
 } = candidateSlice.actions;
 
 
