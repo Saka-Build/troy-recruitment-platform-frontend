@@ -1,85 +1,486 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+    FiCalendar,
+    FiClock,
+    FiDollarSign,
+    FiList,
+    FiSearch,
+    FiX,
+} from "react-icons/fi";
+import { FaPlaneDeparture } from "react-icons/fa";
+import { MdWorkOutline } from "react-icons/md";
+import "./Components.css";
 
 const ApplicationsTab = ({ candidate }) => {
-    // Sample application data - in real app, this would come from API
-    const applications = [
+    const [applications, setApplications] = useState([
         {
             id: 1,
+            jobTitle: "Cloud Security Engineer",
+            company: "Meridian Fintech",
+            appliedDate: "7h ago",
+            status: "Onboarded",
+            expectedSalary: "£200 / day",
+            submissionRate: "£200 / day",
+            offer: "£100 / day",
+            historyCount: 12,
+        },
+        {
+            id: 2,
             jobTitle: "SAP S/4HANA Consultant",
             company: "Nova Manufacturing",
-            appliedDate: "3d ago",
-            status: "Submitted",
-            expectedSalary: "£88,000",
-            submissionRate: "missing",
+            appliedDate: "1h ago",
+            status: "Actively Sourcing",
+            expectedSalary: "£200 / day",
+            submissionRate: null,
+            offer: null,
+            historyCount: 3,
         },
+    ]);
+
+    const [showInterviewModal, setShowInterviewModal] = useState(false);
+    const [selectedApplication, setSelectedApplication] = useState(null);
+
+    const [interviewData, setInterviewData] = useState({
+        date: "27-08-2026",
+        time: "13:16",
+        type: "Teams",
+        round: "HR Round",
+        interviewer: "",
+    });
+
+    const statuses = [
+        "Pipeline",
+        "Actively Sourcing",
+        "Ready to Submit",
+        "Submitted",
+        "In Progress",
+        "Interview",
+        "Selected",
+        "Offer Released",
+        "Onboarding",
+        "Onboarded",
+        "Hold",
+        "Deferred",
+        "Withdrawn",
+        "Rejected",
+        "Closed",
+        "Blacklisted",
     ];
 
-    // Status color mapping
-    const getStatusColor = (status) => {
-        const colors = {
-            "Submitted": "#6375e8",
-            "In Progress": "#f5a623",
-            "Interview": "#2f6df6",
-            "Selected": "#34c759",
-            "Offer Released": "#34c759",
-            "Onboarding": "#34c759",
-            "Onboarded": "#34c759",
-            "Hold": "#ff9500",
-            "Deferred": "#ff9500",
-            "Withdrawn": "#8e8e93",
-            "Rejected": "#ff3b30",
-            "Closed": "#8e8e93",
-            "Blacklisted": "#ff3b30",
-            "Pipeline": "#5ac8fa",
-            "Actively Sourcing": "#5ac8fa",
-            "Ready to Submit": "#5ac8fa",
+    const getStatusClass = (status) => {
+        const classes = {
+            Pipeline: "cxandidate-status-pipeline",
+            "Actively Sourcing": "cxandidate-status-sourcing",
+            "Ready to Submit": "cxandidate-status-ready",
+            Submitted: "cxandidate-status-submitted",
+            "In Progress": "cxandidate-status-progress",
+            Interview: "cxandidate-status-interview",
+            Selected: "cxandidate-status-selected",
+            "Offer Released": "cxandidate-status-selected",
+            Onboarding: "cxandidate-status-selected",
+            Onboarded: "cxandidate-status-selected",
+            Hold: "cxandidate-status-hold",
+            Deferred: "cxandidate-status-hold",
+            Withdrawn: "cxandidate-status-withdrawn",
+            Rejected: "cxandidate-status-rejected",
+            Closed: "cxandidate-status-withdrawn",
+            Blacklisted: "cxandidate-status-rejected",
         };
-        return colors[status] || "#63748f";
+
+        return classes[status] || "cxandidate-status-default";
+    };
+
+ const getStatusIcon = (status) => {
+    const icons = {
+        Pipeline: <FiSearch />,
+        "Actively Sourcing": <FiSearch />,
+        "Ready to Submit": <MdWorkOutline />,
+        Submitted: <MdWorkOutline />,
+        "In Progress": <FiClock />,
+        Interview: <FiCalendar />,
+        Selected: <MdWorkOutline />,
+        "Offer Released": <MdWorkOutline />,
+        Onboarding: <MdWorkOutline />,
+        Onboarded: <FaPlaneDeparture />,
+        Hold: <FiClock />,
+        Deferred: <FiClock />,
+        Withdrawn: <FiX />,
+        Rejected: <FiX />,
+        Closed: <FiX />,
+        Blacklisted: <FiX />,
+    };
+
+    return icons[status] || <MdWorkOutline />;
+};
+
+    const handleStatusChange = (id, value) => {
+        setApplications((prev) =>
+            prev.map((application) =>
+                application.id === id
+                    ? { ...application, status: value }
+                    : application
+            )
+        );
+    };
+
+    const handleOpenInterview = (application) => {
+        setSelectedApplication(application);
+        setShowInterviewModal(true);
+    };
+
+    const handleCloseInterview = () => {
+        setShowInterviewModal(false);
+        setSelectedApplication(null);
+    };
+
+    const handleInterviewChange = (field, value) => {
+        setInterviewData((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
+    const handleSaveInterview = () => {
+        if (!selectedApplication) return;
+
+        setApplications((prev) =>
+            prev.map((application) =>
+                application.id === selectedApplication.id
+                    ? {
+                          ...application,
+                          status: "Interview",
+                      }
+                    : application
+            )
+        );
+
+        handleCloseInterview();
+    };
+
+    const handleRemove = (id) => {
+        setApplications((prev) =>
+            prev.filter((application) => application.id !== id)
+        );
     };
 
     return (
-        <div className="candidate-tab-card applications-tab">
-            <div className="applications-header">
-                <h2>Applications</h2>
-                <span className="applications-count">{applications.length} application</span>
+        <>
+            <div className="candidate-tab-card cxandidate applications-tab">
+                <div className="cxandidate-applications-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h2 className="cxandidate-applications-title">
+                            Applications ({applications.length})
+                        </h2>
+
+                        <p className="cxandidate-applications-description">
+                            Each application is this candidate's journey
+                            through one job — with its own status, interview
+                            and history.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="cxandidate-apply-job-btn"
+                    >
+                        + Apply to a job
+                    </button>
+                </div>
+
+                <div className="cxandidate-applications-list">
+                    {applications.map((app) => (
+                        <div
+                            key={app.id}
+                            className="cxandidate-application-card"
+                        >
+                            <div className="cxandidate-application-top">
+                                <div className="cxandidate-application-title">
+                                    <strong>{app.jobTitle}</strong>
+                                    <span> — {app.company}</span>
+                                </div>
+
+                                <span className="cxandidate-application-date">
+                                    applied {app.appliedDate}
+                                </span>
+                            </div>
+
+                            <div className="cxandidate-application-content">
+                                <div className="cxandidate-application-controls">
+                                    <div
+                                        className={`cxandidate-status-badge ${getStatusClass(
+                                            app.status
+                                        )}`}
+                                    >
+                                        <span className="cxandidate-status-icon">
+                                            {getStatusIcon(app.status)}
+                                        </span>
+
+                                        <span>{app.status}</span>
+                                    </div>
+
+                                    <select
+                                        className="cxandidate-status-select"
+                                        value={app.status}
+                                        onChange={(e) =>
+                                            handleStatusChange(
+                                                app.id,
+                                                e.target.value
+                                            )
+                                        }
+                                    >
+                                        {statuses.map((status) => (
+                                            <option
+                                                key={status}
+                                                value={status}
+                                            >
+                                                {status}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    <button
+                                        type="button"
+                                        className="cxandidate-application-action"
+                                        onClick={() =>
+                                            handleOpenInterview(app)
+                                        }
+                                    >
+                                        <FiCalendar />
+                                        <span>Interview</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="cxandidate-application-action"
+                                    >
+                                        <FiDollarSign />
+                                        <span>Rates</span>
+                                    </button>
+
+<button
+    type="button"
+    className="cxandidate-application-action"
+>
+    <FiList />
+    <span>
+        History ({app.historyCount})
+    </span>
+</button>
+
+                                    <button
+                                        type="button"
+                                        className="cxandidate-application-action cxandidate-remove-btn"
+                                        onClick={() =>
+                                            handleRemove(app.id)
+                                        }
+                                    >
+                                        <FiX />
+                                        <span>Remove</span>
+                                    </button>
+                                </div>
+
+                                <div className="cxandidate-application-rates">
+                                    <span>
+                                        Expected:{" "}
+                                        <strong>{app.expectedSalary}</strong>
+                                    </span>
+
+                                    {app.submissionRate && (
+                                        <>
+                                            <span className="cxandidate-rate-separator">
+                                                ·
+                                            </span>
+
+                                            <span>
+                                                Submitted:{" "}
+                                                <strong>
+                                                    {app.submissionRate}
+                                                </strong>
+                                            </span>
+                                        </>
+                                    )}
+
+                                    {app.offer && (
+                                        <>
+                                            <span className="cxandidate-rate-separator">
+                                                ·
+                                            </span>
+
+                                            <span className="cxandidate-offer-rate">
+                                                Offer:{" "}
+                                                <strong>{app.offer}</strong>
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            <div className="applications-list">
-                {applications.map((app) => (
-                    <div key={app.id} className="application-item">
-                        <div className="application-header">
-                            <div className="application-title">
-                                <strong>{app.jobTitle}</strong>
-                                <span className="application-company">— {app.company}</span>
-                            </div>
-                            <span className="application-date">applied {app.appliedDate}</span>
+            {showInterviewModal && selectedApplication && (
+                <div
+                    className="cxandidate-modal-overlay"
+                    onMouseDown={handleCloseInterview}
+                >
+                    <div
+                        className="cxandidate-interview-modal"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <div className="cxandidate-interview-modal-header">
+                            <h3>
+                                Schedule interview —{" "}
+                                {selectedApplication.jobTitle}
+                            </h3>
+
+                            <button
+                                type="button"
+                                className="cxandidate-modal-close"
+                                onClick={handleCloseInterview}
+                                aria-label="Close"
+                            >
+                                <FiX />
+                            </button>
                         </div>
 
-                        <div className="application-body">
-                            <div className="application-status-row">
-                                <div className="application-status">
-                                    <span
-                                        className="status-dot"
-                                        style={{ backgroundColor: getStatusColor(app.status) }}
-                                    />
-                                    <span className="status-label">{app.status}</span>
-                                </div>
-                                <div className="application-expected">
-                                    <span className="expected-label">Expected:</span>
-                                    <span className="expected-value">{app.expectedSalary}</span>
-                                    <span className="submission-rate">· submission rate {app.submissionRate}</span>
-                                </div>
-                            </div>
+                        <div className="cxandidate-interview-modal-body">
+                            <div className="row g-3">
+                                <div className="col-md-6">
+                                    <label className="cxandidate-form-label">
+                                        Date *
+                                    </label>
 
-                            <div className="application-actions">
-                                <button className="app-action-btn">View</button>
-                                <button className="app-action-btn remove-btn">Remove</button>
+                                    <div className="cxandidate-input-icon-wrapper">
+                                        <input
+                                            type="text"
+                                            className="form-control cxandidate-form-control"
+                                            value={interviewData.date}
+                                            onChange={(e) =>
+                                                handleInterviewChange(
+                                                    "date",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                        <FiCalendar />
+                                    </div>
+                                </div>
+
+                                <div className="col-md-6">
+                                    <label className="cxandidate-form-label">
+                                        Time
+                                    </label>
+
+                                    <div className="cxandidate-input-icon-wrapper">
+                                        <input
+                                            type="text"
+                                            className="form-control cxandidate-form-control"
+                                            value={interviewData.time}
+                                            onChange={(e) =>
+                                                handleInterviewChange(
+                                                    "time",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                        <FiClock />
+                                    </div>
+                                </div>
+
+                                <div className="col-md-6">
+                                    <label className="cxandidate-form-label">
+                                        Type
+                                    </label>
+
+                                    <select
+                                        className="form-select cxandidate-form-control"
+                                        value={interviewData.type}
+                                        onChange={(e) =>
+                                            handleInterviewChange(
+                                                "type",
+                                                e.target.value
+                                            )
+                                        }
+                                    >
+                                        <option value="Teams">Teams</option>
+                                        <option value="Zoom">Zoom</option>
+                                        <option value="Phone">Phone</option>
+                                        <option value="Onsite">Onsite</option>
+                                    </select>
+                                </div>
+
+                                <div className="col-md-6">
+                                    <label className="cxandidate-form-label">
+                                        Round
+                                    </label>
+
+                                    <select
+                                        className="form-select cxandidate-form-control"
+                                        value={interviewData.round}
+                                        onChange={(e) =>
+                                            handleInterviewChange(
+                                                "round",
+                                                e.target.value
+                                            )
+                                        }
+                                    >
+                                        <option value="Technical Round">
+                                            Technical Round
+                                        </option>
+                                        <option value="HR Round">
+                                            HR Round
+                                        </option>
+                                        <option value="Final Round">
+                                            Final Round
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div className="col-12">
+                                    <label className="cxandidate-form-label">
+                                        Interviewer
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        className="form-control cxandidate-form-control"
+                                        placeholder="e.g. Sarah Lin (Client)"
+                                        value={interviewData.interviewer}
+                                        onChange={(e) =>
+                                            handleInterviewChange(
+                                                "interviewer",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        <div className="cxandidate-interview-modal-footer">
+                            <button
+                                type="button"
+                                className="cxandidate-cancel-btn"
+                                onClick={handleCloseInterview}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="cxandidate-save-interview-btn"
+                                onClick={handleSaveInterview}
+                            >
+                                Save & set to Interview
+                            </button>
                         </div>
                     </div>
-                ))}
-            </div>
-        </div>
+                </div>
+            )}
+        </>
     );
 };
 

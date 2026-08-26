@@ -1,0 +1,954 @@
+/* =========================================================
+   CANDIDATE HISTORY TAB
+========================================================= */
+
+.candidate-history-panel {
+  min-height: 360px;
+  padding: 20px 22px;
+  border: 1px solid #dce4ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HISTORY HEADER + FILTERS
+========================================================= */
+
+.candidate-history-header-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.candidate-history-header-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.candidate-history-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.candidate-history-header-info h2 {
+  margin: 0;
+  color: #071a38;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.candidate-history-header-info p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* =========================================================
+   HISTORY COUNT
+========================================================= */
+
+.candidate-history-count {
+  align-self: flex-end;
+  padding: 5px 10px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+/* =========================================================
+   HISTORY FILTERS
+========================================================= */
+
+.candidate-history-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.candidate-history-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.candidate-history-filter-field label {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+
+.candidate-history-filter-field select,
+.candidate-history-filter-field input {
+  height: 34px;
+  min-width: 125px;
+  padding: 0 9px;
+  border: 1px solid #d7dee8;
+  border-radius: 5px;
+  outline: none;
+  background: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.candidate-history-filter-field select {
+  cursor: pointer;
+}
+
+.candidate-history-filter-field input {
+  cursor: pointer;
+}
+
+.candidate-history-filter-field select:focus,
+.candidate-history-filter-field input:focus {
+  border-color: #94a3b8;
+}
+
+/* =========================================================
+   CLEAR FILTER
+========================================================= */
+
+.candidate-history-clear-filter {
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid #d7dee8;
+  border-radius: 5px;
+  outline: none;
+  background: #ffffff;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.candidate-history-clear-filter:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+/* =========================================================
+   HISTORY LIST
+========================================================= */
+
+.candidate-history-list {
+  position: relative;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.candidate-history-list::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: 16px;
+  width: 1px;
+  background: #dce4ef;
+}
+
+.candidate-history-item {
+  position: relative;
+  min-height: 67px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.candidate-history-item:last-child {
+  border-bottom: none;
+}
+
+/* =========================================================
+   HISTORY TIMELINE
+========================================================= */
+
+.candidate-history-timeline {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 34px;
+  display: flex;
+  justify-content: center;
+}
+
+.candidate-history-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dce4ef;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #55408c;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.candidate-history-created {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.candidate-history-updated {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* =========================================================
+   HISTORY CONTENT
+========================================================= */
+
+.candidate-history-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 1px;
+}
+
+.candidate-history-activity-title {
+  color: #1e293b;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.candidate-history-date {
+  margin-top: 3px;
+  color: #4f6c96;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.candidate-history-description {
+  margin-top: 9px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.candidate-history-meta {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.candidate-history-by strong {
+  color: #334155;
+  font-weight: 600;
+}
+
+/* =========================================================
+   HISTORY OLD / NEW VALUE
+========================================================= */
+
+.candidate-history-change {
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-size: 12px;
+}
+
+.candidate-history-old {
+  overflow-wrap: anywhere;
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.candidate-history-arrow {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.candidate-history-new {
+  overflow-wrap: anywhere;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* =========================================================
+   HISTORY STATES
+========================================================= */
+
+.candidate-history-state {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.candidate-history-state > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.candidate-history-state strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.candidate-history-state > div > span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.candidate-history-state-icon {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.candidate-history-error {
+  color: #b91c1c;
+}
+
+.candidate-history-error
+  .candidate-history-state-icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* =========================================================
+   HISTORY LOADER
+========================================================= */
+
+.candidate-history-loader {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #dbe3ed;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: candidate-history-spin 0.7s linear infinite;
+}
+
+@keyframes candidate-history-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1150px) {
+  .candidate-history-header-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .candidate-history-header-info {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .candidate-history-count {
+    align-self: center;
+    margin-bottom: 0;
+  }
+
+  .candidate-history-filters {
+    flex: 1;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .candidate-history-panel {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .candidate-history-header-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .candidate-history-header-info {
+    width: 100%;
+  }
+
+  .candidate-history-count {
+    align-self: flex-start;
+  }
+
+  .candidate-history-filters {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .candidate-history-filter-field {
+    width: 100%;
+  }
+
+  .candidate-history-filter-field select,
+  .candidate-history-filter-field input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .candidate-history-clear-filter {
+    width: fit-content;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 450px) {
+  .candidate-history-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-history-clear-filter {
+    width: 100%;
+  }
+
+  .candidate-history-item {
+    gap: 10px;
+    padding: 14px 0;
+  }
+
+  .candidate-history-timeline {
+    flex: 0 0 30px;
+  }
+
+  .candidate-history-icon {
+    width: 29px;
+    height: 29px;
+  }
+
+  .candidate-history-list::before {
+    left: 14px;
+  }
+}
+
+
+
+.cxandidate.applications-tab {
+    width: 100%;
+    padding: 22px 20px 32px;
+    background: #fff;
+    border: 1px solid #dce4f0;
+    border-radius: 14px;
+}
+
+.cxandidate-applications-header {
+    padding: 4px 0 14px;
+    border-bottom: 1px solid #dce4f0;
+}
+
+.cxandidate-applications-title {
+    margin: 0;
+    color: #071f49;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cxandidate-applications-description {
+    margin: 22px 0 0;
+    color: #516785;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.cxandidate-apply-job-btn {
+    border: 0;
+    border-radius: 11px;
+    padding: 9px 16px;
+    background: #2f6df6;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cxandidate-apply-job-btn:hover {
+    background: #245bd3;
+}
+
+.cxandidate-applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 0;
+}
+
+.cxandidate-application-card {
+    border: 1px solid #dce4f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.cxandidate-application-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 16px 16px 8px;
+}
+
+.cxandidate-application-title {
+    color: #071f49;
+    font-size: 13px;
+}
+
+.cxandidate-application-title strong {
+    font-weight: 700;
+}
+
+.cxandidate-application-title span {
+    font-weight: 600;
+}
+
+.cxandidate-application-date {
+    flex-shrink: 0;
+    color: #617592;
+    font-size: 11px;
+}
+
+.cxandidate-application-content {
+    padding: 0 16px 14px;
+}
+
+.cxandidate-application-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.cxandidate-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 28px;
+    padding: 4px 11px;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cxandidate-status-icon {
+    font-size: 11px;
+}
+
+.cxandidate-status-pipeline,
+.cxandidate-status-sourcing,
+.cxandidate-status-ready {
+    color: #0075c9;
+    background: #e4f5ff;
+    border-color: #71ccff;
+}
+
+.cxandidate-status-submitted {
+    color: #5667d9;
+    background: #eef0ff;
+    border-color: #bdc5ff;
+}
+
+.cxandidate-status-progress,
+.cxandidate-status-hold {
+    color: #ad6a00;
+    background: #fff4dc;
+    border-color: #f2c86b;
+}
+
+.cxandidate-status-interview {
+    color: #245ed0;
+    background: #e9f1ff;
+    border-color: #8db4ff;
+}
+
+.cxandidate-status-selected,
+.cxandidate-status-default {
+    color: #00895d;
+    background: #e6faf3;
+    border-color: #8edcbd;
+}
+
+.cxandidate-status-withdrawn {
+    color: #667085;
+    background: #f2f4f7;
+    border-color: #d5d9e0;
+}
+
+.cxandidate-status-rejected {
+    color: #d92d20;
+    background: #fff0ef;
+    border-color: #f5aaa4;
+}
+
+.cxandidate-status-select {
+    min-width: 140px;
+    height: 29px;
+    padding: 3px 29px 3px 10px;
+    border: 1px solid #d4deed;
+    border-radius: 7px;
+    background-color: #fff;
+    color: #122c50;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+}
+
+.cxandidate-status-select:focus {
+    border-color: #2f6df6;
+    box-shadow: 0 0 0 2px rgba(47, 109, 246, 0.1);
+}
+
+.cxandidate-application-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 33px;
+    padding: 5px 12px;
+    border: 1px solid #d7e0ed;
+    border-radius: 9px;
+    background: #fff;
+    color: #102d55;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cxandidate-application-action:hover {
+    border-color: #aebfd8;
+    background: #f8faff;
+}
+
+.cxandidate-remove-btn {
+    color: #ff3b30;
+}
+
+.cxandidate-remove-btn:hover {
+    color: #d92d20;
+    border-color: #f3b3ae;
+    background: #fff7f6;
+}
+
+.cxandidate-application-rates {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 7px;
+    color: #617592;
+    font-size: 11px;
+}
+
+.cxandidate-application-rates strong {
+    color: #526b8f;
+    font-weight: 600;
+}
+
+.cxandidate-rate-separator {
+    color: #a0aec0;
+}
+
+.cxandidate-offer-rate {
+    color: #00a36c;
+}
+
+.cxandidate-offer-rate strong {
+    color: #00a36c;
+}
+
+/* Interview modal */
+
+.cxandidate-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(35, 46, 63, 0.62);
+}
+
+.cxandidate-interview-modal {
+    width: min(560px, 100%);
+    overflow: hidden;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.2);
+}
+
+.cxandidate-interview-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 65px;
+    padding: 0 22px;
+    border-bottom: 1px solid #dce4f0;
+}
+
+.cxandidate-interview-modal-header h3 {
+    margin: 0;
+    color: #071f49;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.cxandidate-modal-close {
+    border: 0;
+    background: transparent;
+    color: #37608d;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.cxandidate-interview-modal-body {
+    padding: 19px 22px 22px;
+}
+
+.cxandidate-form-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #63748f;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cxandidate-form-control {
+    min-height: 42px;
+    border: 1px solid #d6e0ef !important;
+    border-radius: 9px !important;
+    color: #243b5b !important;
+    font-size: 14px !important;
+    box-shadow: none !important;
+}
+
+.cxandidate-form-control:focus {
+    border-color: #2f6df6 !important;
+    box-shadow: 0 0 0 2px rgba(47, 109, 246, 0.1) !important;
+}
+
+.cxandidate-input-icon-wrapper {
+    position: relative;
+}
+
+.cxandidate-input-icon-wrapper input {
+    padding-right: 38px;
+}
+
+.cxandidate-input-icon-wrapper span {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    transform: translateY(-50%);
+    color: #172d4b;
+    font-size: 15px;
+    pointer-events: none;
+}
+
+.cxandidate-interview-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-height: 72px;
+    padding: 14px 22px;
+    border-top: 1px solid #dce4f0;
+}
+
+.cxandidate-cancel-btn {
+    min-height: 40px;
+    padding: 7px 17px;
+    border: 1px solid #d6e0ef;
+    border-radius: 10px;
+    background: #fff;
+    color: #102d55;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cxandidate-save-interview-btn {
+    min-height: 40px;
+    padding: 7px 17px;
+    border: 0;
+    border-radius: 10px;
+    background: #2f6df6;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cxandidate-save-interview-btn:hover {
+    background: #245bd3;
+}
+
+@media (max-width: 768px) {
+    .cxandidate.applications-tab {
+        padding: 16px 12px 24px;
+    }
+
+    .cxandidate-applications-header {
+        align-items: flex-start !important;
+    }
+
+    .cxandidate-apply-job-btn {
+        width: 100%;
+    }
+
+    .cxandidate-application-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cxandidate-application-date {
+        align-self: flex-start;
+    }
+
+    .cxandidate-application-controls {
+        align-items: stretch;
+    }
+
+    .cxandidate-status-badge,
+    .cxandidate-status-select,
+    .cxandidate-application-action {
+        min-height: 36px;
+    }
+
+    .cxandidate-status-select {
+        width: 100%;
+    }
+
+    .cxandidate-application-action {
+        flex: 1 1 auto;
+    }
+
+    .cxandidate-interview-modal {
+        max-height: calc(100vh - 30px);
+        overflow-y: auto;
+    }
+
+    .cxandidate-interview-modal-footer {
+        flex-wrap: wrap;
+    }
+
+    .cxandidate-cancel-btn,
+    .cxandidate-save-interview-btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .cxandidate-application-action {
+        width: 100%;
+    }
+
+    .cxandidate-interview-modal-header {
+        padding: 0 16px;
+    }
+
+    .cxandidate-interview-modal-body {
+        padding: 16px;
+    }
+
+    .cxandidate-interview-modal-footer {
+        padding: 12px 16px;
+    }
+
+    .cxandidate-interview-modal-footer button {
+        width: 100%;
+        flex: none;
+    }
+}
+
+.cxandidate-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.cxandidate-status-icon svg,
+.cxandidate-application-action svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.cxandidate-modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cxandidate-modal-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.cxandidate-input-icon-wrapper span,
+.cxandidate-input-icon-wrapper > svg {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    transform: translateY(-50%);
+    color: #172d4b;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
