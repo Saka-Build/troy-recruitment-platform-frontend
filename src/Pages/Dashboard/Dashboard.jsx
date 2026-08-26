@@ -171,10 +171,6 @@ const attentionItems = [
               <option>Admin</option>
             </select>
 
-            <button className="primary-btn" onClick={() => setShowCandidateModal(true)}>
-              <i className="bi bi-plus-lg"></i> Add candidate
-            </button>
-
           </div>
 
         </div>
