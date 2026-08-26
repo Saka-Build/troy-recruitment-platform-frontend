@@ -592,20 +592,97 @@ export const deleteCandidate = createAsyncThunk(
     }
 );
 
+
+/*
+|--------------------------------------------------------------------------
+| GET CANDIDATE ACTIVITY
+|--------------------------------------------------------------------------
+*/
+export const getCandidateActivity = createAsyncThunk(
+    "candidates/getCandidateActivity",
+    async (candidateId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/activityLog/candidate/${candidateId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch candidate activity"
+                );
+            }
+
+            /*
+             * API returns an array
+             */
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            /*
+             * Safety in case backend wraps response
+             */
+            if (Array.isArray(data?.content)) {
+                return data.content;
+            }
+
+            if (Array.isArray(data?.data)) {
+                return data.data;
+            }
+
+            return [];
+
+        } catch (error) {
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching candidate activity"
+            );
+        }
+    }
+);
+
+
 const initialState = {
     candidates: [],
     employees: [],
 
     selectedCandidate: null,
 
+    candidateActivity: [],
+
     loading: false,
     employeesLoading: false,
     adding: false,
     candidateDetailsLoading: false,
+    candidateActivityLoading: false,
 
     error: null,
     employeeError: null,
     candidateDetailsError: null,
+    candidateActivityError: null,
 };
 
 
@@ -626,6 +703,10 @@ const candidateSlice = createSlice({
             state.selectedCandidate = null;
             state.candidateDetailsError = null;
         },
+        clearCandidateActivity: (state) => {
+    state.candidateActivity = [];
+    state.candidateActivityError = null;
+},
     },
 
     extraReducers: (builder) => {
@@ -843,7 +924,38 @@ const candidateSlice = createSlice({
                         action.payload ||
                         "Failed to delete candidate";
                 }
-            );
+            )
+            /*
+|--------------------------------------------------------------------------
+| GET CANDIDATE ACTIVITY
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    getCandidateActivity.pending,
+    (state) => {
+        state.candidateActivityLoading = true;
+        state.candidateActivityError = null;
+        state.candidateActivity = [];
+    }
+)
+
+.addCase(
+    getCandidateActivity.fulfilled,
+    (state, action) => {
+        state.candidateActivityLoading = false;
+        state.candidateActivity = action.payload;
+    }
+)
+
+.addCase(
+    getCandidateActivity.rejected,
+    (state, action) => {
+        state.candidateActivityLoading = false;
+        state.candidateActivityError =
+            action.payload ||
+            "Failed to fetch candidate activity";
+    }
+);
     },
 });
 
@@ -852,6 +964,7 @@ export const {
     clearCandidateError,
     clearEmployeeError,
     clearCandidateDetails,
+    clearCandidateActivity,
 } = candidateSlice.actions;
 
 

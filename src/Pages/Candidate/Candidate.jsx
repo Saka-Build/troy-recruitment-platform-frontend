@@ -434,228 +434,151 @@ const Candidates = () => {
         );
     };
 
-    const handleSave = async (data) => {
+const handleSave = async (data) => {
+    const isNull = (value) => value === null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | COMMON CANDIDATE DATA
-        |--------------------------------------------------------------------------
-        */
+    const candidateData = {
+        fullName: data.fullName,
 
-        const candidateData = {
-            fullName:
-                data.fullName,
+        currentDesignation: data.designation,
 
-            currentDesignation:
-                data.designation,
+        cvOwnerId: data.cvOwnerId,
 
-            cvOwnerId:
-                data.cvOwnerId,
+        referredBy: data.referredBy,
 
-            referredBy:
-                data.referredBy,
+        referenceNote: data.referenceNote,
 
-            referenceNote:
-                data.referenceNote,
+        email: data.email,
 
-            email:
-                data.email,
+        phone: data.phone,
 
-            phone:
-                data.phone,
+        whatsapp: data.whatsapp,
 
-            whatsapp:
-                data.whatsapp,
+        nationality: data.nationality,
 
-            nationality:
-                data.nationality,
+        location: data.currentLocation,
 
-            location:
-                data.currentLocation,
+        currentEmployer: data.currentCompany,
 
-            currentEmployer:
-                data.currentCompany,
+        experienceYears: isNull(data.experience)
+            ? null
+            : data.experience === ""
+                ? ""
+                : Number(data.experience),
 
-            experienceYears:
-                Number(data.experience) || 0,
+        skills: isNull(data.primarySkills)
+            ? null
+            : data.primarySkills
+                ? data.primarySkills
+                    .split(",")
+                    .map((skill) => skill.trim())
+                    .filter(Boolean)
+                : [],
 
-            skills:
-                data.primarySkills
-                    ? data.primarySkills
-                        .split(",")
-                        .map((skill) => skill.trim())
-                        .filter(Boolean)
-                    : [],
+        noticePeriodDays: isNull(data.noticePeriod)
+            ? null
+            : data.noticePeriod === ""
+                ? ""
+                : Number(data.noticePeriod),
 
-            noticePeriodDays:
-                Number(data.noticePeriod) || 0,
+        visaStatus: data.visaStatus,
 
-            visaStatus:
-                data.visaStatus,
+        source: data.source,
 
-            source:
-                data.source,
+        linkedinUrl: data.linkedinUrl,
 
-            linkedinUrl:
-                data.linkedinUrl || "",
+        status: data.candidateStatus,
 
-            status:
-                data.candidateStatus,
+        education: data.education,
 
-            education:
-                data.education,
+        currentSalaryAmount: isNull(data.currentRateAmount)
+            ? null
+            : data.currentRateAmount === ""
+                ? ""
+                : Number(data.currentRateAmount),
 
-            currentSalaryAmount:
-                Number(data.currentRateAmount) || 0,
+        currentSalaryCurrency: data.currentRateCurrency,
 
-            currentSalaryCurrency:
-                data.currentRateCurrency,
+        currentSalaryPeriod: data.currentRatePeriod,
 
-            currentSalaryPeriod:
-                data.currentRatePeriod,
+        expectedSalaryAmount: isNull(data.dayRateAmount)
+            ? null
+            : data.dayRateAmount === ""
+                ? ""
+                : Number(data.dayRateAmount),
 
-            expectedSalaryAmount:
-                Number(data.dayRateAmount) || 0,
+        expectedSalaryCurrency: data.dayRateCurrency,
 
-            expectedSalaryCurrency:
-                data.dayRateCurrency,
+        expectedSalaryPeriod: data.dayRatePeriod,
+    };
 
-            expectedSalaryPeriod:
-                data.dayRatePeriod,
-        };
+    console.log("FINAL CANDIDATE PAYLOAD:", candidateData);
 
+    try {
+        if (modalMode === "add") {
+            await dispatch(
+                addCandidate({
+                    candidateData,
+                    originalCV: data.originalCV,
+                    troyCV: data.troyCV,
+                })
+            ).unwrap();
 
-        console.log(
-            "FINAL CANDIDATE PAYLOAD:",
-            candidateData
-        );
-
-
-        try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | ADD CANDIDATE
-            |--------------------------------------------------------------------------
-            */
-
-            if (modalMode === "add") {
-
-                await dispatch(
-                    addCandidate({
-                        candidateData,
-
-                        originalCV:
-                            data.originalCV,
-
-                        troyCV:
-                            data.troyCV,
-                    })
-                ).unwrap();
-                showNotification(
-                    "success",
-                    "Candidate added successfully"
-                );
-
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE CANDIDATE
-            |--------------------------------------------------------------------------
-            */
-
-            else if (modalMode === "edit") {
-
-                if (!selectedCandidate?.id) {
-                    showNotification(
-                        "error",
-                        "Candidate ID is missing"
-                    );
-
-                    return;
-
-                    return;
-                }
-
-
-                console.log(
-                    "UPDATING CANDIDATE ID:",
-                    selectedCandidate.id
-                );
-
-
-                await dispatch(
-                    updateCandidate({
-
-                        id:
-                            selectedCandidate.id,
-
-                        candidateData,
-
-                        /*
-                         * Only send these when a NEW file
-                         * has actually been selected.
-                         *
-                         * If the user does not select a file,
-                         * the existing CV remains untouched.
-                         */
-                        originalCV:
-                            data.originalCV,
-
-                        troyCV:
-                            data.troyCV,
-
-                    })
-                ).unwrap();
-                showNotification(
-                    "success",
-                    "Candidate updated successfully"
-                );
-
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CLOSE MODAL
-            |--------------------------------------------------------------------------
-            */
-
-            setShowModal(false);
-
-            setSelectedCandidate(null);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | REFRESH CANDIDATES
-            |--------------------------------------------------------------------------
-            */
-
-            dispatch(
-                getAllCandidates()
-            );
-
-        } catch (error) {
-
-            console.error(
-                modalMode === "edit"
-                    ? "UPDATE CANDIDATE ERROR:"
-                    : "ADD CANDIDATE ERROR:",
-                error
-            );
             showNotification(
-                "error",
-                typeof error === "string"
-                    ? error
-                    : modalMode === "edit"
-                        ? "Failed to update candidate"
-                        : "Failed to add candidate"
+                "success",
+                "Candidate added successfully"
+            );
+        } else if (modalMode === "edit") {
+            if (!selectedCandidate?.id) {
+                showNotification(
+                    "error",
+                    "Candidate ID is missing"
+                );
+                return;
+            }
+
+            console.log(
+                "UPDATING CANDIDATE ID:",
+                selectedCandidate.id
+            );
+
+            await dispatch(
+                updateCandidate({
+                    id: selectedCandidate.id,
+                    candidateData,
+                    originalCV: data.originalCV,
+                    troyCV: data.troyCV,
+                })
+            ).unwrap();
+
+            showNotification(
+                "success",
+                "Candidate updated successfully"
             );
         }
-    };
+
+        setShowModal(false);
+        setSelectedCandidate(null);
+
+        dispatch(getAllCandidates());
+    } catch (error) {
+        console.error(
+            modalMode === "edit"
+                ? "UPDATE CANDIDATE ERROR:"
+                : "ADD CANDIDATE ERROR:",
+            error
+        );
+
+        showNotification(
+            "error",
+            typeof error === "string"
+                ? error
+                : modalMode === "edit"
+                    ? "Failed to update candidate"
+                    : "Failed to add candidate"
+        );
+    }
+};
 
     /*
     |--------------------------------------------------------------------------
