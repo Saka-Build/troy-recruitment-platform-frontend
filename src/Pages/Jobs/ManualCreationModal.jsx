@@ -47,7 +47,11 @@ function ManualCreationModal({
 
   const [recruiterDropdownOpen, setRecruiterDropdownOpen] =
     useState(false);
-    const [changedFields, setChangedFields] = useState({});
+
+  const [changedFields, setChangedFields] = useState({});
+
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState({});
 
   const editJob = job || initialData;
 
@@ -184,97 +188,148 @@ function ManualCreationModal({
     });
   }, [editJob, isEdit]);
 
-const handleChange = (e) => {
-  const {
-    name,
-    value,
-    type,
-    checked,
-  } = e.target;
+  const handleChange = (e) => {
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = e.target;
 
-  const newValue =
-    type === "checkbox"
-      ? checked
-      : value;
+    const newValue =
+      type === "checkbox"
+        ? checked
+        : value;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]: newValue,
-  }));
-
-  if (isEdit) {
-    setChangedFields((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: true,
+      [name]: newValue,
     }));
-  }
-};
 
-const handleClientChange = (e) => {
-  const clientId = e.target.value;
+    if (isEdit) {
+      setChangedFields((prev) => ({
+        ...prev,
+        [name]: true,
+      }));
+    }
 
-  const client = activeClients.find(
-    (item) => item.id === clientId
-  );
+    // Remove validation error as soon as field is corrected
+    if (validationErrors[name]) {
+      const isValid =
+        name === "title"
+          ? value.trim() !== ""
+          : value !== "";
 
-  const newCountryCode = client?.countryCode || "";
+      if (isValid) {
+        setValidationErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
+    }
+  };
 
-  setFormData((prev) => ({
-    ...prev,
-    clientId,
-    endClientId: "",
-    countryCode: newCountryCode,
-  }));
+  const handleClientChange = (e) => {
+    const clientId = e.target.value;
 
-  if (isEdit) {
-    setChangedFields((prev) => ({
+    const client = activeClients.find(
+      (item) => item.id === clientId
+    );
+
+    const newCountryCode = client?.countryCode || "";
+
+    setFormData((prev) => ({
       ...prev,
-      clientId: true,
-      endClientId: true,
-      countryCode: true,
+      clientId,
+      endClientId: "",
+      countryCode: newCountryCode,
     }));
-  }
-};
-const handleCountryChange = (e) => {
-  const value = e.target.value;
 
-  setFormData((prev) => ({
-    ...prev,
-    countryCode: value,
-  }));
+    if (isEdit) {
+      setChangedFields((prev) => ({
+        ...prev,
+        clientId: true,
+        endClientId: true,
+        countryCode: true,
+      }));
+    }
 
-  if (isEdit) {
-    setChangedFields((prev) => ({
+    setValidationErrors((prev) => {
+      const updated = { ...prev };
+
+      delete updated.clientId;
+      delete updated.endClientId;
+
+      // Country can be automatically populated from client
+      if (newCountryCode) {
+        delete updated.countryCode;
+      }
+
+      return updated;
+    });
+  };
+
+  const handleCountryChange = (e) => {
+    const value = e.target.value;
+
+    setFormData((prev) => ({
       ...prev,
-      countryCode: true,
+      countryCode: value,
     }));
-  }
-};
-const handleRecruiterToggle = (recruiterId) => {
-  setFormData((prev) => {
-    const alreadySelected =
-      prev.assignedRecruiters.includes(recruiterId);
 
-    return {
-      ...prev,
-      assignedRecruiters: alreadySelected
+    if (isEdit) {
+      setChangedFields((prev) => ({
+        ...prev,
+        countryCode: true,
+      }));
+    }
+
+    if (value) {
+      setValidationErrors((prev) => {
+        const updated = { ...prev };
+        delete updated.countryCode;
+        return updated;
+      });
+    }
+  };
+
+  const handleRecruiterToggle = (recruiterId) => {
+    setFormData((prev) => {
+      const alreadySelected =
+        prev.assignedRecruiters.includes(recruiterId);
+
+      const updatedRecruiters = alreadySelected
         ? prev.assignedRecruiters.filter(
             (id) => id !== recruiterId
           )
         : [
             ...prev.assignedRecruiters,
             recruiterId,
-          ],
-    };
-  });
+          ];
 
-  if (isEdit) {
-    setChangedFields((prev) => ({
-      ...prev,
-      assignedRecruiters: true,
-    }));
-  }
-};
+      // Remove recruiter validation once at least one is selected
+      if (updatedRecruiters.length > 0) {
+        setValidationErrors((errors) => {
+          const updated = { ...errors };
+          delete updated.assignedRecruiters;
+          return updated;
+        });
+      }
+
+      return {
+        ...prev,
+        assignedRecruiters: updatedRecruiters,
+      };
+    });
+
+    if (isEdit) {
+      setChangedFields((prev) => ({
+        ...prev,
+        assignedRecruiters: true,
+      }));
+    }
+  };
 
   const selectedRecruiters = useMemo(() => {
     return activeEmployees.filter((employee) =>
@@ -287,36 +342,47 @@ const handleRecruiterToggle = (recruiterId) => {
     formData.assignedRecruiters,
   ]);
 
-  const handleSubmit = async () => {
+  // ---------------------------------------------------------
+  // VALIDATION
+  // ---------------------------------------------------------
+
+  const validateForm = () => {
+    const errors = {};
+
     if (!formData.title.trim()) {
-      alert("Please enter a job title.");
-      return;
+      errors.title = "Job title is required.";
     }
 
     if (!formData.clientId) {
-      alert("Please select a client.");
-      return;
+      errors.clientId = "Client is required.";
     }
 
     if (!formData.endClientId) {
-      alert("Please select an end client.");
-      return;
+      errors.endClientId = "End client is required.";
     }
 
     if (!formData.countryCode) {
-      alert("Please select a country.");
-      return;
+      errors.countryCode = "Country is required.";
     }
 
     if (!formData.ownerId) {
-      alert("Please select a lead.");
-      return;
+      errors.ownerId = "Lead is required.";
     }
 
     if (!formData.assignedRecruiters.length) {
-      alert(
-        "Please select at least one assigned recruiter."
-      );
+      errors.assignedRecruiters =
+        "Please select at least one recruiter.";
+    }
+
+    setValidationErrors(errors);
+
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    // Existing submit validations preserved,
+    // but now displayed inline in the UI.
+    if (!validateForm()) {
       return;
     }
 
@@ -325,71 +391,74 @@ const handleRecruiterToggle = (recruiterId) => {
       .map((skill) => skill.trim())
       .filter(Boolean);
 
-const fullPayload = {
-  title: formData.title.trim(),
-  clientId: formData.clientId,
-  endClientId: formData.endClientId,
-  countryCode: formData.countryCode,
-  location: formData.location.trim(),
-  jobType: formData.jobType,
-  workMode: formData.workMode,
+    const fullPayload = {
+      title: formData.title.trim(),
+      clientId: formData.clientId,
+      endClientId: formData.endClientId,
+      countryCode: formData.countryCode,
+      location: formData.location.trim(),
+      jobType: formData.jobType,
+      workMode: formData.workMode,
 
-  clientRateAmount:
-    formData.clientRateAmount !== ""
-      ? Number(formData.clientRateAmount)
-      : null,
+      clientRateAmount:
+        formData.clientRateAmount !== ""
+          ? Number(formData.clientRateAmount)
+          : null,
 
-  clientRateCurrency:
-    formData.clientRateCurrency,
+      clientRateCurrency:
+        formData.clientRateCurrency,
 
-  clientRatePeriod:
-    formData.clientRatePeriod,
+      clientRatePeriod:
+        formData.clientRatePeriod,
 
-  candidateRateAmount:
-    formData.candidateRateAmount !== ""
-      ? Number(formData.candidateRateAmount)
-      : null,
+      candidateRateAmount:
+        formData.candidateRateAmount !== ""
+          ? Number(formData.candidateRateAmount)
+          : null,
 
-  candidateRateCurrency:
-    formData.candidateRateCurrency,
+      candidateRateCurrency:
+        formData.candidateRateCurrency,
 
-  candidateRatePeriod:
-    formData.candidateRatePeriod,
+      candidateRatePeriod:
+        formData.candidateRatePeriod,
 
-  skillsRequired,
+      skillsRequired,
 
-  priority: formData.priority,
-  status: formData.status,
+      priority: formData.priority,
+      status: formData.status,
 
-  ownerId: formData.ownerId,
+      ownerId: formData.ownerId,
 
-  assignedRecruiters:
-    formData.assignedRecruiters,
+      assignedRecruiters:
+        formData.assignedRecruiters,
 
-  description:
-    formData.description.trim(),
+      description:
+        formData.description.trim(),
 
-  descriptionSource: "manual",
+      descriptionSource: "manual",
 
-  leadNote:
-    formData.leadNote.trim(),
+      leadNote:
+        formData.leadNote.trim(),
 
-  industry:
-    formData.industry.trim(),
+      industry:
+        formData.industry.trim(),
 
-  isTemplate: false,
-  templateName: null,
-};
+      isTemplate: false,
+      templateName: null,
+    };
 
-const payload = isEdit
-  ? Object.keys(fullPayload).reduce((result, key) => {
-      result[key] = changedFields[key]
-        ? fullPayload[key]
-        : null;
+    const payload = isEdit
+      ? Object.keys(fullPayload).reduce(
+          (result, key) => {
+            result[key] = changedFields[key]
+              ? fullPayload[key]
+              : null;
 
-      return result;
-    }, {})
-  : fullPayload;
+            return result;
+          },
+          {}
+        )
+      : fullPayload;
 
     console.log(
       isEdit
@@ -442,6 +511,23 @@ const payload = isEdit
     }
   };
 
+  // ---------------------------------------------------------
+  // SMALL UI HELPERS
+  // ---------------------------------------------------------
+
+  const RequiredLabel = ({ children }) => (
+    <label>
+      {children}
+      <span className="required-star">*</span>
+    </label>
+  );
+
+  const getFieldClass = (fieldName) => {
+    return validationErrors[fieldName]
+      ? "has-error"
+      : "";
+  };
+
   return (
     <div
       className="job-modal-overlay"
@@ -453,19 +539,29 @@ const payload = isEdit
           e.stopPropagation()
         }
       >
+        {/* HEADER */}
         <div className="job-modal-header">
-          <h2>{title}</h2>
+          <div>
+            <h2>{title}</h2>
+            <p className="modal-subtitle mb-0">
+              {isEdit
+                ? "Update the job details below."
+                : "Fill in the details to create a new job."}
+            </p>
+          </div>
 
           <button
             type="button"
             className="job-modal-close"
             onClick={onClose}
             disabled={submitting}
+            aria-label="Close modal"
           >
             ×
           </button>
         </div>
 
+        {/* BODY */}
         <div className="job-modal-body manual-modal-body">
           {(createError || error) && (
             <div className="job-error">
@@ -474,12 +570,18 @@ const payload = isEdit
           )}
 
           <div className="job-form-grid">
-            <div className="job-form-field full">
-              <label>
+
+            {/* JOB TITLE */}
+            <div
+              className={`job-form-field full ${getFieldClass(
+                "title"
+              )}`}
+            >
+              <RequiredLabel>
                 {requisition
-                  ? "Requirement title *"
-                  : "Job title *"}
-              </label>
+                  ? "Requirement title"
+                  : "Job title"}
+              </RequiredLabel>
 
               <input
                 type="text"
@@ -487,11 +589,29 @@ const payload = isEdit
                 value={formData.title}
                 onChange={handleChange}
                 disabled={submitting}
+                placeholder={
+                  requisition
+                    ? "Enter requirement title"
+                    : "Enter job title"
+                }
               />
+
+              {validationErrors.title && (
+                <span className="field-error">
+                  {validationErrors.title}
+                </span>
+              )}
             </div>
 
-            <div className="job-form-field">
-              <label>Client *</label>
+            {/* CLIENT */}
+            <div
+              className={`job-form-field ${getFieldClass(
+                "clientId"
+              )}`}
+            >
+              <RequiredLabel>
+                Client
+              </RequiredLabel>
 
               <select
                 name="clientId"
@@ -516,10 +636,23 @@ const payload = isEdit
                   </option>
                 ))}
               </select>
+
+              {validationErrors.clientId && (
+                <span className="field-error">
+                  {validationErrors.clientId}
+                </span>
+              )}
             </div>
 
-            <div className="job-form-field">
-              <label>End client *</label>
+            {/* END CLIENT */}
+            <div
+              className={`job-form-field ${getFieldClass(
+                "endClientId"
+              )}`}
+            >
+              <RequiredLabel>
+                End client
+              </RequiredLabel>
 
               <select
                 name="endClientId"
@@ -549,10 +682,23 @@ const payload = isEdit
                   )
                 )}
               </select>
+
+              {validationErrors.endClientId && (
+                <span className="field-error">
+                  {validationErrors.endClientId}
+                </span>
+              )}
             </div>
 
-            <div className="job-form-field">
-              <label>Country *</label>
+            {/* COUNTRY */}
+            <div
+              className={`job-form-field ${getFieldClass(
+                "countryCode"
+              )}`}
+            >
+              <RequiredLabel>
+                Country
+              </RequiredLabel>
 
               <select
                 name="countryCode"
@@ -578,8 +724,15 @@ const payload = isEdit
                   </option>
                 ))}
               </select>
+
+              {validationErrors.countryCode && (
+                <span className="field-error">
+                  {validationErrors.countryCode}
+                </span>
+              )}
             </div>
 
+            {/* LOCATION */}
             <div className="job-form-field">
               <label>Location</label>
 
@@ -589,9 +742,11 @@ const payload = isEdit
                 value={formData.location}
                 onChange={handleChange}
                 disabled={submitting}
+                placeholder="Enter location"
               />
             </div>
 
+            {/* JOB TYPE */}
             <div className="job-form-field">
               <label>Type</label>
 
@@ -615,6 +770,7 @@ const payload = isEdit
               </select>
             </div>
 
+            {/* WORK MODE */}
             <div className="job-form-field">
               <label>Work mode</label>
 
@@ -638,28 +794,41 @@ const payload = isEdit
               </select>
             </div>
 
+            {/* CLIENT RATE */}
             <div className="job-form-field">
               <label>Client rate</label>
 
               <div className="rate-field">
                 <select
                   name="clientRateCurrency"
-                  value={formData.clientRateCurrency}
+                  value={
+                    formData.clientRateCurrency
+                  }
                   onChange={handleChange}
                   className="rate-currency"
                   disabled={submitting}
                 >
-                  <option value="INR">INR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
+                  <option value="INR">
+                    INR
+                  </option>
+                  <option value="GBP">
+                    GBP
+                  </option>
+                  <option value="USD">
+                    USD
+                  </option>
+                  <option value="EUR">
+                    EUR
+                  </option>
                 </select>
 
                 <input
                   type="number"
                   name="clientRateAmount"
                   placeholder="Amount"
-                  value={formData.clientRateAmount}
+                  value={
+                    formData.clientRateAmount
+                  }
                   onChange={handleChange}
                   className="rate-amount"
                   disabled={submitting}
@@ -667,40 +836,61 @@ const payload = isEdit
 
                 <select
                   name="clientRatePeriod"
-                  value={formData.clientRatePeriod}
+                  value={
+                    formData.clientRatePeriod
+                  }
                   onChange={handleChange}
                   className="rate-period"
                   disabled={submitting}
                 >
-                  <option value="day">Day</option>
-                  <option value="month">Month</option>
-                  <option value="annum">Annum</option>
+                  <option value="day">
+                    Day
+                  </option>
+                  <option value="month">
+                    Month
+                  </option>
+                  <option value="annum">
+                    Annum
+                  </option>
                 </select>
               </div>
             </div>
 
+            {/* CANDIDATE RATE */}
             <div className="job-form-field">
               <label>Candidate rate</label>
 
               <div className="rate-field">
                 <select
                   name="candidateRateCurrency"
-                  value={formData.candidateRateCurrency}
+                  value={
+                    formData.candidateRateCurrency
+                  }
                   onChange={handleChange}
                   className="rate-currency"
                   disabled={submitting}
                 >
-                  <option value="INR">INR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
+                  <option value="INR">
+                    INR
+                  </option>
+                  <option value="GBP">
+                    GBP
+                  </option>
+                  <option value="USD">
+                    USD
+                  </option>
+                  <option value="EUR">
+                    EUR
+                  </option>
                 </select>
 
                 <input
                   type="number"
                   name="candidateRateAmount"
                   placeholder="Amount"
-                  value={formData.candidateRateAmount}
+                  value={
+                    formData.candidateRateAmount
+                  }
                   onChange={handleChange}
                   className="rate-amount"
                   disabled={submitting}
@@ -708,22 +898,33 @@ const payload = isEdit
 
                 <select
                   name="candidateRatePeriod"
-                  value={formData.candidateRatePeriod}
+                  value={
+                    formData.candidateRatePeriod
+                  }
                   onChange={handleChange}
                   className="rate-period"
                   disabled={submitting}
                 >
-                  <option value="day">Day</option>
-                  <option value="month">Month</option>
-                  <option value="annum">Annum</option>
+                  <option value="day">
+                    Day
+                  </option>
+                  <option value="month">
+                    Month
+                  </option>
+                  <option value="annum">
+                    Annum
+                  </option>
                 </select>
               </div>
             </div>
 
+            {/* SKILLS */}
             <div className="job-form-field full">
               <label>
                 Required skills
-                (comma separated)
+                <span className="optional-label">
+                  comma separated
+                </span>
               </label>
 
               <input
@@ -736,6 +937,7 @@ const payload = isEdit
               />
             </div>
 
+            {/* PRIORITY */}
             <div className="job-form-field">
               <label>Priority</label>
 
@@ -759,6 +961,7 @@ const payload = isEdit
               </select>
             </div>
 
+            {/* STATUS */}
             <div className="job-form-field">
               <label>Role status</label>
 
@@ -782,8 +985,15 @@ const payload = isEdit
               </select>
             </div>
 
-            <div className="job-form-field">
-              <label>Lead *</label>
+            {/* LEAD */}
+            <div
+              className={`job-form-field ${getFieldClass(
+                "ownerId"
+              )}`}
+            >
+              <RequiredLabel>
+                Lead
+              </RequiredLabel>
 
               <select
                 name="ownerId"
@@ -811,17 +1021,32 @@ const payload = isEdit
                   )
                 )}
               </select>
+
+              {validationErrors.ownerId && (
+                <span className="field-error">
+                  {validationErrors.ownerId}
+                </span>
+              )}
             </div>
 
-            <div className="job-form-field">
-              <label>
-                Assigned recruiters *
-              </label>
+            {/* ASSIGNED RECRUITERS */}
+            <div
+              className={`job-form-field ${getFieldClass(
+                "assignedRecruiters"
+              )}`}
+            >
+              <RequiredLabel>
+                Assigned recruiters
+              </RequiredLabel>
 
               <div
                 className={`recruiter-dropdown ${
                   recruiterDropdownOpen
                     ? "open"
+                    : ""
+                } ${
+                  validationErrors.assignedRecruiters
+                    ? "recruiter-error"
                     : ""
                 }`}
               >
@@ -840,14 +1065,16 @@ const payload = isEdit
                 >
                   <span
                     className={
-                      selectedRecruiters.length === 0
+                      selectedRecruiters.length ===
+                      0
                         ? "recruiter-placeholder"
                         : "recruiter-selected-text"
                     }
                   >
                     {employeesLoading
                       ? "Loading recruiters..."
-                      : selectedRecruiters.length === 0
+                      : selectedRecruiters.length ===
+                          0
                         ? "Select recruiters"
                         : selectedRecruiters
                             .map(
@@ -868,7 +1095,8 @@ const payload = isEdit
                       <div className="recruiter-dropdown-message">
                         Loading employees...
                       </div>
-                    ) : activeEmployees.length === 0 ? (
+                    ) : activeEmployees.length ===
+                      0 ? (
                       <div className="recruiter-dropdown-message">
                         No active employees found
                       </div>
@@ -901,7 +1129,9 @@ const payload = isEdit
                               </span>
 
                               <span className="recruiter-name">
-                                {employee.fullName}
+                                {
+                                  employee.fullName
+                                }
                               </span>
                             </div>
                           );
@@ -911,6 +1141,14 @@ const payload = isEdit
                   </div>
                 )}
               </div>
+
+              {validationErrors.assignedRecruiters && (
+                <span className="field-error">
+                  {
+                    validationErrors.assignedRecruiters
+                  }
+                </span>
+              )}
 
               {selectedRecruiters.length > 0 && (
                 <div className="selected-recruiter-tags">
@@ -940,6 +1178,8 @@ const payload = isEdit
                 </div>
               )}
             </div>
+
+            {/* LEAD NOTE */}
             <div className="job-form-field full">
               <label>Lead note</label>
 
@@ -952,6 +1192,8 @@ const payload = isEdit
                 disabled={submitting}
               />
             </div>
+
+            {/* INDUSTRY */}
             <div className="job-form-field">
               <label>Industry</label>
 
@@ -963,6 +1205,8 @@ const payload = isEdit
                 disabled={submitting}
               />
             </div>
+
+            {/* DESCRIPTION */}
             <div className="job-form-field full">
               <label>Description</label>
 
@@ -975,10 +1219,10 @@ const payload = isEdit
                 disabled={submitting}
               />
             </div>
-
           </div>
         </div>
 
+        {/* FOOTER */}
         <div className="job-modal-footer">
           <button
             type="button"
