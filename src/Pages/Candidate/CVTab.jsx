@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./CVTab.css";
+import "./Components1.css";
 
 const CVTab = ({ candidate }) => {
 

@@ -687,7 +687,7 @@
     margin: 0;
     color: #152746;
     font-size: 23px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.15;
     letter-spacing: -0.35px;
 }
@@ -704,7 +704,7 @@
 /*STATUS BADGE*/
 
 .candidate-status-badge {
-    min-height: 22px;
+    min-height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -714,7 +714,7 @@
     border-radius: 999px;
     background: #eef0ff;
     color: #6375e8;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     line-height: 1;
 }
@@ -760,7 +760,7 @@
     background: transparent;
     color: #63748f;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
     cursor: pointer;

@@ -10,11 +10,11 @@ const jobApi = {
             throw new Error("Authentication token not found.");
         }
 
-        const response = await axios.post(`${API_BASE_URL}/api/v1/jobs/create`,jobData,
+        const response = await axios.post(`${API_BASE_URL}/api/v1/jobs/create`, jobData,
             {
-                headers: { 
-                    Authorization   :   `Bearer ${accessToken}`,
-                    "Content-Type"  :   "application/json",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
                 },
             }
         );
@@ -22,25 +22,42 @@ const jobApi = {
     },
 
     getAllJobs: async () => {
-        const accessToken =localStorage.getItem("accessToken");
+        const accessToken = localStorage.getItem("accessToken");
 
         if (!accessToken) {
-            throw new Error( "Authentication token not found.");
+            throw new Error("Authentication token not found.");
         }
 
         const response = await axios.get(`${API_BASE_URL}/api/v1/jobs`,
             {
                 headers: {
-                    Authorization:  `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${accessToken}`,
                 },
             }
         );
         return response.data;
     },
+    getOpenJobs: async () => {
+        const accessToken = localStorage.getItem("accessToken");
 
+        if (!accessToken) {
+            throw new Error("Authentication token not found.");
+        }
+
+        const response = await axios.get(
+            `${API_BASE_URL}/api/v1/jobs?status=Open`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        );
+
+        return response.data;
+    },
     getJobById: async (id) => {
 
-        const accessToken =localStorage.getItem("accessToken");
+        const accessToken = localStorage.getItem("accessToken");
 
         if (!accessToken) {
             throw new Error("Authentication token not found.");
@@ -48,7 +65,7 @@ const jobApi = {
 
         const response = await axios.get(`${API_BASE_URL}/api/v1/jobs/${id}`,
             {
-                headers: { 
+                headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
             }
@@ -66,8 +83,8 @@ const jobApi = {
         const response = await axios.put(`${API_BASE_URL}/api/v1/jobs/update/${id}`, jobData,
             {
                 headers: {
-                    Authorization   :   `Bearer ${accessToken}`,
-                    "Content-Type"  :   "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
                 },
             }
         );
@@ -75,13 +92,13 @@ const jobApi = {
     },
 
     deleteJob: async (id) => {
-        const accessToken =localStorage.getItem("accessToken");
+        const accessToken = localStorage.getItem("accessToken");
 
         if (!accessToken) {
-            throw new Error( "Authentication token not found." );
+            throw new Error("Authentication token not found.");
         }
 
-        const response = await axios.delete( `${API_BASE_URL}/api/v1/jobs/delete/${id}`,
+        const response = await axios.delete(`${API_BASE_URL}/api/v1/jobs/delete/${id}`,
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
@@ -94,13 +111,13 @@ const jobApi = {
 
     getJobActivities: async (jobId) => {
         const accessToken =
-        localStorage.getItem("accessToken");
+            localStorage.getItem("accessToken");
 
         if (!accessToken) {
-            throw new Error( "Authentication token not found.");
+            throw new Error("Authentication token not found.");
         }
 
-        const response = await axios.get( `${API_BASE_URL}/api/v1/activityLog/job/${jobId}`,
+        const response = await axios.get(`${API_BASE_URL}/api/v1/activityLog/job/${jobId}`,
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
