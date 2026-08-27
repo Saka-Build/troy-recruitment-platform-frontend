@@ -3,12 +3,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     " ";
-
-/*
-|--------------------------------------------------------------------------
-| GET ALL CANDIDATES
-|--------------------------------------------------------------------------
-*/
 export const getAllCandidates = createAsyncThunk(
     "candidates/getAllCandidates",
     async (_, { rejectWithValue }) => {
@@ -52,11 +46,7 @@ export const getAllCandidates = createAsyncThunk(
         }
     }
 );
-/*
-|--------------------------------------------------------------------------
-| GET CANDIDATE BY ID
-|--------------------------------------------------------------------------
-*/
+
 export const getCandidateById = createAsyncThunk(
     "candidates/getCandidateById",
     async (id, { rejectWithValue }) => {
@@ -552,12 +542,6 @@ export const updateCandidate = createAsyncThunk(
     }
 );
 
-
-/*
-|--------------------------------------------------------------------------
-| DELETE CANDIDATE
-|--------------------------------------------------------------------------
-*/
 export const deleteCandidate = createAsyncThunk(
     "candidates/deleteCandidate",
     async (id, { rejectWithValue }) => {
@@ -593,11 +577,6 @@ export const deleteCandidate = createAsyncThunk(
 );
 
 
-/*
-|--------------------------------------------------------------------------
-| GET CANDIDATE ACTIVITY
-|--------------------------------------------------------------------------
-*/
 export const getCandidateActivity = createAsyncThunk(
     "candidates/getCandidateActivity",
     async (candidateId, { rejectWithValue }) => {
@@ -664,6 +643,63 @@ export const getCandidateActivity = createAsyncThunk(
     }
 );
 
+export const getCandidateApplications = createAsyncThunk(
+    "candidates/getCandidateApplications",
+    async (candidateId, { rejectWithValue }) => {
+        try {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions?candidateId=${candidateId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch candidate applications"
+                );
+            }
+
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data?.content)) {
+                return data.content;
+            }
+
+            if (Array.isArray(data?.data)) {
+                return data.data;
+            }
+
+            return [];
+        } catch (error) {
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching candidate applications"
+            );
+        }
+    }
+);
 
 const initialState = {
     candidates: [],
@@ -683,8 +719,10 @@ const initialState = {
     employeeError: null,
     candidateDetailsError: null,
     candidateActivityError: null,
+    candidateApplications: [],
+    candidateApplicationsLoading: false,
+    candidateApplicationsError: null,
 };
-
 
 const candidateSlice = createSlice({
     name: "candidates",
@@ -699,14 +737,21 @@ const candidateSlice = createSlice({
         clearEmployeeError: (state) => {
             state.employeeError = null;
         },
+
         clearCandidateDetails: (state) => {
             state.selectedCandidate = null;
             state.candidateDetailsError = null;
         },
+
         clearCandidateActivity: (state) => {
-    state.candidateActivity = [];
-    state.candidateActivityError = null;
-},
+            state.candidateActivity = [];
+            state.candidateActivityError = null;
+        },
+
+        clearCandidateApplications: (state) => {
+            state.candidateApplications = [];
+            state.candidateApplicationsError = null;
+        },
     },
 
     extraReducers: (builder) => {
@@ -930,42 +975,67 @@ const candidateSlice = createSlice({
 | GET CANDIDATE ACTIVITY
 |--------------------------------------------------------------------------
 */
-.addCase(
-    getCandidateActivity.pending,
-    (state) => {
-        state.candidateActivityLoading = true;
-        state.candidateActivityError = null;
-        state.candidateActivity = [];
-    }
-)
+            .addCase(
+                getCandidateActivity.pending,
+                (state) => {
+                    state.candidateActivityLoading = true;
+                    state.candidateActivityError = null;
+                    state.candidateActivity = [];
+                }
+            )
 
-.addCase(
-    getCandidateActivity.fulfilled,
-    (state, action) => {
-        state.candidateActivityLoading = false;
-        state.candidateActivity = action.payload;
-    }
-)
+            .addCase(
+                getCandidateActivity.fulfilled,
+                (state, action) => {
+                    state.candidateActivityLoading = false;
+                    state.candidateActivity = action.payload;
+                }
+            )
 
-.addCase(
-    getCandidateActivity.rejected,
-    (state, action) => {
-        state.candidateActivityLoading = false;
-        state.candidateActivityError =
-            action.payload ||
-            "Failed to fetch candidate activity";
-    }
-);
+            .addCase(
+                getCandidateActivity.rejected,
+                (state, action) => {
+                    state.candidateActivityLoading = false;
+                    state.candidateActivityError =
+                        action.payload ||
+                        "Failed to fetch candidate activity";
+                }
+            )
+            .addCase(
+                getCandidateApplications.pending,
+                (state) => {
+                    state.candidateApplicationsLoading = true;
+                    state.candidateApplicationsError = null;
+                    state.candidateApplications = [];
+                }
+            )
+
+            .addCase(
+                getCandidateApplications.fulfilled,
+                (state, action) => {
+                    state.candidateApplicationsLoading = false;
+                    state.candidateApplications = action.payload;
+                }
+            )
+
+            .addCase(
+                getCandidateApplications.rejected,
+                (state, action) => {
+                    state.candidateApplicationsLoading = false;
+                    state.candidateApplicationsError =
+                        action.payload ||
+                        "Failed to fetch candidate applications";
+                }
+            );
     },
 });
-
 
 export const {
     clearCandidateError,
     clearEmployeeError,
     clearCandidateDetails,
     clearCandidateActivity,
+    clearCandidateApplications,
 } = candidateSlice.actions;
-
 
 export default candidateSlice.reducer;

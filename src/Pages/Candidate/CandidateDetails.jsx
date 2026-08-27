@@ -1,476 +1,3 @@
-// import React, {
-//   useEffect,
-//   useState,
-// } from "react";
-
-// import {
-//   useDispatch,
-//   useSelector,
-// } from "react-redux";
-
-// import {
-//   useNavigate,
-//   useParams,
-// } from "react-router-dom";
-
-// import "./Candidate.css";
-
-// import ProfileTab from "./ProfileTab";
-// import CVTab from "./CVTab";
-// import NotesTab from "./NotesTab";
-// import HistoryTab from "./HistoryTab";
-// import ApplicationsTab from "./ApplicationsTab"; // Add this import
-
-// import {
-//   getCandidateById,
-//   clearCandidateDetails,
-// } from "../../Redux/Slice/candidateSlice";
-
-
-// function CandidateDetails() {
-
-//   const {
-//     id,
-//   } = useParams();
-
-//   const navigate =
-//     useNavigate();
-
-//   const dispatch =
-//     useDispatch();
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | REDUX
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const {
-//     selectedCandidate,
-//     candidateDetailsLoading,
-//     candidateDetailsError,
-//   } = useSelector(
-//     (state) => state.candidate
-//   );
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | TAB STATE
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const [
-//     activeTab,
-//     setActiveTab,
-//   ] = useState("Profile");
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | NOTES STATE
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const [
-//     noteText,
-//     setNoteText,
-//   ] = useState("");
-
-
-//   const [
-//     notes,
-//     setNotes,
-//   ] = useState([
-//     {
-//       text: "Strong S/4 migration background.",
-//       label: "Initial note",
-//     },
-//   ]);
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | GET CANDIDATE BY ID
-//   |--------------------------------------------------------------------------
-//   */
-
-//   useEffect(() => {
-
-//     if (!id) {
-//       return;
-//     }
-
-//     dispatch(
-//       getCandidateById(id)
-//     );
-
-
-//     return () => {
-
-//       dispatch(
-//         clearCandidateDetails()
-//       );
-
-//     };
-
-//   }, [
-//     id,
-//     dispatch,
-//   ]);
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | ADD NOTE
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const handleAddNote = () => {
-
-//     if (!noteText.trim()) {
-//       return;
-//     }
-
-
-//     setNotes([
-//       ...notes,
-
-//       {
-//         text:
-//           noteText.trim(),
-
-//         label:
-//           "Recruiter note",
-//       },
-//     ]);
-
-
-//     setNoteText("");
-//   };
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | LOADING
-//   |--------------------------------------------------------------------------
-//   */
-
-//   if (
-//     candidateDetailsLoading
-//   ) {
-
-//     return (
-//       <div className="page">
-
-//         <div className="candidate-not-found">
-
-//           <h2>
-//             Loading candidate...
-//           </h2>
-
-//         </div>
-
-//       </div>
-//     );
-//   }
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | ERROR
-//   |--------------------------------------------------------------------------
-//   */
-
-//   if (
-//     candidateDetailsError
-//   ) {
-
-//     return (
-//       <div className="page">
-
-//         <div className="candidate-not-found">
-
-//           <h2>
-//             Unable to load candidate
-//           </h2>
-
-//           <p>
-//             {candidateDetailsError}
-//           </p>
-
-//           <button
-//             onClick={() =>
-//               navigate(
-//                 "/dashboard/candidates"
-//               )
-//             }
-//           >
-//             ← Back to Candidates
-//           </button>
-
-//         </div>
-
-//       </div>
-//     );
-//   }
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | CANDIDATE NOT FOUND
-//   |--------------------------------------------------------------------------
-//   */
-
-//   if (
-//     !selectedCandidate
-//   ) {
-
-//     return (
-//       <div className="page">
-
-//         <div className="candidate-not-found">
-
-//           <h2>
-//             Candidate not found
-//           </h2>
-
-//           <button
-//             onClick={() =>
-//               navigate(
-//                 "/dashboard/candidates"
-//               )
-//             }
-//           >
-//             ← Back to Candidates
-//           </button>
-
-//         </div>
-
-//       </div>
-//     );
-//   }
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | CANDIDATE
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const candidate =
-//     selectedCandidate;
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | INITIALS
-//   |--------------------------------------------------------------------------
-//   */
-
-//   const initials =
-//     candidate.fullName
-//       ?.split(" ")
-//       .map(
-//         (name) =>
-//           name.charAt(0)
-//       )
-//       .join("")
-//       .substring(0, 2)
-//       .toUpperCase();
-
-
-//   /*
-//   |--------------------------------------------------------------------------
-//   | RETURN
-//   |--------------------------------------------------------------------------
-//   */
-
-//   return (
-
-//     <div className="page">
-
-//       {/* =====================================================
-//                                 BACK BUTTON
-//             ====================================================== */}
-
-//       <div className="candidate-detail-top">
-
-//         <button
-//           className="back-candidates-btn"
-//           onClick={() =>
-//             navigate(
-//               "/dashboard/candidates"
-//             )
-//           }
-//         >
-//           ← Candidates
-//         </button>
-
-//       </div>
-
-
-//       {/* =====================================================
-//                         CANDIDATE PROFILE HEADER
-//             ====================================================== */}
-
-//       <div className="candidate-profile-header">
-
-//         <div className="candidate-profile-left">
-
-//           <div className="candidate-profile-avatar">
-
-//             {initials || "NA"}
-
-//           </div>
-
-
-//           <div className="candidate-profile-info">
-
-//             <div className="candidate-name-row">
-
-//               <h1>
-//                 {candidate.fullName}
-//               </h1>
-
-//               <span className="candidate-status-badge">
-
-//                 ✉ {candidate.status}
-
-//               </span>
-
-//             </div>
-
-
-//             <p>
-
-//               {candidate.currentDesignation || "-"}
-
-//               {" · "}
-
-//               {candidate.location || "-"}
-
-//             </p>
-
-//           </div>
-
-//         </div>
-
-
-//         <div className="page-header-actions">
-
-//           <button className="primary-btn">
-//             Apply to job
-//           </button>
-
-//           <button className="outline-btn">
-//             ✉ Message
-//           </button>
-
-//           <button className="outline-btn">
-//             Edit
-//           </button>
-
-//           <button className="outline-btn detail-delete-btn">
-//             Delete
-//           </button>
-
-//         </div>
-
-//       </div>
-
-
-//       {/* =====================================================
-//                                 TABS
-//             ====================================================== */}
-
-//       <div className="candidate-detail-tabs">
-
-//         {[
-//           "Profile",
-//           "CV",
-//           "Applications", // Add Applications tab
-//           "Notes",
-//           "History",
-//         ].map((tab) => (
-
-//           <button
-//             key={tab}
-//             className={
-//               activeTab === tab
-//                 ? "active"
-//                 : ""
-//             }
-//             onClick={() =>
-//               setActiveTab(tab)
-//             }
-//           >
-//             {tab}
-//           </button>
-
-//         ))}
-
-//       </div>
-
-
-//       {/* =====================================================
-//                             TAB COMPONENTS
-//             ====================================================== */}
-
-//       {activeTab === "Profile" && (
-
-//         <ProfileTab
-//           candidate={candidate}
-//         />
-
-//       )}
-
-
-//       {activeTab === "CV" && (
-
-//         <CVTab
-//           candidate={candidate}
-//         />
-
-//       )}
-
-
-//       {activeTab === "Applications" && ( // Add Applications tab render
-
-//         <ApplicationsTab
-//           candidate={candidate}
-//         />
-
-//       )}
-
-
-//       {activeTab === "Notes" && (
-
-//         <NotesTab
-//           candidate={candidate}
-//           noteText={noteText}
-//           setNoteText={setNoteText}
-//           notes={notes}
-//           handleAddNote={handleAddNote}
-//         />
-
-//       )}
-
-
-// {activeTab === "History" && (
-//     <HistoryTab candidateId={candidate.id} />
-// )}
-
-//     </div>
-//   );
-// }
-
-
-// export default CandidateDetails;
-
-
-
 import React, {
   useEffect,
   useState,
@@ -496,7 +23,9 @@ import ApplicationsTab from "./ApplicationsTab";
 
 import CandidateModal from "../Candidate/CandidateModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import { getOpenJobs, } from "../../Redux/Slice/jobSlice";
 
+import ApplyJobModal from "../Candidate/ApplyJobModal";
 import {
   getCandidateById,
   clearCandidateDetails,
@@ -539,12 +68,12 @@ function CandidateDetails() {
     (state) => state.candidate
   );
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | TAB STATE
-  |--------------------------------------------------------------------------
-  */
+  const {
+    openJobs = [],
+    isOpenJobsLoading = false,
+  } = useSelector(
+    (state) => state.jobs
+  );
 
   const [
     activeTab,
@@ -552,17 +81,14 @@ function CandidateDetails() {
   ] = useState("Profile");
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | NOTES STATE
-  |--------------------------------------------------------------------------
-  */
-
   const [
     noteText,
     setNoteText,
   ] = useState("");
-
+  const [
+    showApplyJobModal,
+    setShowApplyJobModal,
+  ] = useState(false);
 
   const [
     notes,
@@ -633,7 +159,9 @@ function CandidateDetails() {
     dispatch(
       getAllEmployees()
     );
-
+    dispatch(
+      getOpenJobs()
+    );
 
     return () => {
 
@@ -802,12 +330,12 @@ function CandidateDetails() {
           ? null
           : data.primarySkills
             ? data.primarySkills
-                .split(",")
-                .map(
-                  (skill) =>
-                    skill.trim()
-                )
-                .filter(Boolean)
+              .split(",")
+              .map(
+                (skill) =>
+                  skill.trim()
+              )
+              .filter(Boolean)
             : [],
 
       noticePeriodDays:
@@ -838,8 +366,8 @@ function CandidateDetails() {
           : data.currentRateAmount === ""
             ? ""
             : Number(
-                data.currentRateAmount
-              ),
+              data.currentRateAmount
+            ),
 
       currentSalaryCurrency:
         data.currentRateCurrency,
@@ -853,8 +381,8 @@ function CandidateDetails() {
           : data.dayRateAmount === ""
             ? ""
             : Number(
-                data.dayRateAmount
-              ),
+              data.dayRateAmount
+            ),
 
       expectedSalaryCurrency:
         data.dayRateCurrency,
@@ -1038,7 +566,35 @@ function CandidateDetails() {
     }
   };
 
+  const handleApplyToJob = () => {
+    setShowApplyJobModal(true);
+  };
 
+  const handleApplyJobSubmit = async ({
+    jobId,
+    job,
+    status,
+  }) => {
+    console.log(
+      "APPLY CANDIDATE TO JOB:",
+      {
+        candidateId:
+          selectedCandidate.id,
+        jobId,
+        job,
+        status,
+      }
+    );
+
+    setShowApplyJobModal(false);
+
+    showNotification(
+      "success",
+      "Candidate application created successfully"
+    );
+
+    setActiveTab("Applications");
+  };
   /*
   |--------------------------------------------------------------------------
   | LOADING
@@ -1255,13 +811,16 @@ function CandidateDetails() {
 
           <button
             className="primary-btn"
+            onClick={handleApplyToJob}
           >
             Apply to job
           </button>
 
 
           <button
+            type="button"
             className="outline-btn"
+            disabled
           >
             ✉ Message
           </button>
@@ -1347,11 +906,9 @@ function CandidateDetails() {
 
 
       {activeTab === "Applications" && (
-
         <ApplicationsTab
-          candidate={candidate}
+          candidateId={candidate.id}
         />
-
       )}
 
 
@@ -1520,6 +1077,17 @@ function CandidateDetails() {
         cancelText="Cancel"
 
       />
+
+      {showApplyJobModal && (
+        <ApplyJobModal
+          jobs={openJobs}
+          jobsLoading={isOpenJobsLoading}
+          onClose={() =>
+            setShowApplyJobModal(false)
+          }
+          onApply={handleApplyJobSubmit}
+        />
+      )}
 
     </div>
   );

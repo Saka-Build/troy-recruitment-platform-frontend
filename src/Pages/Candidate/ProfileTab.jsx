@@ -1,414 +1,658 @@
+// import React from "react";
+// import {
+//     FiBriefcase,
+//     FiBookOpen,
+//     FiDollarSign,
+//     FiFileText,
+//     FiGlobe,
+//     FiLinkedin,
+//     FiMapPin,
+//     FiPhone,
+//     FiUser,
+// } from "react-icons/fi";
+// import "./Components1.css";
+
+// const ProfileTab = ({ candidate }) => {
+//     if (!candidate) {
+//         return null;
+//     }
+
+//     const formatSalary = (amount, currency, period) => {
+//         if (amount === null || amount === undefined || amount === "") {
+//             return "—";
+//         }
+
+//         return `${currency || ""} ${Number(amount).toLocaleString()} / ${period || ""}`;
+//     };
+
+//     const formatExperience = (years) => {
+//         if (years === null || years === undefined || years === "") {
+//             return "—";
+//         }
+
+//         return `${years} yrs`;
+//     };
+
+//     const formatNotice = (days) => {
+//         if (days === null || days === undefined || days === "") {
+//             return "—";
+//         }
+
+//         return `${days} days`;
+//     };
+
+//     const appliedFor = candidate.appliedFor || "—";
+//     const experience = formatExperience(candidate.experienceYears);
+//     const notice = formatNotice(candidate.noticePeriodDays);
+
+//     const expected = formatSalary(
+//         candidate.expectedSalaryAmount,
+//         candidate.expectedSalaryCurrency,
+//         candidate.expectedSalaryPeriod
+//     );
+
+//     const source = candidate.source || "—";
+
+//     return (
+//         <div className="profile-tab">
+//             <div className="candidate-summary-grid">
+//                 <SummaryCard
+//                     icon={<FiBriefcase />}
+//                     label="Applied For"
+//                     value={appliedFor}
+//                     type="blue"
+//                 />
+
+//                 <SummaryCard
+//                     icon={<FiUser />}
+//                     label="Experience"
+//                     value={experience}
+//                     type="purple"
+//                 />
+
+//                 <SummaryCard
+//                     icon={<FiPhone />}
+//                     label="Notice"
+//                     value={notice}
+//                     type="orange"
+//                 />
+
+//                 <SummaryCard
+//                     icon={<FiDollarSign />}
+//                     label="Expected"
+//                     value={expected}
+//                     type="green"
+//                 />
+
+//                 <SummaryCard
+//                     icon={<FiGlobe />}
+//                     label="Source"
+//                     value={source}
+//                     type="pink"
+//                 />
+//             </div>
+
+//             <div className="profile-details-wrapper">
+//                 <InfoSection
+//                     icon={<FiUser />}
+//                     title="Personal Information"
+//                     color="blue"
+//                 >
+//                     <InfoGrid>
+//                         <InfoItem
+//                             label="Email"
+//                             value={candidate.email || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Phone"
+//                             value={candidate.phone || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="WhatsApp"
+//                             value={candidate.whatsapp || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Location"
+//                             value={candidate.location || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Nationality"
+//                             value={candidate.nationality || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Visa Status"
+//                             value={candidate.visaStatus || "—"}
+//                         />
+//                     </InfoGrid>
+//                 </InfoSection>
+
+//                 <InfoSection
+//                     icon={<FiBriefcase />}
+//                     title="Professional Information"
+//                     color="purple"
+//                 >
+//                     <InfoGrid>
+//                         <InfoItem
+//                             label="CV ID"
+//                             value={candidate.cvId || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="CV Owner"
+//                             value={candidate.cvOwnerName || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Referred By"
+//                             value={candidate.referredBy || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Current Employer"
+//                             value={candidate.currentEmployer || "—"}
+//                         />
+
+//                         <InfoItem
+//                             label="Current Salary"
+//                             value={formatSalary(
+//                                 candidate.currentSalaryAmount,
+//                                 candidate.currentSalaryCurrency,
+//                                 candidate.currentSalaryPeriod
+//                             )}
+//                         />
+
+//                         <InfoItem
+//                             label="Education"
+//                             value={candidate.education || "—"}
+//                         />
+//                     </InfoGrid>
+//                 </InfoSection>
+
+//                 <InfoSection
+//                     icon={<FiFileText />}
+//                     title="Skills & Links"
+//                     color="green"
+//                 >
+//                     <div className="skills-section">
+//                         <div className="skills-row">
+//                             <span className="info-label">Skills</span>
+//                             <span className="info-colon">:</span>
+
+//                             <div className="skills-wrapper">
+//                                 {Array.isArray(candidate.skills) &&
+//                                     candidate.skills.length > 0 ? (
+//                                     candidate.skills.map((skill, index) => (
+//                                         <span
+//                                             key={`${skill}-${index}`}
+//                                             className="skill-badge"
+//                                         >
+//                                             {skill}
+//                                         </span>
+//                                     ))
+//                                 ) : (
+//                                     <span className="info-value">—</span>
+//                                 )}
+//                             </div>
+//                         </div>
+//                     </div>
+
+//                     <InfoGrid>
+//                         <InfoItem
+//                             label="LinkedIn"
+//                             value={
+//                                 candidate.linkedinUrl ? (
+//                                     <a
+//                                         href={candidate.linkedinUrl}
+//                                         target="_blank"
+//                                         rel="noopener noreferrer"
+//                                         className="linkedin-profile-link"
+//                                     >
+//                                         <FiLinkedin />
+//                                         View Profile
+//                                     </a>
+//                                 ) : (
+//                                     "—"
+//                                 )
+//                             }
+//                         />
+
+//                         <InfoItem
+//                             label="Reference Note"
+//                             value={candidate.referenceNote || "—"}
+//                         />
+//                     </InfoGrid>
+//                 </InfoSection>
+//             </div>
+//         </div>
+//     );
+// };
+
+// function SummaryCard({ icon, label, value, type }) {
+//     return (
+//         <div className={`candidate-summary-card summary-${type}`}>
+//             <div className="summary-icon">{icon}</div>
+
+//             <div className="summary-content">
+//                 <div className="summary-label">{label}</div>
+//                 <div className="summary-value">{value}</div>
+//             </div>
+//         </div>
+//     );
+// }
+
+// function InfoSection({ icon, title, color, children }) {
+//     return (
+//         <section className="info-section">
+//             <div className={`section-heading section-${color}`}>
+//                 <span className="section-icon">{icon}</span>
+//                 <span>{title}</span>
+//             </div>
+
+//             {children}
+//         </section>
+//     );
+// }
+
+// function InfoGrid({ children }) {
+//     return <div className="info-grid">{children}</div>;
+// }
+
+// function InfoItem({ label, value }) {
+//     return (
+//         <div className="info-item">
+//             <span className="info-label">{label}</span>
+//             <span className="info-colon">:</span>
+//             <span className="info-value">{value}</span>
+//         </div>
+//     );
+// }
+
+// export default ProfileTab;
+
+
+
 import React from "react";
+import {
+    FiBriefcase,
+    FiCalendar,
+    FiClock,
+    FiDollarSign,
+    FiFileText,
+    FiGlobe,
+    FiLinkedin,
+    FiMapPin,
+    FiPhone,
+    FiUser,
+} from "react-icons/fi";
+import "./Components1.css";
 
 const ProfileTab = ({ candidate }) => {
-
     if (!candidate) {
         return null;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT HELPERS
-    |--------------------------------------------------------------------------
-    */
-
-    const formatSalary = (
-        amount,
-        currency,
-        period
-    ) => {
-
-        if (
-            amount === null ||
-            amount === undefined ||
-            amount === ""
-        ) {
+    const formatSalary = (amount, currency, period) => {
+        if (amount === null || amount === undefined || amount === "") {
             return "—";
         }
 
-        return `${currency || ""} ${Number(amount).toLocaleString()} / ${period || ""
-            }`;
+        return `${currency || ""} ${Number(amount).toLocaleString()} / ${period || ""}`;
     };
 
-
-    const formatExperience = (
-        years
-    ) => {
-
-        if (
-            years === null ||
-            years === undefined ||
-            years === ""
-        ) {
+    const formatExperience = (years) => {
+        if (years === null || years === undefined || years === "") {
             return "—";
         }
 
         return `${years} yrs`;
     };
 
-
-    const formatNotice = (
-        days
-    ) => {
-
-        if (
-            days === null ||
-            days === undefined ||
-            days === ""
-        ) {
+    const formatNotice = (days) => {
+        if (days === null || days === undefined || days === "") {
             return "—";
         }
 
         return `${days} days`;
     };
 
+    const formatDate = (date) => {
+        if (!date) {
+            return "—";
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PROFILE VALUES
-    |--------------------------------------------------------------------------
-    */
+        return new Date(date).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    };
 
-    const appliedFor =
-        candidate.appliedFor || "—";
+    const appliedFor = candidate.appliedFor || "—";
+    const experience = formatExperience(candidate.experienceYears);
+    const notice = formatNotice(candidate.noticePeriodDays);
 
-    const experience =
-        formatExperience(
-            candidate.experienceYears
-        );
+    const expected = formatSalary(
+        candidate.expectedSalaryAmount,
+        candidate.expectedSalaryCurrency,
+        candidate.expectedSalaryPeriod
+    );
 
-    const notice =
-        formatNotice(
-            candidate.noticePeriodDays
-        );
-
-    const expected =
-        formatSalary(
-            candidate.expectedSalaryAmount,
-            candidate.expectedSalaryCurrency,
-            candidate.expectedSalaryPeriod
-        );
-
-    const source =
-        candidate.source || "—";
-
+    const source = candidate.source || "—";
 
     return (
-        <>
-
-            {/* =====================================================
-                                SUMMARY CARDS
-            ====================================================== */}
-
+        <div className="profile-tab">
             <div className="candidate-summary-grid">
-
-                {/* APPLIED JOB - KEEP AS IT IS */}
                 <SummaryCard
-                    label="APPLIED FOR"
+                    icon={<FiBriefcase />}
+                    label="Applied For"
                     value={appliedFor}
+                    type="blue"
                 />
 
                 <SummaryCard
-                    label="EXPERIENCE"
+                    icon={<FiUser />}
+                    label="Experience"
                     value={experience}
+                    type="purple"
                 />
 
                 <SummaryCard
-                    label="NOTICE"
+                    icon={<FiPhone />}
+                    label="Notice"
                     value={notice}
+                    type="orange"
                 />
 
                 <SummaryCard
-                    label="EXPECTED"
+                    icon={<FiDollarSign />}
+                    label="Expected"
                     value={expected}
+                    type="green"
                 />
 
                 <SummaryCard
-                    label="SOURCE"
+                    icon={<FiGlobe />}
+                    label="Source"
                     value={source}
+                    type="pink"
                 />
-
             </div>
 
+            <div className="profile-details-wrapper">
+                <div className="profile-top-grid">
+                    <InfoSection
+                        icon={<FiUser />}
+                        title="Personal Information"
+                        color="blue"
+                    >
+                        <InfoGrid>
+                            <InfoItem
+                                label="Full Name"
+                                value={candidate.fullName || "—"}
+                            />
 
-            {/* =====================================================
-                            CONTACT & OWNERSHIP
-            ====================================================== */}
+                            <InfoItem
+                                label="Email"
+                                value={candidate.email || "—"}
+                            />
 
-            <div className="candidate-contact-card">
+                            <InfoItem
+                                label="Phone"
+                                value={candidate.phone || "—"}
+                            />
 
-                <h2>
-                    Contact & ownership
-                </h2>
+                            <InfoItem
+                                label="WhatsApp"
+                                value={candidate.whatsapp || "—"}
+                            />
 
+                            <InfoItem
+                                label="Location"
+                                value={candidate.location || "—"}
+                            />
 
-                <DetailRow
-                    label="CV ID"
-                    value={
-                        candidate.cvId || "—"
-                    }
-                />
+                            <InfoItem
+                                label="Nationality"
+                                value={candidate.nationality || "—"}
+                            />
 
+                            <InfoItem
+                                label="Visa Status"
+                                value={candidate.visaStatus || "—"}
+                            />
 
-                <DetailRow
-                    label="CV owner · recruiter"
-                    value={
-                        candidate.cvOwnerName || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Referred by"
-                    value={
-                        candidate.referredBy || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Email"
-                    value={
-                        <div className="contact-value-with-actions">
-
-                            <strong>
-                                {candidate.email || "—"}
-                            </strong>
-
-                            <button>
-                                ✉
-                            </button>
-
-                            <button>
-                                ▣
-                            </button>
-
-                            <button>
-                                ✉
-                            </button>
-
-                        </div>
-                    }
-                />
-
-
-                <DetailRow
-                    label="Phone"
-                    value={
-                        <div className="contact-value-with-actions">
-
-                            <strong>
-                                {candidate.phone || "—"}
-                            </strong>
-
-                            <button>
-                                💬
-                            </button>
-
-                            <button>
-                                ✉
-                            </button>
-
-                        </div>
-                    }
-                />
-
-
-                <DetailRow
-                    label="WhatsApp"
-                    value={
-                        candidate.whatsapp || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Location"
-                    value={
-                        candidate.location || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Current employer"
-                    value={
-                        candidate.currentEmployer || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Nationality"
-                    value={
-                        candidate.nationality || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Visa status"
-                    value={
-                        candidate.visaStatus || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Education"
-                    value={
-                        candidate.education || "—"
-                    }
-                />
-
-
-                <DetailRow
-                    label="Current salary"
-                    value={
-                        formatSalary(
-                            candidate.currentSalaryAmount,
-                            candidate.currentSalaryCurrency,
-                            candidate.currentSalaryPeriod
-                        )
-                    }
-                />
-
-
-                <DetailRow
-                    label="LinkedIn"
-                    value={
-                        candidate.linkedinUrl ? (
-                            <a
-                                href={candidate.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View LinkedIn profile
-                            </a>
-                        ) : (
-                            "—"
-                        )
-                    }
-                />
-
-
-                <DetailRow
-                    label="Reference note"
-                    value={
-                        candidate.referenceNote || "—"
-                    }
-                />
-
-
-                {/* =================================================
-                                    SKILLS
-                ================================================== */}
-
-                <div className="candidate-skills-row">
-
-                    <div className="detail-label">
-                        Skills
-                    </div>
-
-
-                    <div className="candidate-skills">
-
-                        {Array.isArray(
-                            candidate.skills
-                        ) &&
-                            candidate.skills.length > 0 ? (
-
-                            candidate.skills.map(
-                                (skill, index) => (
-
+                            <InfoItem
+                                label="Status"
+                                value={
                                     <span
-                                        key={`${skill}-${index}`}
+                                        className={`candidate-status status-${String(
+                                            candidate.status || ""
+                                        ).toLowerCase()}`}
                                     >
-                                        {skill}
+                                        {candidate.status || "—"}
                                     </span>
+                                }
+                            />
+                        </InfoGrid>
+                    </InfoSection>
 
-                                )
-                            )
+                    <InfoSection
+                        icon={<FiBriefcase />}
+                        title="Professional Information"
+                        color="purple"
+                    >
+                        <InfoGrid>
+                            <InfoItem
+                                label="CV ID"
+                                value={candidate.cvId || "—"}
+                            />
 
-                        ) : (
+                            <InfoItem
+                                label="CV Owner"
+                                value={candidate.cvOwnerName || "—"}
+                            />
 
-                            <span>
-                                —
-                            </span>
+                            <InfoItem
+                                label="Designation"
+                                value={candidate.currentDesignation || "—"}
+                            />
 
-                        )}
+                            <InfoItem
+                                label="Current Employer"
+                                value={candidate.currentEmployer || "—"}
+                            />
 
-                    </div>
+                            <InfoItem
+                                label="Referred By"
+                                value={candidate.referredBy || "—"}
+                            />
 
+                            <InfoItem
+                                label="Education"
+                                value={candidate.education || "—"}
+                            />
+
+                            <InfoItem
+                                label="Current Salary"
+                                value={formatSalary(
+                                    candidate.currentSalaryAmount,
+                                    candidate.currentSalaryCurrency,
+                                    candidate.currentSalaryPeriod
+                                )}
+                            />
+
+                            <InfoItem
+                                label="Expected Salary"
+                                value={expected}
+                            />
+
+                            <InfoItem
+                                label="Experience"
+                                value={experience}
+                            />
+
+                            <InfoItem
+                                label="Notice Period"
+                                value={notice}
+                            />
+
+                            <InfoItem
+                                label="Source"
+                                value={candidate.source || "—"}
+                            />
+
+                            {/* <InfoItem
+                                label="CV Format"
+                                value={candidate.originalCvFormat || "—"}
+                            /> */}
+
+                            <InfoItem
+                                label="Created On"
+                                value={formatDate(candidate.createdAt)}
+                            />
+                        </InfoGrid>
+                    </InfoSection>
                 </div>
+                <div className="skills-section">
+                    <InfoSection
+                        icon={<FiFileText />}
+                        title="Skills & Links"
+                        color="green"
+                    >
+                        <div className="skills-links-grid">
+                            <div className="skills-row">
+                                <span className="info-label">Skills</span>
+                                <span className="info-colon">:</span>
 
+                                <div className="skills-wrapper">
+                                    {Array.isArray(candidate.skills) &&
+                                        candidate.skills.length > 0 ? (
+                                        candidate.skills.map((skill, index) => (
+                                            <span
+                                                key={`${skill}-${index}`}
+                                                className="skill-badge"
+                                            >
+                                                {skill}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="info-value">—</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <InfoItem
+                                label="LinkedIn"
+                                value={
+                                    candidate.linkedinUrl ? (
+                                        <a
+                                            href={candidate.linkedinUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="linkedin-profile-link"
+                                        >
+                                            <FiLinkedin />
+                                            View Profile
+                                        </a>
+                                    ) : (
+                                        "—"
+                                    )
+                                }
+                            />
+
+                            <InfoItem
+                                label="Reference Note"
+                                value={candidate.referenceNote || "—"}
+                            />
+
+                            <InfoItem
+                                label="Original CV"
+                                value={
+                                    candidate.originalCvUrl ? (
+                                        <a
+                                            href={candidate.originalCvUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="file-link"
+                                        >
+                                            <FiFileText />
+                                            View CV
+                                        </a>
+                                    ) : (
+                                        "—"
+                                    )
+                                }
+                            />
+
+                            <InfoItem
+                                label="Troy CV"
+                                value={
+                                    candidate.troyCvUrl ? (
+                                        <a
+                                            href={candidate.troyCvUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="file-link"
+                                        >
+                                            <FiFileText />
+                                            View CV
+                                        </a>
+                                    ) : (
+                                        "—"
+                                    )
+                                }
+                            />
+                        </div>
+                    </InfoSection>
+                </div>
             </div>
-
-        </>
+        </div>
     );
 };
 
-
-/*
-|--------------------------------------------------------------------------
-| SUMMARY CARD
-|--------------------------------------------------------------------------
-*/
-
-function SummaryCard({
-    label,
-    value,
-    highlight,
-}) {
-
+function SummaryCard({ icon, label, value, type }) {
     return (
-        <div className="candidate-summary-card">
+        <div className={`candidate-summary-card summary-${type}`}>
+            <div className="summary-icon">{icon}</div>
 
-            <div className="summary-label">
-                {label}
+            <div className="summary-content">
+                <div className="summary-label">{label}</div>
+                <div className="summary-value">{value}</div>
             </div>
-
-
-            <div
-                className={`summary-value ${highlight
-                    ? "summary-highlight"
-                    : ""
-                    }`}
-            >
-                {value}
-            </div>
-
         </div>
     );
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| DETAIL ROW
-|--------------------------------------------------------------------------
-*/
-
-function DetailRow({
-    label,
-    value,
-}) {
-
+function InfoSection({ icon, title, color, children }) {
     return (
-        <div className="candidate-detail-row">
+        <section className="info-section">
+            <div className={`section-heading section-${color}`}>
+                <span className="section-icon">{icon}</span>
+                <span>{title}</span>
+            </div>
 
-            <span className="detail-label">
-                {label}
-            </span>
-
-
-            <span className="detail-value">
-                {value}
-            </span>
-
-        </div>
+            {children}
+        </section>
     );
 }
 
+function InfoGrid({ children }) {
+    return <div className="info-grid">{children}</div>;
+}
+
+function InfoItem({ label, value }) {
+    return (
+        <div className="info-item">
+            <span className="info-label">{label}</span>
+            <span className="info-colon">:</span>
+            <span className="info-value">{value}</span>
+        </div>
+    );
+}
 
 export default ProfileTab;
