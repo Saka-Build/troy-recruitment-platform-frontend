@@ -718,3 +718,238 @@
     width: 100%;
     grid-column: 1 / -1;
 }
+
+
+
+/* =========================================================
+   EMPLOYEE ROLE COLUMN
+========================================================= */
+
+.employee-assigned-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.employee-role-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.employee-role-remove {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    border-radius: 50%;
+}
+
+.employee-role-remove:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.no-assigned-role {
+    color: #94a3b8;
+}
+
+.employee-assign-role-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+
+/* =========================================================
+   ROLE ASSIGNMENT MODAL
+========================================================= */
+
+.role-assignment-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.role-assignment-modal {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.role-assignment-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 22px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.role-assignment-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.role-assignment-modal-header p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.role-assignment-modal-close {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: #64748b;
+    padding: 5px;
+}
+
+.role-assignment-modal-close:hover {
+    color: #111827;
+}
+
+.role-assignment-modal-body {
+    padding: 24px;
+}
+
+.role-assignment-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.role-assignment-form-group label > span {
+    color: #dc2626;
+    margin-left: 3px;
+}
+
+.role-assignment-list {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.role-assignment-option {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    margin: 0 !important;
+    padding: 12px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.role-assignment-option:last-child {
+    border-bottom: 0;
+}
+
+.role-assignment-option:hover,
+.role-assignment-option.selected {
+    background: #f8fafc;
+}
+
+.role-assignment-option input {
+    display: none;
+}
+
+.role-assignment-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #ffffff;
+}
+
+.role-assignment-option.selected
+.role-assignment-checkbox {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.role-assignment-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.role-assignment-selected-count {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.role-assignment-empty {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.role-assignment-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.role-assignment-cancel,
+.role-assignment-submit {
+    border: 0;
+    border-radius: 7px;
+    padding: 9px 17px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.role-assignment-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.role-assignment-submit {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.role-assignment-submit:disabled,
+.role-assignment-cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
