@@ -1,50 +1,45 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import authApi from "../../services/authApi";
 
-/*
- * Load previously saved authentication data
- */
-const savedToken = localStorage.getItem("accessToken");
+const savedToken        = localStorage.getItem("accessToken");
 const savedRefreshToken = localStorage.getItem("refreshToken");
-const savedUser = localStorage.getItem("user");
+const savedUser         = localStorage.getItem("user");
+const savedActiveRole   = localStorage.getItem("activeRole");
+const savedRoles        = localStorage.getItem("roles");
 
 const initialState = {
     accessToken: savedToken || null,
     refreshToken: savedRefreshToken || null,
     user: savedUser ? JSON.parse(savedUser) : null,
-
+    activeRole: savedActiveRole ? JSON.parse(savedActiveRole) : null,
+    roles: savedRoles ? JSON.parse(savedRoles) : [],
     isLoading: false,
     isAuthenticated: !!savedToken,
     error: null,
 };
 
-/*
- * TWO STEP LOGIN
- *
- * Step 1:
- * Get access token using email + password
- *
- * Step 2:
- * Call login API using Bearer token
- */
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
     async ({ email, password }, { rejectWithValue }) => {
         try {
-            /*
-             * STEP 1
-             * Get token
-             */
             const tokenResponse = await authApi.getToken(
                 email,
                 password
             );
 
+            // const {
+            //     accessToken,
+            //     refreshToken,
+            //     expiresInSeconds,
+            // } = tokenResponse;
+
             const {
-                accessToken,
-                refreshToken,
-                expiresInSeconds,
-            } = tokenResponse;
+    accessToken,
+    refreshToken,
+    expiresInSeconds,
+    activeRole,
+    roles,
+} = tokenResponse;
 
             if (!accessToken) {
                 return rejectWithValue(
@@ -52,16 +47,22 @@ export const loginUser = createAsyncThunk(
                 );
             }
 
-            /*
-             * STEP 2
-             * Login using access token
-             */
             const userResponse = await authApi.login(accessToken);
-
-            /*
-             * Save authentication information
-             */
             localStorage.setItem("accessToken", accessToken);
+
+            if (activeRole) {
+                localStorage.setItem(
+                    "activeRole",
+                    JSON.stringify(activeRole)
+                );
+            }
+
+            if (roles) {
+                localStorage.setItem(
+                    "roles",
+                    JSON.stringify(roles)
+                );
+            }
 
             if (refreshToken) {
                 localStorage.setItem(
@@ -78,83 +79,95 @@ export const loginUser = createAsyncThunk(
             /*
              * Return everything to Redux
              */
+            // return {
+            //     accessToken,
+            //     refreshToken,
+            //     expiresInSeconds,
+            //     user: userResponse,
+            // };
+
             return {
                 accessToken,
                 refreshToken,
                 expiresInSeconds,
+                activeRole,
+                roles,
                 user: userResponse,
             };
         } catch (error) {
             console.error("Login API Error:", error);
-
-            /*
-             * Backend error message
-             */
             const message =
                 error.response?.data?.message ||
                 error.response?.data?.error ||
                 "Invalid email or password. Please try again.";
-
             return rejectWithValue(message);
         }
     }
 );
 
-/*
- * Logout
- */
 export const logoutUser = createAsyncThunk(
     "auth/logoutUser",
     async () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-    }
-);
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
+            localStorage.removeItem("activeRole");
+            localStorage.removeItem("roles");
+        }
+    );
 
 const authSlice = createSlice({
     name: "auth",
-
     initialState,
-
     reducers: {
         clearAuthError: (state) => {
             state.error = null;
+        },
+
+        setActiveRole: (state, action) => {
+            state.activeRole = action.payload;
+
+            localStorage.setItem(
+                "activeRole",
+                JSON.stringify(action.payload)
+            );
         },
     },
 
     extraReducers: (builder) => {
         builder
-
-            /*
-             * LOGIN STARTED
-             */
             .addCase(loginUser.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
             })
 
-            /*
-             * LOGIN SUCCESS
-             */
-            .addCase(loginUser.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.isAuthenticated = true;
+            .addCase(
+                loginUser.fulfilled,
+                (state, action) => {
 
-                state.accessToken =
-                    action.payload.accessToken;
+                    state.isLoading = false;
 
-                state.refreshToken =
-                    action.payload.refreshToken;
+                    state.isAuthenticated = true;
 
-                state.user = action.payload.user;
+                    state.accessToken =
+                        action.payload.accessToken;
 
-                state.error = null;
-            })
+                    state.refreshToken =
+                        action.payload.refreshToken;
 
-            /*
-             * LOGIN FAILED
-             */
+                    state.user =
+                        action.payload.user;
+
+                    state.activeRole =
+                        action.payload.activeRole;
+
+                    state.roles =
+                        action.payload.roles || [];
+
+                    state.error = null;
+                }
+            )
+            
             .addCase(loginUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isAuthenticated = false;
@@ -163,20 +176,24 @@ const authSlice = createSlice({
                     "Login failed. Please try again.";
             })
 
-            /*
-             * LOGOUT
-             */
-            .addCase(logoutUser.fulfilled, (state) => {
-                state.accessToken = null;
-                state.refreshToken = null;
-                state.user = null;
-                state.isAuthenticated = false;
-                state.isLoading = false;
-                state.error = null;
-            });
+            .addCase(
+                logoutUser.fulfilled,
+                (state) => {
+
+                    state.accessToken = null;
+                    state.refreshToken = null;
+                    state.user = null;
+                    state.activeRole = null;
+                    state.roles = [];
+
+                    state.isAuthenticated = false;
+                    state.isLoading = false;
+                    state.error = null;
+                }
+            )
     },
 });
 
-export const { clearAuthError } = authSlice.actions;
+export const { clearAuthError, setActiveRole, } = authSlice.actions;
 
 export default authSlice.reducer;
