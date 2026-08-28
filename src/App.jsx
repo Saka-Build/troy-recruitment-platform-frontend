@@ -101,7 +101,7 @@ import NewJob from "./Pages/Jobs/NewJob";
 import CandidateDetails from "./Pages/Candidate/CandidateDetails";
 import RecruitmentWorkflow from "./Pages/RecruitmentWorkflow/RecruitmentWorkflow";
 import RecruitmentWorkflowDetails from "./Pages/RecruitmentWorkflow/RecruitmentWorkflowDetails";
-import JobRoleReport from "./Pages/Reports/JobRoleReport";
+
 
 import "./app.css";
 
@@ -193,11 +193,6 @@ function App() {
                         path="employees"
                         element={<Employees />}
                     />
-
-                    {/* <Route
-                        path="/dashboard/reports"
-                        element={<JobRoleReport />}
-                    /> */}
 
                 </Route>
 
