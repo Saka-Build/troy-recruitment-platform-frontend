@@ -424,161 +424,161 @@ const Candidates = () => {
     */
     const handleApplications = (id) => {
 
-        console.log(
-            "View applications for candidate:",
-            id
-        );
-        showNotification(
-            "info",
-            `Applications for candidate: ${id}`
-        );
-    };
-
-const handleSave = async (data) => {
-    const isNull = (value) => value === null;
-
-    const candidateData = {
-        fullName: data.fullName,
-
-        currentDesignation: data.designation,
-
-        cvOwnerId: data.cvOwnerId,
-
-        referredBy: data.referredBy,
-
-        referenceNote: data.referenceNote,
-
-        email: data.email,
-
-        phone: data.phone,
-
-        whatsapp: data.whatsapp,
-
-        nationality: data.nationality,
-
-        location: data.currentLocation,
-
-        currentEmployer: data.currentCompany,
-
-        experienceYears: isNull(data.experience)
-            ? null
-            : data.experience === ""
-                ? ""
-                : Number(data.experience),
-
-        skills: isNull(data.primarySkills)
-            ? null
-            : data.primarySkills
-                ? data.primarySkills
-                    .split(",")
-                    .map((skill) => skill.trim())
-                    .filter(Boolean)
-                : [],
-
-        noticePeriodDays: isNull(data.noticePeriod)
-            ? null
-            : data.noticePeriod === ""
-                ? ""
-                : Number(data.noticePeriod),
-
-        visaStatus: data.visaStatus,
-
-        source: data.source,
-
-        linkedinUrl: data.linkedinUrl,
-
-        status: data.candidateStatus,
-
-        education: data.education,
-
-        currentSalaryAmount: isNull(data.currentRateAmount)
-            ? null
-            : data.currentRateAmount === ""
-                ? ""
-                : Number(data.currentRateAmount),
-
-        currentSalaryCurrency: data.currentRateCurrency,
-
-        currentSalaryPeriod: data.currentRatePeriod,
-
-        expectedSalaryAmount: isNull(data.dayRateAmount)
-            ? null
-            : data.dayRateAmount === ""
-                ? ""
-                : Number(data.dayRateAmount),
-
-        expectedSalaryCurrency: data.dayRateCurrency,
-
-        expectedSalaryPeriod: data.dayRatePeriod,
-    };
-
-    console.log("FINAL CANDIDATE PAYLOAD:", candidateData);
-
-    try {
-        if (modalMode === "add") {
-            await dispatch(
-                addCandidate({
-                    candidateData,
-                    originalCV: data.originalCV,
-                    troyCV: data.troyCV,
-                })
-            ).unwrap();
-
-            showNotification(
-                "success",
-                "Candidate added successfully"
-            );
-        } else if (modalMode === "edit") {
-            if (!selectedCandidate?.id) {
-                showNotification(
-                    "error",
-                    "Candidate ID is missing"
-                );
-                return;
-            }
-
-            console.log(
-                "UPDATING CANDIDATE ID:",
-                selectedCandidate.id
-            );
-
-            await dispatch(
-                updateCandidate({
-                    id: selectedCandidate.id,
-                    candidateData,
-                    originalCV: data.originalCV,
-                    troyCV: data.troyCV,
-                })
-            ).unwrap();
-
-            showNotification(
-                "success",
-                "Candidate updated successfully"
-            );
+        if (!id) {
+            console.error("Candidate ID is missing");
+            return;
         }
 
-        setShowModal(false);
-        setSelectedCandidate(null);
-
-        dispatch(getAllCandidates());
-    } catch (error) {
-        console.error(
-            modalMode === "edit"
-                ? "UPDATE CANDIDATE ERROR:"
-                : "ADD CANDIDATE ERROR:",
-            error
+        navigate(
+            `/dashboard/candidates/${id}?tab=Applications`
         );
+    };
 
-        showNotification(
-            "error",
-            typeof error === "string"
-                ? error
-                : modalMode === "edit"
-                    ? "Failed to update candidate"
-                    : "Failed to add candidate"
-        );
-    }
-};
+    const handleSave = async (data) => {
+        const isNull = (value) => value === null;
+
+        const candidateData = {
+            fullName: data.fullName,
+
+            currentDesignation: data.designation,
+
+            cvOwnerId: data.cvOwnerId,
+
+            referredBy: data.referredBy,
+
+            referenceNote: data.referenceNote,
+
+            email: data.email,
+
+            phone: data.phone,
+
+            whatsapp: data.whatsapp,
+
+            nationality: data.nationality,
+
+            location: data.currentLocation,
+
+            currentEmployer: data.currentCompany,
+
+            experienceYears: isNull(data.experience)
+                ? null
+                : data.experience === ""
+                    ? ""
+                    : Number(data.experience),
+
+            skills: isNull(data.primarySkills)
+                ? null
+                : data.primarySkills
+                    ? data.primarySkills
+                        .split(",")
+                        .map((skill) => skill.trim())
+                        .filter(Boolean)
+                    : [],
+
+            noticePeriodDays: isNull(data.noticePeriod)
+                ? null
+                : data.noticePeriod === ""
+                    ? ""
+                    : Number(data.noticePeriod),
+
+            visaStatus: data.visaStatus,
+
+            source: data.source,
+
+            linkedinUrl: data.linkedinUrl,
+
+            status: data.candidateStatus,
+
+            education: data.education,
+
+            currentSalaryAmount: isNull(data.currentRateAmount)
+                ? null
+                : data.currentRateAmount === ""
+                    ? ""
+                    : Number(data.currentRateAmount),
+
+            currentSalaryCurrency: data.currentRateCurrency,
+
+            currentSalaryPeriod: data.currentRatePeriod,
+
+            expectedSalaryAmount: isNull(data.dayRateAmount)
+                ? null
+                : data.dayRateAmount === ""
+                    ? ""
+                    : Number(data.dayRateAmount),
+
+            expectedSalaryCurrency: data.dayRateCurrency,
+
+            expectedSalaryPeriod: data.dayRatePeriod,
+        };
+
+        console.log("FINAL CANDIDATE PAYLOAD:", candidateData);
+
+        try {
+            if (modalMode === "add") {
+                await dispatch(
+                    addCandidate({
+                        candidateData,
+                        originalCV: data.originalCV,
+                        troyCV: data.troyCV,
+                    })
+                ).unwrap();
+
+                showNotification(
+                    "success",
+                    "Candidate added successfully"
+                );
+            } else if (modalMode === "edit") {
+                if (!selectedCandidate?.id) {
+                    showNotification(
+                        "error",
+                        "Candidate ID is missing"
+                    );
+                    return;
+                }
+
+                console.log(
+                    "UPDATING CANDIDATE ID:",
+                    selectedCandidate.id
+                );
+
+                await dispatch(
+                    updateCandidate({
+                        id: selectedCandidate.id,
+                        candidateData,
+                        originalCV: data.originalCV,
+                        troyCV: data.troyCV,
+                    })
+                ).unwrap();
+
+                showNotification(
+                    "success",
+                    "Candidate updated successfully"
+                );
+            }
+
+            setShowModal(false);
+            setSelectedCandidate(null);
+
+            dispatch(getAllCandidates());
+        } catch (error) {
+            console.error(
+                modalMode === "edit"
+                    ? "UPDATE CANDIDATE ERROR:"
+                    : "ADD CANDIDATE ERROR:",
+                error
+            );
+
+            showNotification(
+                "error",
+                typeof error === "string"
+                    ? error
+                    : modalMode === "edit"
+                        ? "Failed to update candidate"
+                        : "Failed to add candidate"
+            );
+        }
+    };
 
     /*
     |--------------------------------------------------------------------------

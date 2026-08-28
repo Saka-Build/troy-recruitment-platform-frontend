@@ -11,6 +11,7 @@ import {
 import {
   useNavigate,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 
 import "./Candidate.css";
@@ -75,10 +76,16 @@ function CandidateDetails() {
     (state) => state.jobs
   );
 
-  const [
-    activeTab,
-    setActiveTab,
-  ] = useState("Profile");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTab =
+    searchParams.get("tab") || "Profile";
+
+  const setActiveTab = (tab) => {
+    setSearchParams({
+      tab,
+    });
+  };
 
 
   const [

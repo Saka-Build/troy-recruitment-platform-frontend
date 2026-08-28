@@ -195,9 +195,9 @@ function App() {
                     />
 
                     <Route
-    path="/dashboard/reports"
-    element={<JobRoleReport />}
-/>
+                        path="/dashboard/reports"
+                        element={<JobRoleReport />}
+                    />
 
                 </Route>
 
