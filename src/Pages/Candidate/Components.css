@@ -971,3 +971,465 @@
 .candidate-history-read-more button:hover {
     text-decoration: underline;
 }
+
+/* =========================================================
+   APPLICATION HISTORY MODAL
+   ========================================================= */
+
+.cxandidate-history-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(4px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+    z-index: 9999;
+}
+
+.cxandidate-history-modal {
+    width: 100%;
+    max-width: 760px;
+    max-height: 88vh;
+
+    background: #ffffff;
+    border-radius: 18px;
+
+    box-shadow:
+        0 25px 60px rgba(15, 23, 42, 0.22),
+        0 8px 25px rgba(15, 23, 42, 0.12);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.cxandidate-history-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    padding: 22px 24px;
+
+    background: linear-gradient(
+        135deg,
+        #eef2ff,
+        #f5f3ff,
+        #ecfeff
+    );
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cxandidate-history-header h3 {
+    margin: 0;
+
+    font-size: 21px;
+    font-weight: 700;
+
+    color: #172033;
+}
+
+.cxandidate-history-header p {
+    margin: 5px 0 0;
+
+    font-size: 13px;
+    color: #64748b;
+}
+
+.cxandidate-history-close {
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: #64748b;
+
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s ease;
+}
+
+.cxandidate-history-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+.cxandidate-history-body {
+    padding: 22px 24px;
+
+    overflow-y: auto;
+    min-height: 220px;
+}
+
+
+/* =========================================================
+   HISTORY LIST
+   ========================================================= */
+
+.cxandidate-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cxandidate-history-item {
+    display: flex;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 13px;
+
+    background: #ffffff;
+
+    overflow: hidden;
+
+    transition: 0.2s ease;
+}
+
+.cxandidate-history-item:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+
+/* =========================================================
+   COLOR LINE
+   ========================================================= */
+
+.cxandidate-history-line {
+    width: 5px;
+    flex-shrink: 0;
+
+    background: #6366f1;
+}
+
+
+/* Status colors */
+
+.cxandidate-history-line.applied {
+    background: #3b82f6;
+}
+
+.cxandidate-history-line.interview {
+    background: #8b5cf6;
+}
+
+.cxandidate-history-line.selected {
+    background: #10b981;
+}
+
+.cxandidate-history-line.rejected {
+    background: #ef4444;
+}
+
+.cxandidate-history-line.submitted {
+    background: #06b6d4;
+}
+
+.cxandidate-history-line.ready-to-submit {
+    background: #f59e0b;
+}
+
+.cxandidate-history-line.hold {
+    background: #f97316;
+}
+
+.cxandidate-history-line.onboarding {
+    background: #14b8a6;
+}
+
+.cxandidate-history-line.onboarded {
+    background: #22c55e;
+}
+
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+.cxandidate-history-content {
+    flex: 1;
+    padding: 16px 18px;
+}
+
+.cxandidate-history-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+.cxandidate-history-action {
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #334155;
+}
+
+.cxandidate-history-date {
+    font-size: 12px;
+    color: #94a3b8;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   STATUS CHANGE
+   ========================================================= */
+
+.cxandidate-history-status-change {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    margin-top: 11px;
+}
+
+.cxandidate-history-old-status,
+.cxandidate-history-new-status {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+
+    border-radius: 7px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.cxandidate-history-old-status {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.cxandidate-history-arrow {
+    color: #94a3b8;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.cxandidate-history-new-status {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.cxandidate-history-new-status.applied {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.cxandidate-history-new-status.interview {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.cxandidate-history-new-status.selected {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.cxandidate-history-new-status.rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.cxandidate-history-new-status.submitted {
+    background: #cffafe;
+    color: #0e7490;
+}
+
+.cxandidate-history-new-status.ready-to-submit {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.cxandidate-history-new-status.hold {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.cxandidate-history-new-status.onboarding {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+.cxandidate-history-new-status.onboarded {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.cxandidate-history-description {
+    margin: 11px 0 7px;
+
+    font-size: 13px;
+    line-height: 1.5;
+
+    color: #475569;
+}
+
+
+/* =========================================================
+   PERFORMED BY
+   ========================================================= */
+
+.cxandidate-history-performed {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.cxandidate-history-performed strong {
+    color: #475569;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.cxandidate-history-loading {
+    padding: 45px 20px;
+
+    text-align: center;
+    color: #64748b;
+}
+
+.cxandidate-history-loading-bar {
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 14px;
+
+    border-radius: 50%;
+
+    border: 4px solid #e0e7ff;
+    border-top-color: #6366f1;
+
+    animation: cxandidateHistorySpin 0.8s linear infinite;
+}
+
+@keyframes cxandidateHistorySpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   EMPTY / ERROR
+   ========================================================= */
+
+.cxandidate-history-empty,
+.cxandidate-history-error {
+    padding: 45px 20px;
+
+    text-align: center;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+}
+
+.cxandidate-history-empty {
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.cxandidate-history-error {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.cxandidate-history-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 15px 24px;
+
+    border-top: 1px solid #e5e7eb;
+
+    background: #f8fafc;
+}
+
+.cxandidate-history-footer span {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.cxandidate-history-footer button {
+    border: none;
+
+    padding: 8px 18px;
+
+    border-radius: 8px;
+
+    background: #4f46e5;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.cxandidate-history-footer button:hover {
+    background: #4338ca;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.cxandidate-history-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cxandidate-history-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cxandidate-history-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}

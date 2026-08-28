@@ -33,6 +33,8 @@ import {
   getAllEmployees,
   updateCandidate,
   deleteCandidate,
+   getSubmissionStatuses,
+  createSubmission,
 } from "../../Redux/Slice/candidateSlice";
 
 
@@ -48,26 +50,26 @@ function CandidateDetails() {
   const dispatch =
     useDispatch();
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | REDUX
-  |--------------------------------------------------------------------------
-  */
-
   const {
-    selectedCandidate,
-    candidateDetailsLoading,
-    candidateDetailsError,
+  selectedCandidate,
+  candidateDetailsLoading,
+  candidateDetailsError,
 
-    employees = [],
-    employeesLoading = false,
-    employeeError = null,
+  employees = [],
+  employeesLoading = false,
+  employeeError = null,
 
-    adding = false,
-  } = useSelector(
-    (state) => state.candidate
-  );
+  adding = false,
+
+  submissionStatuses = [],
+  submissionStatusesLoading = false,
+  submissionStatusesError = null,
+
+  creatingSubmission = false,
+  createSubmissionError = null,
+} = useSelector(
+  (state) => state.candidate
+);
 
   const {
     openJobs = [],
@@ -107,13 +109,6 @@ function CandidateDetails() {
     },
   ]);
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | EDIT / DELETE STATE
-  |--------------------------------------------------------------------------
-  */
-
   const [
     showEditModal,
     setShowEditModal,
@@ -141,13 +136,6 @@ function CandidateDetails() {
     message: "",
   });
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | FETCH CANDIDATE
-  |--------------------------------------------------------------------------
-  */
-
   useEffect(() => {
 
     if (!id) {
@@ -158,17 +146,15 @@ function CandidateDetails() {
       getCandidateById(id)
     );
 
-    /*
-     * Employees are needed by CandidateModal
-     * when editing.
-     */
-
     dispatch(
       getAllEmployees()
     );
     dispatch(
       getOpenJobs()
     );
+    dispatch(
+    getSubmissionStatuses()
+  );
 
     return () => {
 
@@ -182,13 +168,6 @@ function CandidateDetails() {
     id,
     dispatch,
   ]);
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | NOTIFICATION
-  |--------------------------------------------------------------------------
-  */
 
   const showNotification = (
     type,
@@ -214,12 +193,6 @@ function CandidateDetails() {
   };
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | ADD NOTE
-  |--------------------------------------------------------------------------
-  */
-
   const handleAddNote = () => {
 
     if (!noteText.trim()) {
@@ -243,13 +216,6 @@ function CandidateDetails() {
     setNoteText("");
   };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | EDIT CANDIDATE
-  |--------------------------------------------------------------------------
-  */
-
   const handleEditClick = () => {
 
     if (!selectedCandidate?.id) {
@@ -265,13 +231,6 @@ function CandidateDetails() {
 
     setShowEditModal(true);
   };
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | SAVE EDIT
-  |--------------------------------------------------------------------------
-  */
 
   const handleEditSave = async (data) => {
 
@@ -434,16 +393,7 @@ function CandidateDetails() {
       );
 
 
-      /*
-       * Close modal
-       */
-
       setShowEditModal(false);
-
-
-      /*
-       * Reload candidate details
-       */
 
       await dispatch(
         getCandidateById(
@@ -469,13 +419,6 @@ function CandidateDetails() {
     }
   };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | DELETE CANDIDATE
-  |--------------------------------------------------------------------------
-  */
-
   const handleDeleteClick = () => {
 
     if (!selectedCandidate?.id) {
@@ -491,13 +434,6 @@ function CandidateDetails() {
 
     setShowDeleteModal(true);
   };
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | CONFIRM DELETE
-  |--------------------------------------------------------------------------
-  */
 
   const handleConfirmDelete = async () => {
 
@@ -523,11 +459,6 @@ function CandidateDetails() {
         )
       ).unwrap();
 
-
-      /*
-       * Close modal
-       */
-
       setShowDeleteModal(false);
 
 
@@ -535,12 +466,6 @@ function CandidateDetails() {
         "success",
         "Candidate deleted successfully"
       );
-
-
-      /*
-       * Give notification a moment to show,
-       * then return to Candidates.
-       */
 
       setTimeout(() => {
 
@@ -577,36 +502,123 @@ function CandidateDetails() {
     setShowApplyJobModal(true);
   };
 
-  const handleApplyJobSubmit = async ({
+ const handleApplyJobSubmit = async ({
+  candidateId,
+  jobId,
+  statusId,
+  job,
+  status,
+}) => {
+
+  console.log(
+    "========== APPLY CANDIDATE TO JOB =========="
+  );
+
+  console.log({
+    candidateId,
     jobId,
+    statusId,
     job,
     status,
-  }) => {
-    console.log(
-      "APPLY CANDIDATE TO JOB:",
-      {
-        candidateId:
-          selectedCandidate.id,
-        jobId,
-        job,
-        status,
-      }
+  });
+
+
+  if (!candidateId) {
+
+    showNotification(
+      "error",
+      "Candidate ID is missing"
     );
 
-    setShowApplyJobModal(false);
+    return;
+  }
+
+
+  if (!jobId) {
+
+    showNotification(
+      "error",
+      "Job ID is missing"
+    );
+
+    return;
+  }
+
+
+  if (!statusId) {
+
+    showNotification(
+      "error",
+      "Submission status is missing"
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const result = await dispatch(
+      createSubmission({
+
+        candidateId:
+          candidateId,
+
+        jobId:
+          jobId,
+
+        statusId:
+          statusId,
+
+      })
+    ).unwrap();
+
+
+    console.log(
+      "========== SUBMISSION CREATED =========="
+    );
+
+    console.log(
+      "Create submission response:",
+      result
+    );
+
+
+    setShowApplyJobModal(
+      false
+    );
+
 
     showNotification(
       "success",
       "Candidate application created successfully"
     );
 
-    setActiveTab("Applications");
-  };
-  /*
-  |--------------------------------------------------------------------------
-  | LOADING
-  |--------------------------------------------------------------------------
-  */
+
+    setActiveTab(
+      "Applications"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "CREATE SUBMISSION ERROR:",
+      error
+    );
+
+
+    showNotification(
+      "error",
+
+      typeof error === "string"
+        ? error
+        : "Failed to apply candidate to this job"
+    );
+
+  }
+
+};
 
   if (
     candidateDetailsLoading
@@ -626,13 +638,6 @@ function CandidateDetails() {
       </div>
     );
   }
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | ERROR
-  |--------------------------------------------------------------------------
-  */
 
   if (
     candidateDetailsError
@@ -668,12 +673,6 @@ function CandidateDetails() {
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | CANDIDATE NOT FOUND
-  |--------------------------------------------------------------------------
-  */
-
   if (
     !selectedCandidate
   ) {
@@ -704,21 +703,8 @@ function CandidateDetails() {
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | CANDIDATE
-  |--------------------------------------------------------------------------
-  */
-
   const candidate =
     selectedCandidate;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | INITIALS
-  |--------------------------------------------------------------------------
-  */
 
   const initials =
     candidate.fullName
@@ -732,21 +718,9 @@ function CandidateDetails() {
       .toUpperCase();
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | RETURN
-  |--------------------------------------------------------------------------
-  */
-
   return (
 
     <div className="page">
-
-
-      {/* =====================================================
-                            BACK BUTTON
-      ====================================================== */}
-
       <div className="candidate-detail-top">
 
         <button
@@ -761,12 +735,6 @@ function CandidateDetails() {
         </button>
 
       </div>
-
-
-      {/* =====================================================
-                    CANDIDATE PROFILE HEADER
-      ====================================================== */}
-
       <div className="candidate-profile-header">
 
         <div className="candidate-profile-left">
@@ -808,12 +776,6 @@ function CandidateDetails() {
           </div>
 
         </div>
-
-
-        {/* =====================================================
-                            HEADER ACTIONS
-        ====================================================== */}
-
         <div className="page-header-actions">
 
           <button
@@ -855,12 +817,6 @@ function CandidateDetails() {
         </div>
 
       </div>
-
-
-      {/* =====================================================
-                            TABS
-      ====================================================== */}
-
       <div className="candidate-detail-tabs">
 
         {[
@@ -888,12 +844,6 @@ function CandidateDetails() {
         ))}
 
       </div>
-
-
-      {/* =====================================================
-                        TAB COMPONENTS
-      ====================================================== */}
-
       {activeTab === "Profile" && (
 
         <ProfileTab
@@ -941,12 +891,6 @@ function CandidateDetails() {
         />
 
       )}
-
-
-      {/* =====================================================
-                            NOTIFICATION
-      ====================================================== */}
-
       {notification.show && (
 
         <div
@@ -995,12 +939,6 @@ function CandidateDetails() {
         </div>
 
       )}
-
-
-      {/* =====================================================
-                        EDIT MODAL
-      ====================================================== */}
-
       {showEditModal && (
 
         <CandidateModal
@@ -1043,12 +981,6 @@ function CandidateDetails() {
         />
 
       )}
-
-
-      {/* =====================================================
-                    DELETE CONFIRMATION MODAL
-      ====================================================== */}
-
       <DeleteConfirmationModal
 
         isOpen={
@@ -1085,20 +1017,45 @@ function CandidateDetails() {
 
       />
 
-      {showApplyJobModal && (
-        <ApplyJobModal
-          jobs={openJobs}
-          jobsLoading={isOpenJobsLoading}
-          onClose={() =>
+{showApplyJobModal && (
+    <ApplyJobModal
+
+        candidateId={
+            candidate.id
+        }
+
+        jobs={
+            openJobs
+        }
+
+        jobsLoading={
+            isOpenJobsLoading
+        }
+
+        statuses={
+            submissionStatuses
+        }
+
+        statusesLoading={
+            submissionStatusesLoading
+        }
+
+        creatingSubmission={
+            creatingSubmission
+        }
+
+        onClose={() =>
             setShowApplyJobModal(false)
-          }
-          onApply={handleApplyJobSubmit}
-        />
-      )}
+        }
+
+        onApply={
+            handleApplyJobSubmit
+        }
+
+    />
+)}
 
     </div>
   );
 }
-
-
 export default CandidateDetails;

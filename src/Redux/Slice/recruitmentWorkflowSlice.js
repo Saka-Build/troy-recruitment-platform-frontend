@@ -67,9 +67,12 @@ const initialState = {
         totalReadyToSubmit: 0,
         totalSubmitted: 0,
         totalInterview: 0,
-        totalOffer: 0,
-        totalJoined: 0,
+        totalSelected: 0,
+        totalRejected: 0,
+        totalOnBoarding: 0,
+        totalOnBoarded: 0,
     },
+
     loading: false,
     error: null,
 };
@@ -88,34 +91,46 @@ const recruitmentWorkflowSlice = createSlice({
                 }
             )
             .addCase(
-                getSubmissionCounts.fulfilled,
-                (state, action) => {
-                    state.loading = false;
-                    state.error = null;
+    getSubmissionCounts.fulfilled,
+    (state, action) => {
+        state.loading = false;
+        state.error = null;
 
-                    state.submissionCounts = {
-                        totalApplied:
-                            action.payload?.totalApplied ?? 0,
-                        totalScreening:
-                            action.payload?.totalScreening ?? 0,
-                        totalReadyToSubmit:
-                            action.payload?.totalReadyToSubmit ?? 0,
-                        totalSubmitted:
-                            action.payload?.totalSubmitted ?? 0,
-                        totalInterview:
-                            action.payload?.totalInterview ?? 0,
-                        totalOffer:
-                            action.payload?.totalOffer ?? 0,
-                        totalJoined:
-                            action.payload?.totalJoined ?? 0,
-                    };
+        state.submissionCounts = {
+            totalApplied:
+                action.payload?.totalApplied ?? 0,
 
-                    console.log(
-                        "Updated Submission Counts:",
-                        state.submissionCounts
-                    );
-                }
-            )
+            totalScreening:
+                action.payload?.totalScreening ?? 0,
+
+            totalReadyToSubmit:
+                action.payload?.totalReadyToSubmit ?? 0,
+
+            totalSubmitted:
+                action.payload?.totalSubmitted ?? 0,
+
+            totalInterview:
+                action.payload?.totalInterview ?? 0,
+
+            totalSelected:
+                action.payload?.totalSelected ?? 0,
+
+            totalRejected:
+                action.payload?.totalRejected ?? 0,
+
+            totalOnBoarding:
+                action.payload?.totalOnBoarding ?? 0,
+
+            totalOnBoarded:
+                action.payload?.totalOnBoarded ?? 0,
+        };
+
+        console.log(
+            "Updated Submission Counts:",
+            state.submissionCounts
+        );
+    }
+)
             .addCase(
                 getSubmissionCounts.rejected,
                 (state, action) => {
