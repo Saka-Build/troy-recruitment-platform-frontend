@@ -279,8 +279,8 @@ function RecruitmentWorkflowDetails() {
 
   const getStatusClass = (candidate) => {
     switch (candidate.currentStatus) {
-        case "Submitted":
-      return "workflow-status-submitted";
+      case "Submitted":
+        return "workflow-status-submitted";
       case "Selected":
         return "workflow-status-selected";
 
@@ -304,33 +304,33 @@ function RecruitmentWorkflowDetails() {
     }
   };
 
-const getStatusIcon = (candidate) => {
-  switch (candidate.currentStatus) {
-    case "Selected":
-      return "bi-check-lg";
+  const getStatusIcon = (candidate) => {
+    switch (candidate.currentStatus) {
+      case "Selected":
+        return "bi-check-lg";
 
-    case "Offer Released":
-      return "bi-briefcase-fill";
+      case "Offer Released":
+        return "bi-briefcase-fill";
 
-    case "Onboarded":
-      return "bi-person-check-fill";
+      case "Onboarded":
+        return "bi-person-check-fill";
 
-    case "Ready to Submit":
-      return "bi-send-fill";
+      case "Ready to Submit":
+        return "bi-send-fill";
 
-    case "Interview":
-      return "bi-pin-angle-fill";
+      case "Interview":
+        return "bi-pin-angle-fill";
 
-    case "Actively Sourcing":
-      return "bi-pin-angle-fill";
+      case "Actively Sourcing":
+        return "bi-pin-angle-fill";
 
-    case "Submitted":
-      return "bi-briefcase-fill";
+      case "Submitted":
+        return "bi-briefcase-fill";
 
-    default:
-      return "bi-briefcase-fill";
-  }
-};
+      default:
+        return "bi-briefcase-fill";
+    }
+  };
 
   const openRateModal = (
     candidate,
@@ -642,11 +642,10 @@ const getStatusIcon = (candidate) => {
               <button
                 key={item.id}
                 type="button"
-                className={`workflow-stage-tab ${
-                  item.id === stage
+                className={`workflow-stage-tab ${item.id === stage
                     ? "active"
                     : ""
-                }`}
+                  }`}
                 onClick={() =>
                   goToStage(item.id)
                 }
@@ -793,22 +792,22 @@ const getStatusIcon = (candidate) => {
 
                     <div className="workflow-status-wrapper">
 
-<span
-  className={`workflow-status ${getStatusClass(candidate)}`}
->
-  <i
-    className={`bi ${getStatusIcon(candidate)} workflow-status-icon`}
-    aria-hidden="true"
-  ></i>
+                      <span
+                        className={`workflow-status ${getStatusClass(candidate)}`}
+                      >
+                        <i
+                          className={`bi ${getStatusIcon(candidate)} workflow-status-icon`}
+                          aria-hidden="true"
+                        ></i>
 
-  <span className="workflow-status-text">
-    {candidate.currentStatus}
-  </span>
-</span>
+                        <span className="workflow-status-text">
+                          {candidate.currentStatus}
+                        </span>
+                      </span>
 
                       {candidate.interviewWarning &&
                         candidate.stage ===
-                          "interview" && (
+                        "interview" && (
                           <span className="workflow-warning">
                             ⚿ date/time not set
                           </span>
@@ -830,7 +829,7 @@ const getStatusIcon = (candidate) => {
 
                       {candidate.offerRateRequired &&
                         candidate.stage ===
-                          "offer" && (
+                        "offer" && (
                           <span className="workflow-rate-warning">
                             offer rate needed
                           </span>
@@ -1027,30 +1026,30 @@ const getStatusIcon = (candidate) => {
                 {(modalType ===
                   "selected" ||
                   modalType ===
-                    "offer") && (
-                  <RateField
-                    label="Offer / release rate"
-                    required
-                    currency={
-                      offerCurrency
-                    }
-                    setCurrency={
-                      setOfferCurrency
-                    }
-                    amount={
-                      offerAmount
-                    }
-                    setAmount={
-                      setOfferAmount
-                    }
-                    period={
-                      offerPeriod
-                    }
-                    setPeriod={
-                      setOfferPeriod
-                    }
-                  />
-                )}
+                  "offer") && (
+                    <RateField
+                      label="Offer / release rate"
+                      required
+                      currency={
+                        offerCurrency
+                      }
+                      setCurrency={
+                        setOfferCurrency
+                      }
+                      amount={
+                        offerAmount
+                      }
+                      setAmount={
+                        setOfferAmount
+                      }
+                      period={
+                        offerPeriod
+                      }
+                      setPeriod={
+                        setOfferPeriod
+                      }
+                    />
+                  )}
 
                 <p className="workflow-modal-note">
                   Pick the country currency
@@ -1058,7 +1057,7 @@ const getStatusIcon = (candidate) => {
                   month or annum.{" "}
 
                   {modalType ===
-                  "offer"
+                    "offer"
                     ? "Offer/release rate is required and shown with submission and expected rate."
                     : "Submission rate is required when submitting to a client."}
                 </p>
