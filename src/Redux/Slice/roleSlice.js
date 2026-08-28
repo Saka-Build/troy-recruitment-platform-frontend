@@ -6,10 +6,7 @@ import {
 import roleApi from "../../services/roleApi";
 
 
-/* =========================================================
-   GET ROLES + MODULES + PERMISSIONS
-========================================================= */
-
+/* GET ROLES + MODULES + PERMISSIONS */
 export const getAllRolesAndModules =
     createAsyncThunk(
         "role/getAllRolesAndModules",
@@ -32,10 +29,7 @@ export const getAllRolesAndModules =
     );
 
 
-/* =========================================================
-   GET ALL ROLES
-========================================================= */
-
+/* GET ALL ROLES */
 export const getAllRoles =
     createAsyncThunk(
         "role/getAllRoles",
@@ -57,10 +51,7 @@ export const getAllRoles =
     );
 
 
-/* =========================================================
-   GET ROLE BY ID
-========================================================= */
-
+/* GET ROLE BY ID */
 export const getRoleById =
     createAsyncThunk(
         "role/getRoleById",
@@ -84,10 +75,7 @@ export const getRoleById =
     );
 
 
-/* =========================================================
-   CREATE ROLE
-========================================================= */
-
+/* CREATE ROLE */
 export const createRole =
     createAsyncThunk(
         "role/createRole",
@@ -111,10 +99,7 @@ export const createRole =
     );
 
 
-/* =========================================================
-   UPDATE ROLE
-========================================================= */
-
+/* UPDATE ROLE */
 export const updateRole =
     createAsyncThunk(
         "role/updateRole",
@@ -145,10 +130,7 @@ export const updateRole =
     );
 
 
-/* =========================================================
-   DELETE ROLE
-========================================================= */
-
+/* DELETE ROLE */
 export const deleteRole =
     createAsyncThunk(
         "role/deleteRole",
@@ -177,10 +159,7 @@ export const deleteRole =
     );
 
 
-/* =========================================================
-   GET EMPLOYEE ROLES
-========================================================= */
-
+/* GET EMPLOYEE ROLES */
 export const getEmployeeRoles =
     createAsyncThunk(
         "role/getEmployeeRoles",
@@ -208,10 +187,7 @@ export const getEmployeeRoles =
     );
 
 
-/* =========================================================
-   ASSIGN ROLE TO EMPLOYEE
-========================================================= */
-
+/* ASSIGN ROLE TO EMPLOYEE */
 export const assignRoleToEmployee =
     createAsyncThunk(
         "role/assignRoleToEmployee",
@@ -243,10 +219,7 @@ export const assignRoleToEmployee =
     );
 
 
-/* =========================================================
-   REMOVE ROLE FROM EMPLOYEE
-========================================================= */
-
+/* REMOVE ROLE FROM EMPLOYEE */
 export const removeRoleFromEmployee =
     createAsyncThunk(
         "role/removeRoleFromEmployee",
@@ -283,10 +256,7 @@ export const removeRoleFromEmployee =
     );
 
 
-/* =========================================================
-   INITIAL STATE
-========================================================= */
-export const switchRole =
+/* INITIAL STATE */export const switchRole =
     createAsyncThunk(
         "role/switchRole",
         async (
@@ -311,30 +281,18 @@ export const switchRole =
         }
     );
 const initialState = {
-
-    // All role objects
     roles: [],
-
-    // Selected role for edit/details
     selectedRole: null,
-
-    // Master data from allRolesAndModules
     availableRoles: [],
     modules: [],
     permissions: [],
-
-    // Roles of selected employee
     employeeRoles: [],
-
     loading: false,
     error: null,
 };
 
 
-/* =========================================================
-   SLICE
-========================================================= */
-
+/* SLICE */
 const roleSlice = createSlice({
 
     name: "role",
@@ -360,12 +318,6 @@ const roleSlice = createSlice({
     extraReducers: (builder) => {
 
         builder
-
-
-            /* =================================================
-               ALL ROLES + MODULES + PERMISSIONS
-            ================================================= */
-
             .addCase(
                 getAllRolesAndModules.pending,
                 (state) => {
@@ -400,12 +352,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               ALL ROLES
-            ================================================= */
-
             .addCase(
                 getAllRoles.pending,
                 (state) => {
@@ -433,12 +379,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               ROLE BY ID
-            ================================================= */
-
             .addCase(
                 getRoleById.pending,
                 (state) => {
@@ -466,12 +406,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               CREATE ROLE
-            ================================================= */
-
             .addCase(
                 createRole.pending,
                 (state) => {
@@ -501,12 +435,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               UPDATE ROLE
-            ================================================= */
-
             .addCase(
                 updateRole.pending,
                 (state) => {
@@ -548,12 +476,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               DELETE ROLE
-            ================================================= */
-
             .addCase(
                 deleteRole.fulfilled,
                 (state, action) => {
@@ -575,12 +497,6 @@ const roleSlice = createSlice({
                     }
                 }
             )
-
-
-            /* =================================================
-               EMPLOYEE ROLES
-            ================================================= */
-
             .addCase(
                 getEmployeeRoles.pending,
                 (state) => {
@@ -609,12 +525,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               ASSIGN ROLE
-            ================================================= */
-
             .addCase(
                 assignRoleToEmployee.pending,
                 (state) => {
@@ -640,12 +550,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-
-
-            /* =================================================
-               REMOVE ROLE
-            ================================================= */
-
             .addCase(
                 removeRoleFromEmployee.pending,
                 (state) => {
@@ -678,10 +582,6 @@ const roleSlice = createSlice({
                     state.error = action.payload;
                 }
             )
-            /* =================================================
-   SWITCH ACTIVE ROLE
-================================================= */
-
 .addCase(
     switchRole.pending,
     (state) => {

@@ -20,6 +20,7 @@ import JobRoleReport from "./Pages/Reports/JobRoleReport";
 
 import "./app.css";
 import Roles from "./Pages/RolesPermission/Roles";
+import EmployeeDetails from "./Pages/Employees/EmployeeDetails";
 
 
 function ProtectedRoute({ children }) {
@@ -69,6 +70,7 @@ function App() {
 
                     <Route path="clients" element={<Client />}/>
                     <Route path="employees" element={<Employees />}/>
+                    <Route path="employees/:employeeId" element={<EmployeeDetails />}/>
 
                     <Route path="/dashboard/reports" element={<JobRoleReport />}/>
 
