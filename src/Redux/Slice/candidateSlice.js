@@ -643,6 +643,67 @@ export const getCandidateActivity = createAsyncThunk(
     }
 );
 
+export const getSubmissionActivities = createAsyncThunk(
+    "candidates/getSubmissionActivities",
+    async (submissionId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/activityLog/submission/${submissionId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch submission activities"
+                );
+            }
+
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data?.content)) {
+                return data.content;
+            }
+
+            if (Array.isArray(data?.data)) {
+                return data.data;
+            }
+
+            return [];
+
+        } catch (error) {
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching submission activities"
+            );
+        }
+    }
+);
+
+
 export const getCandidateApplications = createAsyncThunk(
     "candidates/getCandidateApplications",
     async (candidateId, { rejectWithValue }) => {
@@ -701,6 +762,137 @@ export const getCandidateApplications = createAsyncThunk(
     }
 );
 
+export const getSubmissionStatuses = createAsyncThunk(
+    "candidates/getSubmissionStatuses",
+    async (_, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/status/allStatuses`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                "Submission Statuses API Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch submission statuses"
+                );
+            }
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+            console.error(
+                "Submission Statuses API Error:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching submission statuses"
+            );
+        }
+    }
+);
+
+export const createSubmission = createAsyncThunk(
+    "candidates/createSubmission",
+    async (
+        {
+            candidateId,
+            jobId,
+            statusId,
+        },
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/create`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify({
+                        candidateId,
+                        jobId,
+                        statusId,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                "Create Submission API Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to apply candidate to job"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+            console.error(
+                "Create Submission API Error:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while applying candidate to job"
+            );
+        }
+    }
+);
+
 const initialState = {
     candidates: [],
     employees: [],
@@ -722,6 +914,15 @@ const initialState = {
     candidateApplications: [],
     candidateApplicationsLoading: false,
     candidateApplicationsError: null,
+    submissionActivities: [],
+    submissionActivitiesLoading: false,
+    submissionActivitiesError: null,
+    submissionStatuses: [],
+    submissionStatusesLoading: false,
+    submissionStatusesError: null,
+
+    creatingSubmission: false,
+    createSubmissionError: null,
 };
 
 const candidateSlice = createSlice({
@@ -747,6 +948,10 @@ const candidateSlice = createSlice({
             state.candidateActivity = [];
             state.candidateActivityError = null;
         },
+        clearSubmissionActivities: (state) => {
+        state.submissionActivities = [];
+        state.submissionActivitiesError = null;
+    },
 
         clearCandidateApplications: (state) => {
             state.candidateApplications = [];
@@ -1026,7 +1231,99 @@ const candidateSlice = createSlice({
                         action.payload ||
                         "Failed to fetch candidate applications";
                 }
-            );
+            )
+            /*
+            |--------------------------------------------------------------------------
+            | GET SUBMISSION ACTIVITIES
+            |--------------------------------------------------------------------------
+            */
+            .addCase(
+                getSubmissionActivities.pending,
+                (state) => {
+                    state.submissionActivitiesLoading = true;
+                    state.submissionActivitiesError = null;
+                    state.submissionActivities = [];
+                }
+            )
+
+            .addCase(
+                getSubmissionActivities.fulfilled,
+                (state, action) => {
+                    state.submissionActivitiesLoading = false;
+                    state.submissionActivities = action.payload;
+                }
+            )
+
+            .addCase(
+                getSubmissionActivities.rejected,
+                (state, action) => {
+                    state.submissionActivitiesLoading = false;
+                    state.submissionActivitiesError =
+                        action.payload ||
+                        "Failed to fetch submission activities";
+                }
+            )
+            /*
+|--------------------------------------------------------------------------
+| GET SUBMISSION STATUSES
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    getSubmissionStatuses.pending,
+    (state) => {
+        state.submissionStatusesLoading = true;
+        state.submissionStatusesError = null;
+    }
+)
+
+.addCase(
+    getSubmissionStatuses.fulfilled,
+    (state, action) => {
+        state.submissionStatusesLoading = false;
+        state.submissionStatuses = action.payload;
+    }
+)
+
+.addCase(
+    getSubmissionStatuses.rejected,
+    (state, action) => {
+        state.submissionStatusesLoading = false;
+        state.submissionStatusesError =
+            action.payload ||
+            "Failed to fetch submission statuses";
+    }
+)
+
+/*
+|--------------------------------------------------------------------------
+| CREATE SUBMISSION
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    createSubmission.pending,
+    (state) => {
+        state.creatingSubmission = true;
+        state.createSubmissionError = null;
+    }
+)
+
+.addCase(
+    createSubmission.fulfilled,
+    (state) => {
+        state.creatingSubmission = false;
+        state.createSubmissionError = null;
+    }
+)
+
+.addCase(
+    createSubmission.rejected,
+    (state, action) => {
+        state.creatingSubmission = false;
+        state.createSubmissionError =
+            action.payload ||
+            "Failed to create submission";
+    }
+);
     },
 });
 
@@ -1036,6 +1333,7 @@ export const {
     clearCandidateDetails,
     clearCandidateActivity,
     clearCandidateApplications,
+    clearSubmissionActivities,
 } = candidateSlice.actions;
 
 export default candidateSlice.reducer;

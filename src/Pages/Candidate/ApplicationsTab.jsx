@@ -499,6 +499,8 @@ import { MdWorkOutline } from "react-icons/md";
 import {
     getCandidateApplications,
     clearCandidateApplications,
+    getSubmissionActivities,
+    clearSubmissionActivities,
 } from "../../Redux/Slice/candidateSlice";
 import ApplyJobModal from "../Candidate/ApplyJobModal";
 import "./Components.css";
@@ -510,6 +512,9 @@ const ApplicationsTab = ({ candidateId }) => {
         candidateApplications = [],
         candidateApplicationsLoading = false,
         candidateApplicationsError = null,
+        submissionActivities = [],
+        submissionActivitiesLoading = false,
+        submissionActivitiesError = null,
     } = useSelector((state) => state.candidate);
 
     const [applications, setApplications] = useState([]);
@@ -517,6 +522,10 @@ const ApplicationsTab = ({ candidateId }) => {
     const [showInterviewModal, setShowInterviewModal] = useState(false);
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [showApplyJobModal, setShowApplyJobModal] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [selectedHistoryApplication, setSelectedHistoryApplication] = useState(null);
+    const [historyCounts, setHistoryCounts] = useState({});
+
     const [interviewData, setInterviewData] = useState({
         date: "27-08-2026",
         time: "13:16",
@@ -562,8 +571,7 @@ const ApplicationsTab = ({ candidateId }) => {
             candidateApplications.map((application) => ({
                 ...application,
                 status:
-                    application.status ||
-                    application.submissionStatus ||
+                    application.statusName ||
                     "Applied",
             }))
         );
@@ -571,11 +579,7 @@ const ApplicationsTab = ({ candidateId }) => {
 
     const getJobTitle = (application) => {
         return (
-            application.jobTitle ||
-            application.job?.title ||
-            application.job?.jobTitle ||
-            application.job?.name ||
-            application.title ||
+            application.jobName ||
             "Untitled Job"
         );
     };
@@ -792,6 +796,94 @@ const ApplicationsTab = ({ candidateId }) => {
 
         setShowApplyJobModal(false);
     };
+const handleOpenHistory = (application) => {
+    const submissionId =
+        application.id ||
+        application.submissionId;
+
+    if (!submissionId) {
+        console.error("Submission ID not found", application);
+        return;
+    }
+
+    setSelectedHistoryApplication(application);
+    setShowHistoryModal(true);
+
+    dispatch(getSubmissionActivities(submissionId));
+};
+
+const handleCloseHistory = () => {
+    setShowHistoryModal(false);
+    setSelectedHistoryApplication(null);
+
+    dispatch(clearSubmissionActivities());
+};
+
+const formatHistoryDate = (dateString) => {
+    if (!dateString) {
+        return "-";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+    return date.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
+useEffect(() => {
+    if (!candidateApplications.length) {
+        setHistoryCounts({});
+        return;
+    }
+
+    const loadHistoryCounts = async () => {
+        const counts = {};
+
+        await Promise.all(
+            candidateApplications.map(async (application) => {
+                const submissionId =
+                    application.id ||
+                    application.submissionId;
+
+                if (!submissionId) {
+                    return;
+                }
+
+                try {
+                    const result = await dispatch(
+                        getSubmissionActivities(submissionId)
+                    ).unwrap();
+
+                    counts[submissionId] = Array.isArray(result)
+                        ? result.length
+                        : 0;
+                } catch (error) {
+                    console.error(
+                        "Failed to load history count:",
+                        submissionId,
+                        error
+                    );
+
+                    counts[submissionId] = 0;
+                }
+            })
+        );
+
+        setHistoryCounts(counts);
+    };
+
+    loadHistoryCounts();
+}, [candidateApplications, dispatch]);
+
     return (
         <>
             <div className="candidate-tab-card cxandidate applications-tab">
@@ -851,8 +943,13 @@ const ApplicationsTab = ({ candidateId }) => {
                                     getSubmissionRate(app);
                                 const offerRate =
                                     getOfferRate(app);
-                                const historyCount =
-                                    getHistoryCount(app);
+                                const submissionId =
+                                        app.id ||
+                                        app.submissionId;
+
+                                    const historyCount =
+                                        historyCounts[submissionId] ??
+                                        getHistoryCount(app);
 
                                 return (
                                     <div
@@ -952,20 +1049,16 @@ const ApplicationsTab = ({ candidateId }) => {
                                                         Rates
                                                     </span>
                                                 </button>
-
-                                                <button
-                                                    type="button"
-                                                    className="cxandidate-application-action"
-                                                >
-                                                    <FiList />
-                                                    <span>
-                                                        History (
-                                                        {
-                                                            historyCount
-                                                        }
-                                                        )
-                                                    </span>
-                                                </button>
+                                                    <button
+                                                        type="button"
+                                                        className="cxandidate-application-action"
+                                                        onClick={() => handleOpenHistory(app)}
+                                                    >
+                                                        <FiList />
+                                                        <span>
+                                                            History ({historyCount})
+                                                        </span>
+                                                    </button>
 
                                                 <button
                                                     type="button"
@@ -1237,6 +1330,175 @@ const ApplicationsTab = ({ candidateId }) => {
                     onApply={handleApplyJobSubmit}
                 />
             )}
+
+            {showHistoryModal && selectedHistoryApplication && (
+    <div
+        className="cxandidate-history-overlay"
+        onMouseDown={handleCloseHistory}
+    >
+        <div
+            className="cxandidate-history-modal"
+            onMouseDown={(e) => e.stopPropagation()}
+        >
+            {/* HEADER */}
+            <div className="cxandidate-history-header">
+                <div>
+                    <h3>Application History</h3>
+
+                    <p>
+                        {getJobTitle(selectedHistoryApplication)}
+                        {getCompany(selectedHistoryApplication) && (
+                            <>
+                                {" "}
+                                —{" "}
+                                {getCompany(
+                                    selectedHistoryApplication
+                                )}
+                            </>
+                        )}
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    className="cxandidate-history-close"
+                    onClick={handleCloseHistory}
+                >
+                    ×
+                </button>
+            </div>
+
+            {/* BODY */}
+            <div className="cxandidate-history-body">
+
+                {submissionActivitiesLoading && (
+                    <div className="cxandidate-history-loading">
+                        <div className="cxandidate-history-loading-bar"></div>
+                        <p>Loading application history...</p>
+                    </div>
+                )}
+
+                {!submissionActivitiesLoading &&
+                    submissionActivitiesError && (
+                        <div className="cxandidate-history-error">
+                            {submissionActivitiesError}
+                        </div>
+                    )}
+
+                {!submissionActivitiesLoading &&
+                    !submissionActivitiesError &&
+                    submissionActivities.length === 0 && (
+                        <div className="cxandidate-history-empty">
+                            No history available for this application.
+                        </div>
+                    )}
+
+                {!submissionActivitiesLoading &&
+                    !submissionActivitiesError &&
+                    submissionActivities.length > 0 && (
+                        <div className="cxandidate-history-list">
+                            {submissionActivities.map(
+                                (activity, index) => (
+                                    <div
+                                        className="cxandidate-history-item"
+                                        key={
+                                            activity.id ||
+                                            index
+                                        }
+                                    >
+                                        {/* LEFT COLOR LINE */}
+                                        <div
+                                            className={`cxandidate-history-line ${
+                                                activity.newValue
+                                                    ?.toLowerCase()
+                                                    .replace(
+                                                        /\s+/g,
+                                                        "-"
+                                                    )
+                                            }`}
+                                        ></div>
+
+                                        {/* CONTENT */}
+                                        <div className="cxandidate-history-content">
+
+                                            <div className="cxandidate-history-top">
+                                                <span className="cxandidate-history-action">
+                                                    {activity.action}
+                                                </span>
+
+                                                <span className="cxandidate-history-date">
+                                                    {formatHistoryDate(
+                                                        activity.performedAt
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <div className="cxandidate-history-status-change">
+
+                                                <span className="cxandidate-history-old-status">
+                                                    {activity.oldValue ||
+                                                        "—"}
+                                                </span>
+
+                                                <span className="cxandidate-history-arrow">
+                                                    →
+                                                </span>
+
+                                                <span
+                                                    className={`cxandidate-history-new-status ${
+                                                        activity.newValue
+                                                            ?.toLowerCase()
+                                                            .replace(
+                                                                /\s+/g,
+                                                                "-"
+                                                            )
+                                                    }`}
+                                                >
+                                                    {activity.newValue ||
+                                                        "—"}
+                                                </span>
+
+                                            </div>
+
+                                            <p className="cxandidate-history-description">
+                                                {activity.description ||
+                                                    "No description available."}
+                                            </p>
+
+                                            <div className="cxandidate-history-performed">
+                                                Performed by{" "}
+                                                <strong>
+                                                    {activity.performedBy ||
+                                                        "Unknown"}
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+            </div>
+
+            {/* FOOTER */}
+            <div className="cxandidate-history-footer">
+                <span>
+                    {submissionActivities.length}{" "}
+                    {submissionActivities.length === 1
+                        ? "activity"
+                        : "activities"}
+                </span>
+
+                <button
+                    type="button"
+                    onClick={handleCloseHistory}
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+)}
         </>
     );
 };
