@@ -194,10 +194,10 @@ function App() {
                         element={<Employees />}
                     />
 
-                    <Route
+                    {/* <Route
                         path="/dashboard/reports"
                         element={<JobRoleReport />}
-                    />
+                    /> */}
 
                 </Route>
 
