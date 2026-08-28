@@ -74,23 +74,14 @@
 
 // export default App;
 
-
-import {
-    BrowserRouter,
-    Routes,
-    Route,
-    Navigate,
-} from "react-router-dom";
-
+import { BrowserRouter, Routes, Route, Navigate, } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import Login from "./Pages/Auth/Login";
 import DashboardLayout from "./Layouts/Layout";
 import Dashboard from "./Pages/Dashboard/Dashboard";
-import Pipeline from "./Pages/Pipeline/Pipeline";
 import Candidates from "./Pages/Candidate/Candidate";
 import JobPage from "./Pages/Jobs/Job";
-import CandidateMasterDB from "./Pages/CandidateMasterDB/CandidateMasterDB";
 import Client from "./Pages/Clients/Clients";
 import Employees from "./Pages/Employees/Employees";
 
@@ -101,9 +92,10 @@ import NewJob from "./Pages/Jobs/NewJob";
 import CandidateDetails from "./Pages/Candidate/CandidateDetails";
 import RecruitmentWorkflow from "./Pages/RecruitmentWorkflow/RecruitmentWorkflow";
 import RecruitmentWorkflowDetails from "./Pages/RecruitmentWorkflow/RecruitmentWorkflowDetails";
-
+import JobRoleReport from "./Pages/Reports/JobRoleReport";
 
 import "./app.css";
+import Roles from "./Pages/RolesPermission/Roles";
 
 
 function ProtectedRoute({ children }) {
@@ -128,15 +120,9 @@ function App() {
             <Routes>
 
                 {/* Login Page */}
-                <Route
-                    path="/"
-                    element={<Login />}
-                />
+                <Route path="/" element={<Login />} />
 
-
-                {/* Protected Application */}
-                <Route
-                    path="/dashboard"
+                <Route path="/dashboard"
                     element={
                         <ProtectedRoute>
                             <DashboardLayout />
@@ -144,64 +130,26 @@ function App() {
                     }
                 >
 
-                    {/* /dashboard */}
-                    <Route
-                        index
-                        element={<Dashboard />}
-                    />
+                    <Route index element={<Dashboard />} />
+                    <Route path="roles" element={<Roles />} />
 
-                    {/* /dashboard/pipeline */}
-                    {/* <Route
-                        path="pipeline"
-                        element={<Pipeline />}
-                    /> */}
-                    {/* /dashboard/RecruitmentWorkflow */}
                     <Route path="recruitment-Workflow" element={<RecruitmentWorkflow />} />
                     <Route path="recruitment-workflow/:stage" element={<RecruitmentWorkflowDetails />} />
 
-                    {/* /dashboard/candidates */}
-                    {/* <Route
-                        path="candidates"
-                        element={<Candidates />}
-                    /> */}
                     <Route path="candidates" element={<Candidates />} />
                     <Route path="candidates/:id" element={<CandidateDetails />} />
 
-                    {/* /dashboard/master-db */}
-                    {/* <Route
-                        path="master-db"
-                        element={<CandidateMasterDB />}
-                    /> */}
-
-                    {/* /dashboard/jobs */}
-                    {/* <Route
-                        path="jobs"
-                        element={<JobPage />}
-                    /> */}
                     <Route path="jobs" element={<JobPage />} />
                     <Route path="jobs/:id" element={<JobDetails />} />
                     <Route path="jobs/new" element={<NewJob />} />
 
-                    {/* /dashboard/clients */}
-                    <Route
-                        path="clients"
-                        element={<Client />}
-                    />
+                    <Route path="clients" element={<Client />} />
+                    <Route path="employees" element={<Employees />} />
 
-                    {/* /dashboard/employees */}
-                    <Route
-                        path="employees"
-                        element={<Employees />}
-                    />
+                    <Route path="/dashboard/reports" element={<JobRoleReport />} />
 
                 </Route>
 
-
-                {/* Invalid URL */}
-                {/* <Route
-                    path="*"
-                    element={<Navigate to="/" replace />}
-                /> */}
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
 
