@@ -3,14 +3,34 @@ import React from "react";
 const NotesTab = ({
     noteText,
     setNoteText,
-    notes,
+    notes = [],
+    notesLoading = false,
+    notesError = null,
+    creatingNote = false,
     handleAddNote,
 }) => {
+
+    const formatDate = (dateValue) => {
+
+        if (!dateValue) {
+            return "";
+        }
+
+        const date = new Date(dateValue);
+
+        if (Number.isNaN(date.getTime())) {
+            return dateValue;
+        }
+
+        return date.toLocaleString();
+    };
 
     return (
         <div className="candidate-tab-card notes-card">
 
-            <h2>Notes</h2>
+            <h2>
+                Notes
+            </h2>
 
             <textarea
                 className="candidate-note-input"
@@ -19,42 +39,90 @@ const NotesTab = ({
                 onChange={(e) =>
                     setNoteText(e.target.value)
                 }
+                disabled={creatingNote}
             />
 
             <button
+                type="button"
                 className="add-note-btn"
                 onClick={handleAddNote}
+                disabled={
+                    creatingNote ||
+                    !noteText.trim()
+                }
             >
-                Add note
+                {creatingNote
+                    ? "Adding..."
+                    : "Add note"
+                }
             </button>
 
+            {notesLoading && (
+                <div className="candidate-notes-loading">
+                    Loading notes...
+                </div>
+            )}
 
-            <div className="candidate-notes-list">
+            {notesError && (
+                <div className="candidate-notes-error">
+                    {notesError}
+                </div>
+            )}
 
-                {notes.map((note, index) => (
+            {!notesLoading &&
+                !notesError &&
+                notes.length === 0 && (
 
-                    <div
-                        className="candidate-note-item"
-                        key={index}
-                    >
+                <div className="candidate-notes-empty">
+                    No notes added yet.
+                </div>
+            )}
 
-                        <div className="candidate-note-text">
-                            {note.text}
+            {!notesLoading &&
+                notes.length > 0 && (
+
+                <div className="candidate-notes-list">
+
+                    {notes.map((note, index) => (
+
+                        <div
+                            className="candidate-note-item"
+                            key={
+                                note.id ||
+                                `${note.chatAt || "note"}-${index}`
+                            }
+                        >
+
+                            <div className="candidate-note-text">
+                                {note.content || "-"}
+                            </div>
+
+                            <div className="candidate-note-label">
+
+                                <span>
+                                    Recruiter note
+                                </span>
+
+                                {note.chatAt && (
+                                    <span>
+                                        {" · "}
+                                        {formatDate(
+                                            note.chatAt
+                                        )}
+                                    </span>
+                                )}
+
+                            </div>
+
                         </div>
 
-                        <div className="candidate-note-label">
-                            {note.label}
-                        </div>
+                    ))}
 
-                    </div>
-
-                ))}
-
-            </div>
+                </div>
+            )}
 
         </div>
     );
 };
-
 
 export default NotesTab;

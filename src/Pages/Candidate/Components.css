@@ -1433,3 +1433,290 @@
     background: #cbd5e1;
     border-radius: 10px;
 }
+
+/* =========================================================
+   RATES MODAL
+   ========================================================= */
+
+.cxandidate-rates-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 9999;
+
+    padding: 20px;
+}
+
+.cxandidate-rates-modal {
+    width: 100%;
+    max-width: 700px;
+
+    background: #ffffff;
+    border-radius: 18px;
+
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+
+    overflow: hidden;
+}
+
+
+/* HEADER */
+
+.cxandidate-rates-header {
+    min-height: 82px;
+
+    padding: 0 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #e5eaf2;
+}
+
+.cxandidate-rates-header h3 {
+    margin: 0;
+
+    font-size: 21px;
+    font-weight: 700;
+
+    color: #0f2747;
+}
+
+.cxandidate-rates-close {
+    width: 38px;
+    height: 38px;
+
+    border: 0;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #54708f;
+
+    font-size: 23px;
+
+    cursor: pointer;
+
+    border-radius: 8px;
+}
+
+.cxandidate-rates-close:hover {
+    background: #f3f6fa;
+}
+
+
+/* BODY */
+
+.cxandidate-rates-body {
+    padding: 26px 28px 30px;
+}
+
+.cxandidate-rate-field-group {
+    margin-bottom: 24px;
+}
+
+.cxandidate-rate-label {
+    display: block;
+
+    margin-bottom: 9px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    color: #5d7190;
+}
+
+.cxandidate-rate-row {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+}
+
+.cxandidate-rate-currency {
+    width: 96px;
+}
+
+.cxandidate-rate-amount {
+    flex: 1;
+    min-width: 0;
+}
+
+.cxandidate-rate-period {
+    width: 115px;
+}
+
+.cxandidate-rate-currency,
+.cxandidate-rate-amount,
+.cxandidate-rate-period {
+    height: 50px;
+
+    border: 1px solid #dce5f0;
+    border-radius: 11px;
+
+    background: #ffffff;
+
+    padding: 0 16px;
+
+    font-size: 17px;
+
+    color: #1d2f48;
+
+    outline: none;
+}
+
+.cxandidate-rate-currency:focus,
+.cxandidate-rate-amount:focus,
+.cxandidate-rate-period:focus {
+    border-color: #8fb2ff;
+    box-shadow: 0 0 0 3px rgba(47, 105, 246, 0.08);
+}
+
+.cxandidate-current-rate {
+    margin-top: 10px;
+
+    font-size: 15px;
+
+    color: #617897;
+}
+
+.cxandidate-rates-description {
+    margin-top: 4px;
+
+    font-size: 15px;
+    line-height: 1.35;
+
+    color: #617897;
+}
+
+
+/* FOOTER */
+
+.cxandidate-rates-footer {
+    min-height: 90px;
+
+    padding: 20px 28px;
+
+    border-top: 1px solid #e5eaf2;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 12px;
+}
+
+.cxandidate-rates-cancel-btn,
+.cxandidate-rates-save-btn {
+    height: 48px;
+
+    padding: 0 21px;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.cxandidate-rates-cancel-btn {
+    background: #ffffff;
+
+    border: 1px solid #dce5f0;
+
+    color: #102a43;
+}
+
+.cxandidate-rates-cancel-btn:hover {
+    background: #f7f9fc;
+}
+
+.cxandidate-rates-save-btn {
+    border: 0;
+
+    background: #3169ed;
+
+    color: #ffffff;
+
+    padding-left: 23px;
+    padding-right: 23px;
+}
+
+.cxandidate-rates-save-btn:hover {
+    background: #2458d2;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+
+    .cxandidate-rates-modal {
+        max-width: 100%;
+    }
+
+    .cxandidate-rates-header {
+        padding: 0 20px;
+    }
+
+    .cxandidate-rates-header h3 {
+        font-size: 18px;
+    }
+
+    .cxandidate-rates-body {
+        padding: 22px 20px;
+    }
+
+    .cxandidate-rate-row {
+        flex-wrap: wrap;
+    }
+
+    .cxandidate-rate-currency {
+        width: 100%;
+    }
+
+    .cxandidate-rate-amount {
+        width: 100%;
+        flex: none;
+    }
+
+    .cxandidate-rate-period {
+        width: 100%;
+    }
+
+    .cxandidate-rates-footer {
+        padding: 18px 20px;
+
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .cxandidate-rates-cancel-btn,
+    .cxandidate-rates-save-btn {
+        width: 100%;
+    }
+}
+
+.cxandidate-interview-error {
+    margin-top: 18px;
+    padding: 12px 14px;
+
+    border-radius: 8px;
+
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+
+    color: #be123c;
+
+    font-size: 14px;
+    font-weight: 500;
+}

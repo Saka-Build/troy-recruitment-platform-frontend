@@ -35,6 +35,9 @@ import {
   deleteCandidate,
    getSubmissionStatuses,
   createSubmission,
+  getCandidateApplications,
+  createNote,
+  getCandidateNotes,
 } from "../../Redux/Slice/candidateSlice";
 
 
@@ -67,6 +70,11 @@ function CandidateDetails() {
 
   creatingSubmission = false,
   createSubmissionError = null,
+  notes = [],
+  notesLoading = false,
+  notesError = null,
+  creatingNote = false,
+  createNoteError = null,
 } = useSelector(
   (state) => state.candidate
 );
@@ -99,15 +107,6 @@ function CandidateDetails() {
     setShowApplyJobModal,
   ] = useState(false);
 
-  const [
-    notes,
-    setNotes,
-  ] = useState([
-    {
-      text: "Strong S/4 migration background.",
-      label: "Initial note",
-    },
-  ]);
 
   const [
     showEditModal,
@@ -155,6 +154,9 @@ function CandidateDetails() {
     dispatch(
     getSubmissionStatuses()
   );
+  dispatch(
+    getCandidateNotes(id)
+  );
 
     return () => {
 
@@ -193,28 +195,78 @@ function CandidateDetails() {
   };
 
 
-  const handleAddNote = () => {
+const handleAddNote = async () => {
 
-    if (!noteText.trim()) {
-      return;
-    }
+  const content = noteText.trim();
 
+  if (!content) {
+    showNotification(
+      "error",
+      "Please enter a note"
+    );
 
-    setNotes([
-      ...notes,
+    return;
+  }
 
+  if (!selectedCandidate?.id) {
+    showNotification(
+      "error",
+      "Candidate ID is missing"
+    );
+
+    return;
+  }
+
+  try {
+
+    console.log(
+      "CREATING NOTE:",
       {
-        text:
-          noteText.trim(),
+        entityType: "candidate",
+        entityId: selectedCandidate.id,
+        content,
+        chatWith: null,
+      }
+    );
 
-        label:
-          "Recruiter note",
-      },
-    ]);
+    await dispatch(
+      createNote({
+        entityType: "candidate",
+        entityId: selectedCandidate.id,
+        content,
+        chatWith: null,
+      })
+    ).unwrap();
 
+    // Refresh notes from backend
+    await dispatch(
+      getCandidateNotes(
+        selectedCandidate.id
+      )
+    ).unwrap();
 
     setNoteText("");
-  };
+
+    showNotification(
+      "success",
+      "Note added successfully"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "CREATE NOTE ERROR:",
+      error
+    );
+
+    showNotification(
+      "error",
+      typeof error === "string"
+        ? error
+        : "Failed to add note"
+    );
+  }
+};
 
   const handleEditClick = () => {
 
@@ -559,19 +611,25 @@ function CandidateDetails() {
   try {
 
     const result = await dispatch(
-      createSubmission({
+    createSubmission({
+        candidateId,
+        jobId,
+        statusId,
+    })
+).unwrap();
 
-        candidateId:
-          candidateId,
+await dispatch(
+    getCandidateApplications(candidateId)
+).unwrap();
 
-        jobId:
-          jobId,
+setShowApplyJobModal(false);
 
-        statusId:
-          statusId,
+showNotification(
+    "success",
+    "Candidate application created successfully"
+);
 
-      })
-    ).unwrap();
+setActiveTab("Applications");
 
 
     console.log(
@@ -862,24 +920,40 @@ function CandidateDetails() {
       )}
 
 
-      {activeTab === "Applications" && (
-        <ApplicationsTab
-          candidateId={candidate.id}
-        />
-      )}
+     {activeTab === "Applications" && (
+    <ApplicationsTab
+        candidateId={candidate.id}
+
+        openJobs={openJobs}
+        isOpenJobsLoading={isOpenJobsLoading}
+
+        submissionStatuses={submissionStatuses}
+        submissionStatusesLoading={submissionStatusesLoading}
+        submissionStatusesError={submissionStatusesError}
+
+        creatingSubmission={creatingSubmission}
+        createSubmissionError={createSubmissionError}
+
+        onApplyJob={handleApplyJobSubmit}
+    />
+)}
 
 
       {activeTab === "Notes" && (
 
-        <NotesTab
-          candidate={candidate}
-          noteText={noteText}
-          setNoteText={setNoteText}
-          notes={notes}
-          handleAddNote={handleAddNote}
-        />
+  <NotesTab
+    candidate={candidate}
+    noteText={noteText}
+    setNoteText={setNoteText}
+    notes={notes}
+    notesLoading={notesLoading}
+    notesError={notesError}
+    creatingNote={creatingNote}
+    createNoteError={createNoteError}
+    handleAddNote={handleAddNote}
+  />
 
-      )}
+)}
 
 
       {activeTab === "History" && (

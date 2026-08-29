@@ -1,489 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//     FiCalendar,
-//     FiClock,
-//     FiDollarSign,
-//     FiList,
-//     FiSearch,
-//     FiX,
-// } from "react-icons/fi";
-// import { FaPlaneDeparture } from "react-icons/fa";
-// import { MdWorkOutline } from "react-icons/md";
-// import "./Components.css";
-
-// const ApplicationsTab = ({ candidate }) => {
-//     const [applications, setApplications] = useState([
-//         {
-//             id: 1,
-//             jobTitle: "Cloud Security Engineer",
-//             company: "Meridian Fintech",
-//             appliedDate: "7h ago",
-//             status: "Onboarded",
-//             expectedSalary: "£200 / day",
-//             submissionRate: "£200 / day",
-//             offer: "£100 / day",
-//             historyCount: 12,
-//         },
-//         {
-//             id: 2,
-//             jobTitle: "SAP S/4HANA Consultant",
-//             company: "Nova Manufacturing",
-//             appliedDate: "1h ago",
-//             status: "Actively Sourcing",
-//             expectedSalary: "£200 / day",
-//             submissionRate: null,
-//             offer: null,
-//             historyCount: 3,
-//         },
-//     ]);
-
-//     const [showInterviewModal, setShowInterviewModal] = useState(false);
-//     const [selectedApplication, setSelectedApplication] = useState(null);
-
-//     const [interviewData, setInterviewData] = useState({
-//         date: "27-08-2026",
-//         time: "13:16",
-//         type: "Teams",
-//         round: "HR Round",
-//         interviewer: "",
-//     });
-
-//     const statuses = [
-//         "Applied",
-//         "Actively Sourcing",
-//         "Ready to Submit",
-//         "Submitted",
-//         "Interview",
-//         "Selected",
-//         "Offer Released",
-//         "Onboarding",
-//         "Onboarded",
-//         "Hold",
-//         "Rejected",
-//         "Offboarded",
-//     ];
-
-//     const getStatusClass = (status) => {
-//         const classes = {
-//             Pipeline: "cxandidate-status-pipeline",
-//             "Actively Sourcing": "cxandidate-status-sourcing",
-//             "Ready to Submit": "cxandidate-status-ready",
-//             Submitted: "cxandidate-status-submitted",
-//             "In Progress": "cxandidate-status-progress",
-//             Interview: "cxandidate-status-interview",
-//             Selected: "cxandidate-status-selected",
-//             "Offer Released": "cxandidate-status-selected",
-//             Onboarding: "cxandidate-status-selected",
-//             Onboarded: "cxandidate-status-selected",
-//             Hold: "cxandidate-status-hold",
-//             Deferred: "cxandidate-status-hold",
-//             Withdrawn: "cxandidate-status-withdrawn",
-//             Rejected: "cxandidate-status-rejected",
-//             Closed: "cxandidate-status-withdrawn",
-//             Blacklisted: "cxandidate-status-rejected",
-//         };
-
-//         return classes[status] || "cxandidate-status-default";
-//     };
-
-//     const getStatusIcon = (status) => {
-//         const icons = {
-//             Pipeline: <FiSearch />,
-//             "Actively Sourcing": <FiSearch />,
-//             "Ready to Submit": <MdWorkOutline />,
-//             Submitted: <MdWorkOutline />,
-//             "In Progress": <FiClock />,
-//             Interview: <FiCalendar />,
-//             Selected: <MdWorkOutline />,
-//             "Offer Released": <MdWorkOutline />,
-//             Onboarding: <MdWorkOutline />,
-//             Onboarded: <FaPlaneDeparture />,
-//             Hold: <FiClock />,
-//             Deferred: <FiClock />,
-//             Withdrawn: <FiX />,
-//             Rejected: <FiX />,
-//             Closed: <FiX />,
-//             Blacklisted: <FiX />,
-//         };
-
-//         return icons[status] || <MdWorkOutline />;
-//     };
-
-//     const handleStatusChange = (id, value) => {
-//         setApplications((prev) =>
-//             prev.map((application) =>
-//                 application.id === id
-//                     ? { ...application, status: value }
-//                     : application
-//             )
-//         );
-//     };
-
-//     const handleOpenInterview = (application) => {
-//         setSelectedApplication(application);
-//         setShowInterviewModal(true);
-//     };
-
-//     const handleCloseInterview = () => {
-//         setShowInterviewModal(false);
-//         setSelectedApplication(null);
-//     };
-
-//     const handleInterviewChange = (field, value) => {
-//         setInterviewData((prev) => ({
-//             ...prev,
-//             [field]: value,
-//         }));
-//     };
-
-//     const handleSaveInterview = () => {
-//         if (!selectedApplication) return;
-
-//         setApplications((prev) =>
-//             prev.map((application) =>
-//                 application.id === selectedApplication.id
-//                     ? {
-//                         ...application,
-//                         status: "Interview",
-//                     }
-//                     : application
-//             )
-//         );
-
-//         handleCloseInterview();
-//     };
-
-//     const handleRemove = (id) => {
-//         setApplications((prev) =>
-//             prev.filter((application) => application.id !== id)
-//         );
-//     };
-
-//     return (
-//         <>
-//             <div className="candidate-tab-card cxandidate applications-tab">
-//                 <div className="cxandidate-applications-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-//                     <div>
-//                         <h2 className="cxandidate-applications-title">
-//                             Applications ({applications.length})
-//                         </h2>
-
-//                         <p className="cxandidate-applications-description">
-//                             Each application is this candidate's journey
-//                             through one job — with its own status, interview
-//                             and history.
-//                         </p>
-//                     </div>
-
-//                     <button
-//                         type="button"
-//                         className="cxandidate-apply-job-btn"
-//                     >
-//                         + Apply to a job
-//                     </button>
-//                 </div>
-
-//                 <div className="cxandidate-applications-list">
-//                     {applications.map((app) => (
-//                         <div
-//                             key={app.id}
-//                             className="cxandidate-application-card"
-//                         >
-//                             <div className="cxandidate-application-top">
-//                                 <div className="cxandidate-application-title">
-//                                     <strong>{app.jobTitle}</strong>
-//                                     <span> — {app.company}</span>
-//                                 </div>
-
-//                                 <span className="cxandidate-application-date">
-//                                     applied {app.appliedDate}
-//                                 </span>
-//                             </div>
-
-//                             <div className="cxandidate-application-content">
-//                                 <div className="cxandidate-application-controls">
-//                                     <div
-//                                         className={`cxandidate-status-badge ${getStatusClass(
-//                                             app.status
-//                                         )}`}
-//                                     >
-//                                         <span className="cxandidate-status-icon">
-//                                             {getStatusIcon(app.status)}
-//                                         </span>
-
-//                                         <span>{app.status}</span>
-//                                     </div>
-
-//                                     <select
-//                                         className="cxandidate-status-select"
-//                                         value={app.status}
-//                                         onChange={(e) =>
-//                                             handleStatusChange(
-//                                                 app.id,
-//                                                 e.target.value
-//                                             )
-//                                         }
-//                                     >
-//                                         {statuses.map((status) => (
-//                                             <option
-//                                                 key={status}
-//                                                 value={status}
-//                                             >
-//                                                 {status}
-//                                             </option>
-//                                         ))}
-//                                     </select>
-
-//                                     <button
-//                                         type="button"
-//                                         className="cxandidate-application-action"
-//                                         onClick={() =>
-//                                             handleOpenInterview(app)
-//                                         }
-//                                     >
-//                                         <FiCalendar />
-//                                         <span>Interview</span>
-//                                     </button>
-
-//                                     <button
-//                                         type="button"
-//                                         className="cxandidate-application-action"
-//                                     >
-//                                         <FiDollarSign />
-//                                         <span>Rates</span>
-//                                     </button>
-
-//                                     <button
-//                                         type="button"
-//                                         className="cxandidate-application-action"
-//                                     >
-//                                         <FiList />
-//                                         <span>
-//                                             History ({app.historyCount})
-//                                         </span>
-//                                     </button>
-
-//                                     <button
-//                                         type="button"
-//                                         className="cxandidate-application-action cxandidate-remove-btn"
-//                                         onClick={() =>
-//                                             handleRemove(app.id)
-//                                         }
-//                                     >
-//                                         <FiX />
-//                                         <span>Remove</span>
-//                                     </button>
-//                                 </div>
-
-//                                 <div className="cxandidate-application-rates">
-//                                     <span>
-//                                         Expected:{" "}
-//                                         <strong>{app.expectedSalary}</strong>
-//                                     </span>
-
-//                                     {app.submissionRate && (
-//                                         <>
-//                                             <span className="cxandidate-rate-separator">
-//                                                 ·
-//                                             </span>
-
-//                                             <span>
-//                                                 Submitted:{" "}
-//                                                 <strong>
-//                                                     {app.submissionRate}
-//                                                 </strong>
-//                                             </span>
-//                                         </>
-//                                     )}
-
-//                                     {app.offer && (
-//                                         <>
-//                                             <span className="cxandidate-rate-separator">
-//                                                 ·
-//                                             </span>
-
-//                                             <span className="cxandidate-offer-rate">
-//                                                 Offer:{" "}
-//                                                 <strong>{app.offer}</strong>
-//                                             </span>
-//                                         </>
-//                                     )}
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     ))}
-//                 </div>
-//             </div>
-
-//             {showInterviewModal && selectedApplication && (
-//                 <div
-//                     className="cxandidate-modal-overlay"
-//                     onMouseDown={handleCloseInterview}
-//                 >
-//                     <div
-//                         className="cxandidate-interview-modal"
-//                         onMouseDown={(e) => e.stopPropagation()}
-//                     >
-//                         <div className="cxandidate-interview-modal-header">
-//                             <h3>
-//                                 Schedule interview —{" "}
-//                                 {selectedApplication.jobTitle}
-//                             </h3>
-
-//                             <button
-//                                 type="button"
-//                                 className="cxandidate-modal-close"
-//                                 onClick={handleCloseInterview}
-//                                 aria-label="Close"
-//                             >
-//                                 <FiX />
-//                             </button>
-//                         </div>
-
-//                         <div className="cxandidate-interview-modal-body">
-//                             <div className="row g-3">
-//                                 <div className="col-md-6">
-//                                     <label className="cxandidate-form-label">
-//                                         Date *
-//                                     </label>
-
-//                                     <div className="cxandidate-input-icon-wrapper">
-//                                         <input
-//                                             type="text"
-//                                             className="form-control cxandidate-form-control"
-//                                             value={interviewData.date}
-//                                             onChange={(e) =>
-//                                                 handleInterviewChange(
-//                                                     "date",
-//                                                     e.target.value
-//                                                 )
-//                                             }
-//                                         />
-
-//                                         <FiCalendar />
-//                                     </div>
-//                                 </div>
-
-//                                 <div className="col-md-6">
-//                                     <label className="cxandidate-form-label">
-//                                         Time
-//                                     </label>
-
-//                                     <div className="cxandidate-input-icon-wrapper">
-//                                         <input
-//                                             type="text"
-//                                             className="form-control cxandidate-form-control"
-//                                             value={interviewData.time}
-//                                             onChange={(e) =>
-//                                                 handleInterviewChange(
-//                                                     "time",
-//                                                     e.target.value
-//                                                 )
-//                                             }
-//                                         />
-
-//                                         <FiClock />
-//                                     </div>
-//                                 </div>
-
-//                                 <div className="col-md-6">
-//                                     <label className="cxandidate-form-label">
-//                                         Type
-//                                     </label>
-
-//                                     <select
-//                                         className="form-select cxandidate-form-control"
-//                                         value={interviewData.type}
-//                                         onChange={(e) =>
-//                                             handleInterviewChange(
-//                                                 "type",
-//                                                 e.target.value
-//                                             )
-//                                         }
-//                                     >
-//                                         <option value="Teams">Teams</option>
-//                                         <option value="Zoom">Zoom</option>
-//                                         <option value="Phone">Phone</option>
-//                                         <option value="Onsite">Onsite</option>
-//                                     </select>
-//                                 </div>
-
-//                                 <div className="col-md-6">
-//                                     <label className="cxandidate-form-label">
-//                                         Round
-//                                     </label>
-
-//                                     <select
-//                                         className="form-select cxandidate-form-control"
-//                                         value={interviewData.round}
-//                                         onChange={(e) =>
-//                                             handleInterviewChange(
-//                                                 "round",
-//                                                 e.target.value
-//                                             )
-//                                         }
-//                                     >
-//                                         <option value="Technical Round">
-//                                             Technical Round
-//                                         </option>
-//                                         <option value="HR Round">
-//                                             HR Round
-//                                         </option>
-//                                         <option value="Final Round">
-//                                             Final Round
-//                                         </option>
-//                                     </select>
-//                                 </div>
-
-//                                 <div className="col-12">
-//                                     <label className="cxandidate-form-label">
-//                                         Interviewer
-//                                     </label>
-
-//                                     <input
-//                                         type="text"
-//                                         className="form-control cxandidate-form-control"
-//                                         placeholder="e.g. Sarah Lin (Client)"
-//                                         value={interviewData.interviewer}
-//                                         onChange={(e) =>
-//                                             handleInterviewChange(
-//                                                 "interviewer",
-//                                                 e.target.value
-//                                             )
-//                                         }
-//                                     />
-//                                 </div>
-//                             </div>
-//                         </div>
-
-//                         <div className="cxandidate-interview-modal-footer">
-//                             <button
-//                                 type="button"
-//                                 className="cxandidate-cancel-btn"
-//                                 onClick={handleCloseInterview}
-//                             >
-//                                 Cancel
-//                             </button>
-
-//                             <button
-//                                 type="button"
-//                                 className="cxandidate-save-interview-btn"
-//                                 onClick={handleSaveInterview}
-//                             >
-//                                 Save & set to Interview
-//                             </button>
-//                         </div>
-//                     </div>
-//                 </div>
-//             )}
-//         </>
-//     );
-// };
-
-// export default ApplicationsTab;
-
-
-
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -501,11 +15,31 @@ import {
     clearCandidateApplications,
     getSubmissionActivities,
     clearSubmissionActivities,
+    getSubmissionSubStatuses,
+    updateSubmission,
+    updateSubmissionRates,
+    createInterview,
+     getInterviewsBySubmission,
 } from "../../Redux/Slice/candidateSlice";
 import ApplyJobModal from "../Candidate/ApplyJobModal";
+import RatesModal from "../Candidate/RatesModal";
 import "./Components.css";
 
-const ApplicationsTab = ({ candidateId }) => {
+const ApplicationsTab = ({
+    candidateId,
+
+    openJobs = [],
+    isOpenJobsLoading = false,
+
+    submissionStatuses = [],
+    submissionStatusesLoading = false,
+    submissionStatusesError = null,
+
+    creatingSubmission = false,
+    createSubmissionError = null,
+
+    onApplyJob,
+}) => {
     const dispatch = useDispatch();
 
     const {
@@ -515,6 +49,19 @@ const ApplicationsTab = ({ candidateId }) => {
         submissionActivities = [],
         submissionActivitiesLoading = false,
         submissionActivitiesError = null,
+        submissionSubStatuses = {},
+        submissionSubStatusesLoading = {},
+        submissionSubStatusesError = {},
+
+        updatingSubmission = false,
+        updateSubmissionError = null,
+        updatingSubmissionRates = false,
+        updateSubmissionRatesError = null,
+        creatingInterview = false,
+        createInterviewError = null,
+        interviewsBySubmission = {},
+        interviewsBySubmissionLoading = {},
+        interviewsBySubmissionError = {},
     } = useSelector((state) => state.candidate);
 
     const [applications, setApplications] = useState([]);
@@ -525,35 +72,27 @@ const ApplicationsTab = ({ candidateId }) => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedHistoryApplication, setSelectedHistoryApplication] = useState(null);
     const [historyCounts, setHistoryCounts] = useState({});
+   
+   const [showRatesModal, setShowRatesModal] =
+    useState(false);
+
+   const [selectedRatesApplication, setSelectedRatesApplication] =
+    useState(null);
+
+  
 
     const [interviewData, setInterviewData] = useState({
-        date: "27-08-2026",
-        time: "13:16",
-        type: "Teams",
-        round: "HR Round",
-        interviewer: "",
-    });
-    const {
-        openJobs = [],
-        isOpenJobsLoading = false,
-    } = useSelector(
-        (state) => state.jobs
-    );
-    const statuses = [
-        "Applied",
-        "Actively Sourcing",
-        "Ready to Submit",
-        "Submitted",
-        "Interview",
-        "Selected",
-        "Offer Released",
-        "Onboarding",
-        "Onboarded",
-        "Hold",
-        "Rejected",
-        "Offboarded",
-    ];
-
+    date: "",
+    time: "",
+    type: "TEAMS",
+    round: "Final",
+    interviewer: "",
+});
+    const [
+    applicationChanges,
+    setApplicationChanges,
+] = useState({});
+   
     useEffect(() => {
         if (!candidateId) {
             return;
@@ -567,15 +106,219 @@ const ApplicationsTab = ({ candidateId }) => {
     }, [candidateId, dispatch]);
 
     useEffect(() => {
-        setApplications(
-            candidateApplications.map((application) => ({
-                ...application,
-                status:
-                    application.statusName ||
-                    "Applied",
-            }))
+    setApplications(
+        candidateApplications.map((application) => ({
+            ...application,
+
+            status:
+                application.statusName ||
+                "Applied",
+
+            statusId:
+                application.statusId ||
+                "",
+
+            subStatusId:
+                application.subStatusId ||
+                null,
+
+            subStatus:
+                application.subStatusName ||
+                "",
+        }))
+    );
+
+    setApplicationChanges({});
+}, [candidateApplications]);
+
+useEffect(() => {
+    if (!candidateApplications.length) {
+        return;
+    }
+
+    candidateApplications.forEach((application) => {
+        const submissionId =
+            application.id ||
+            application.submissionId;
+
+        if (!submissionId) {
+            return;
+        }
+
+        dispatch(
+            getInterviewsBySubmission(
+                submissionId
+            )
         );
-    }, [candidateApplications]);
+    });
+}, [candidateApplications, dispatch]);
+
+const getLatestInterview = (submissionId) => {
+    if (!submissionId) {
+        return null;
+    }
+
+    const key = String(submissionId);
+
+    const rawInterviews =
+        interviewsBySubmission[key] ||
+        interviewsBySubmission[submissionId];
+
+    if (!rawInterviews) {
+        return null;
+    }
+
+    let interviews = [];
+
+    /*
+     * Support all common response shapes
+     */
+    if (Array.isArray(rawInterviews)) {
+        interviews = rawInterviews;
+    } else if (Array.isArray(rawInterviews.content)) {
+        interviews = rawInterviews.content;
+    } else if (Array.isArray(rawInterviews.data)) {
+        interviews = rawInterviews.data;
+    } else if (
+        Array.isArray(rawInterviews.data?.content)
+    ) {
+        interviews = rawInterviews.data.content;
+    } else {
+        /*
+         * API may return a single interview object
+         */
+        if (
+            rawInterviews.interviewDate ||
+            rawInterviews.date
+        ) {
+            interviews = [rawInterviews];
+        }
+    }
+
+    if (!interviews.length) {
+        return null;
+    }
+
+    const scheduledInterviews =
+        interviews.filter((item) => {
+            const status = String(
+                item?.status ||
+                item?.interviewStatus ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+            return (
+                !status ||
+                status === "scheduled" ||
+                status === "schedule"
+            );
+        });
+
+    const validInterviews =
+        scheduledInterviews.length
+            ? scheduledInterviews
+            : interviews;
+
+    /*
+     * Sort newest interview first
+     */
+    const getTimestamp = (item) => {
+        const date =
+            item?.interviewDate ||
+            item?.date;
+
+        const time =
+            item?.interviewTime ||
+            item?.time;
+
+        if (!date) {
+            return 0;
+        }
+
+        /*
+         * DD-MM-YYYY
+         */
+        if (
+            /^\d{2}-\d{2}-\d{4}$/.test(
+                String(date)
+            )
+        ) {
+            const [
+                day,
+                month,
+                year,
+            ] = String(date).split("-");
+
+            let hours = 0;
+            let minutes = 0;
+
+            if (time) {
+                const match =
+                    String(time).match(
+                        /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
+                    );
+
+                if (match) {
+                    hours = Number(match[1]);
+                    minutes = Number(match[2]);
+
+                    const period =
+                        match[3]?.toUpperCase();
+
+                    if (
+                        period === "PM" &&
+                        hours !== 12
+                    ) {
+                        hours += 12;
+                    }
+
+                    if (
+                        period === "AM" &&
+                        hours === 12
+                    ) {
+                        hours = 0;
+                    }
+                }
+            }
+
+            return new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day),
+                hours,
+                minutes
+            ).getTime();
+        }
+
+        /*
+         * YYYY-MM-DD / ISO
+         */
+        const timestamp =
+            new Date(date).getTime();
+
+        return Number.isNaN(timestamp)
+            ? 0
+            : timestamp;
+    };
+
+    return [...validInterviews].sort(
+        (a, b) =>
+            getTimestamp(b) -
+            getTimestamp(a)
+    )[0];
+};
+
+const loadSubStatuses = (statusId) => {
+    if (!statusId) {
+        return;
+    }
+
+    dispatch(
+        getSubmissionSubStatuses(statusId)
+    );
+};
 
     const getJobTitle = (application) => {
         return (
@@ -606,80 +349,133 @@ const ApplicationsTab = ({ candidateId }) => {
         );
     };
 
-    const getExpectedSalary = (application) => {
-        if (application.expectedSalary) {
-            return application.expectedSalary;
-        }
-
-        const amount =
-            application.expectedSalaryAmount ??
-            application.expectedRateAmount ??
-            application.candidateRateAmount;
-
-        const currency =
-            application.expectedSalaryCurrency ||
-            application.expectedRateCurrency ||
-            application.candidateRateCurrency;
-
-        const period =
-            application.expectedSalaryPeriod ||
-            application.expectedRatePeriod ||
-            application.candidateRatePeriod;
-
-        if (amount !== undefined && amount !== null) {
-            return `${currency || ""} ${amount} / ${period || "day"}`;
-        }
-
-        return "-";
+const getCurrencySymbol = (currency) => {
+    const currencyMap = {
+        INR: "₹",
+        GBP: "£",
+        USD: "$",
+        EUR: "€",
+        AED: "د.إ",
+        CAD: "C$",
+        AUD: "A$",
     };
 
-    const getSubmissionRate = (application) => {
-        if (application.submissionRate) {
-            return application.submissionRate;
-        }
+    return currencyMap[currency] || currency || "";
+};
 
-        const amount =
-            application.submissionRateAmount ??
-            application.submittedRateAmount;
-
-        const currency =
-            application.submissionRateCurrency ||
-            application.submittedRateCurrency;
-
-        const period =
-            application.submissionRatePeriod ||
-            application.submittedRatePeriod;
-
-        if (amount !== undefined && amount !== null) {
-            return `${currency || ""} ${amount} / ${period || "day"}`;
-        }
-
+const formatRate = (amount, currency, period) => {
+    if (amount === undefined || amount === null) {
         return null;
-    };
+    }
 
-    const getOfferRate = (application) => {
-        if (application.offer) {
-            return application.offer;
-        }
+    const symbol = getCurrencySymbol(currency);
 
-        const amount =
-            application.offerAmount ||
-            application.offerRateAmount;
+    const formattedAmount = Number(amount).toLocaleString("en-IN", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    });
 
-        const currency =
-            application.offerCurrency ||
-            application.offerRateCurrency;
+    return `${symbol}${formattedAmount} / ${period || "month"}`;
+};
 
-        const period =
-            application.offerPeriod ||
-            application.offerRatePeriod;
+const getExpectedSalary = (application) => {
+    // API response fields
+    if (
+        application.candidateExpectedAmount !== undefined &&
+        application.candidateExpectedAmount !== null
+    ) {
+        return formatRate(
+            application.candidateExpectedAmount,
+            application.candidateExpectedCurrency,
+            application.candidateExpectedPeriod
+        );
+    }
 
-        if (amount !== undefined && amount !== null) {
-            return `${currency || ""} ${amount} / ${period || "day"}`;
-        }
+    // Backward compatibility
+    if (application.expectedSalary) {
+        return application.expectedSalary;
+    }
 
-        return null;
-    };
+    const amount =
+        application.expectedSalaryAmount ??
+        application.expectedRateAmount ??
+        application.candidateRateAmount;
+
+    const currency =
+        application.expectedSalaryCurrency ||
+        application.expectedRateCurrency ||
+        application.candidateRateCurrency;
+
+    const period =
+        application.expectedSalaryPeriod ||
+        application.expectedRatePeriod ||
+        application.candidateRatePeriod;
+
+    return formatRate(amount, currency, period) || "-";
+};
+
+const getSubmissionRate = (application) => {
+    // API response fields
+    if (
+        application.submissionAmount !== undefined &&
+        application.submissionAmount !== null
+    ) {
+        return formatRate(
+            application.submissionAmount,
+            application.submissionCurrency,
+            application.submissionPeriod
+        );
+    }
+
+    // Backward compatibility
+    if (application.submissionRate) {
+        return application.submissionRate;
+    }
+
+    const amount =
+        application.submissionRateAmount ??
+        application.submittedRateAmount;
+
+    const currency =
+        application.submissionRateCurrency ||
+        application.submittedRateCurrency;
+
+    const period =
+        application.submissionRatePeriod ||
+        application.submittedRatePeriod;
+
+    return formatRate(amount, currency, period);
+};
+
+const getOfferRate = (application) => {
+    // API response fields
+    if (
+        application.offerAmount !== undefined &&
+        application.offerAmount !== null
+    ) {
+        return formatRate(
+            application.offerAmount,
+            application.offerCurrency,
+            application.offerPeriod
+        );
+    }
+
+    // Backward compatibility
+    if (application.offer) {
+        return application.offer;
+    }
+
+    const amount =
+        application.offerRateAmount;
+
+    const currency =
+        application.offerRateCurrency;
+
+    const period =
+        application.offerRatePeriod;
+
+    return formatRate(amount, currency, period);
+};
 
     const getHistoryCount = (application) => {
         return (
@@ -728,23 +524,188 @@ const ApplicationsTab = ({ candidateId }) => {
         return icons[status] || <MdWorkOutline />;
     };
 
-    const handleStatusChange = (id, value) => {
-        setApplications((prev) =>
-            prev.map((application) =>
-                application.id === id
-                    ? {
-                        ...application,
-                        status: value,
-                    }
-                    : application
-            )
+   const handleStatusChange = (
+    submissionId,
+    statusId
+) => {
+    const selectedStatus =
+        submissionStatuses.find(
+            (status) =>
+                String(status.id) ===
+                String(statusId)
         );
+
+    if (!selectedStatus) {
+        return;
+    }
+
+    const statusName =
+        selectedStatus.name ||
+        selectedStatus.statusName ||
+        selectedStatus.label ||
+        "";
+
+    setApplications((prev) =>
+        prev.map((application) =>
+            (
+                application.id ||
+                application.submissionId
+            ) === submissionId
+                ? {
+                    ...application,
+
+                    statusId:
+                        statusId,
+
+                    status:
+                        statusName,
+
+                    /*
+                     * Changing parent status means
+                     * old sub-status is no longer valid.
+                     */
+                    subStatusId:
+                        null,
+
+                    subStatus:
+                        "",
+                }
+                : application
+        )
+    );
+
+    setApplicationChanges((prev) => ({
+        ...prev,
+
+        [submissionId]: {
+            ...(prev[submissionId] || {}),
+
+            statusId,
+            subStatusId: null,
+        },
+    }));
+
+    loadSubStatuses(statusId);
+};
+
+   const formatInterviewDate = (date) => {
+    if (!date) {
+        return "";
+    }
+
+    /*
+     * Already in DD-MM-YYYY
+     */
+    if (/^\d{2}-\d{2}-\d{4}$/.test(date)) {
+        return date;
+    }
+
+    /*
+     * If browser gives YYYY-MM-DD
+     */
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        const [year, month, day] =
+            date.split("-");
+
+        return `${day}-${month}-${year}`;
+    }
+
+    return date;
+};
+
+const formatInterviewTime = (time) => {
+    if (!time) {
+        return "";
+    }
+
+    /*
+     * Already formatted as 01:40 PM
+     */
+    if (
+        /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(
+            time
+        )
+    ) {
+        const [timePart, period] =
+            time.split(/\s+/);
+
+        const [hours, minutes] =
+            timePart.split(":");
+
+        return `${hours.padStart(
+            2,
+            "0"
+        )}:${minutes} ${period.toUpperCase()}`;
+    }
+
+    /*
+     * Convert 24-hour HH:mm
+     * to 12-hour format.
+     */
+    if (/^\d{1,2}:\d{2}$/.test(time)) {
+        const [hoursString, minutes] =
+            time.split(":");
+
+        let hours =
+            Number(hoursString);
+
+        const period =
+            hours >= 12
+                ? "PM"
+                : "AM";
+
+        hours =
+            hours % 12 || 12;
+
+        return `${String(hours).padStart(
+            2,
+            "0"
+        )}:${minutes} ${period}`;
+    }
+
+    return time;
+};
+const getInterviewTypeForApi = (type) => {
+    return (
+        type || "TEAMS"
+    ).toUpperCase();
+};
+const getInterviewRoundForApi = (round) => {
+    const roundMap = {
+        "Technical Round": "Technical",
+        "HR Round": "HR",
+        "Final Round": "Final",
+
+        Technical: "Technical",
+        HR: "HR",
+        Final: "Final",
     };
 
+    return (
+        roundMap[round] ||
+        round
+    );
+};
     const handleOpenInterview = (application) => {
-        setSelectedApplication(application);
-        setShowInterviewModal(true);
-    };
+    console.log(
+        "Opening interview modal for:",
+        application
+    );
+
+    setSelectedApplication(
+        application
+    );
+
+    setInterviewData({
+        date: "",
+        time: "",
+        type: "TEAMS",
+        round: "Final",
+        interviewer: "",
+    });
+
+    setShowInterviewModal(true);
+};
 
     const handleCloseInterview = () => {
         setShowInterviewModal(false);
@@ -758,43 +719,222 @@ const ApplicationsTab = ({ candidateId }) => {
         }));
     };
 
-    const handleSaveInterview = () => {
-        if (!selectedApplication) {
-            return;
-        }
+const handleSaveInterview = async () => {
+    if (!selectedApplication) {
+        return;
+    }
 
-        setApplications((prev) =>
-            prev.map((application) =>
-                application.id === selectedApplication.id
-                    ? {
-                        ...application,
-                        status: "Interview",
-                    }
-                    : application
-            )
+    const submissionId =
+        selectedApplication.submissionId ||
+        selectedApplication.id;
+
+    const currentCandidateId =
+        selectedApplication.candidateId ||
+        candidateId;
+
+    const jobId =
+        selectedApplication.jobId ||
+        selectedApplication.job?.id;
+
+    if (!submissionId) {
+        console.error(
+            "Submission ID missing",
+            selectedApplication
+        );
+        return;
+    }
+
+    if (!currentCandidateId) {
+        console.error("Candidate ID missing");
+        return;
+    }
+
+    if (!jobId) {
+        console.error(
+            "Job ID missing",
+            selectedApplication
+        );
+        return;
+    }
+
+    if (!interviewData.date) {
+        alert("Please select interview date.");
+        return;
+    }
+
+    if (!interviewData.time) {
+        alert("Please select interview time.");
+        return;
+    }
+
+    if (!interviewData.interviewer.trim()) {
+        alert("Please enter interviewer name.");
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FIND INTERVIEW STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    const interviewStatus = submissionStatuses.find(
+        (status) => {
+            const statusName =
+                status?.name ||
+                status?.statusName ||
+                status?.label ||
+                "";
+
+            return (
+                statusName
+                    .toString()
+                    .trim()
+                    .toLowerCase() === "interview"
+            );
+        }
+    );
+
+    if (!interviewStatus?.id) {
+        console.error(
+            "Interview status not found in submissionStatuses:",
+            submissionStatuses
         );
 
-        handleCloseInterview();
+        alert(
+            "Interview status is not available. Please refresh the page and try again."
+        );
+
+        return;
+    }
+
+    const requestData = {
+        submissionId,
+
+        candidateId:
+            currentCandidateId,
+
+        jobId,
+
+        interviewDate:
+            formatInterviewDate(
+                interviewData.date
+            ),
+
+        interviewTime:
+            formatInterviewTime(
+                interviewData.time
+            ),
+
+        interviewType:
+            getInterviewTypeForApi(
+                interviewData.type
+            ),
+
+        round:
+            getInterviewRoundForApi(
+                interviewData.round
+            ),
+
+        interviewerName:
+            interviewData.interviewer.trim(),
+
+        status: "scheduled",
     };
+
+    console.log(
+        "Creating interview:",
+        requestData
+    );
+
+    try {
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 1 — CREATE INTERVIEW
+        |--------------------------------------------------------------------------
+        */
+
+        const interviewResponse =
+            await dispatch(
+                createInterview(
+                    requestData
+                )
+            ).unwrap();
+
+        console.log(
+            "Interview created successfully:",
+            interviewResponse
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2 — CHANGE SUBMISSION STATUS TO INTERVIEW
+        |--------------------------------------------------------------------------
+        */
+
+        console.log(
+            "Updating submission status to Interview:",
+            {
+                submissionId,
+                statusId: interviewStatus.id,
+                statusName:
+                    interviewStatus.name ||
+                    interviewStatus.statusName ||
+                    interviewStatus.label,
+            }
+        );
+
+        await dispatch(
+            updateSubmission({
+                submissionId,
+
+                statusId:
+                    interviewStatus.id,
+
+                /*
+                 * Interview status does not keep
+                 * the previous Submitted sub-status.
+                 */
+                subStatusId: null,
+            })
+        ).unwrap();
+
+        console.log(
+            "Submission status updated to Interview successfully."
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 3 — REFRESH APPLICATIONS
+        |--------------------------------------------------------------------------
+        */
+
+        await dispatch(
+            getCandidateApplications(
+                candidateId
+            )
+        ).unwrap();
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 4 — CLOSE MODAL
+        |--------------------------------------------------------------------------
+        */
+
+        handleCloseInterview();
+
+    } catch (error) {
+        console.error(
+            "Failed to schedule interview / update submission:",
+            error
+        );
+    }
+};
 
     const handleRemove = (id) => {
         setApplications((prev) =>
             prev.filter((application) => application.id !== id)
         );
-    };
-    const handleApplyJobSubmit = ({
-        jobId,
-        job,
-        status,
-    }) => {
-        console.log("APPLY CANDIDATE TO JOB:", {
-            candidateId,
-            jobId,
-            job,
-            status,
-        });
-
-        setShowApplyJobModal(false);
     };
 const handleOpenHistory = (application) => {
     const submissionId =
@@ -837,6 +977,210 @@ const formatHistoryDate = (dateString) => {
         hour: "2-digit",
         minute: "2-digit",
     });
+};
+
+const handleSubStatusChange = (
+    submissionId,
+    subStatusId
+) => {
+    const application =
+        applications.find(
+            (item) =>
+                (
+                    item.id ||
+                    item.submissionId
+                ) === submissionId
+        );
+
+    if (!application) {
+        return;
+    }
+
+    const statusId =
+        application.statusId;
+
+    const subStatuses =
+        submissionSubStatuses[statusId] ||
+        [];
+
+    const selectedSubStatus =
+        subStatuses.find(
+            (subStatus) =>
+                String(subStatus.id) ===
+                String(subStatusId)
+        );
+
+    setApplications((prev) =>
+        prev.map((item) =>
+            (
+                item.id ||
+                item.submissionId
+            ) === submissionId
+                ? {
+                    ...item,
+
+                    subStatusId:
+                        subStatusId,
+
+                    subStatus:
+                        selectedSubStatus?.name ||
+                        "",
+                }
+                : item
+        )
+    );
+
+    setApplicationChanges((prev) => ({
+        ...prev,
+
+        [submissionId]: {
+            ...(prev[submissionId] || {}),
+
+            statusId:
+                application.statusId,
+
+            subStatusId:
+                subStatusId || null,
+        },
+    }));
+};
+
+const handleSaveStatus = async (
+    application
+) => {
+    const submissionId =
+        application.id ||
+        application.submissionId;
+
+    if (!submissionId) {
+        console.error(
+            "Submission ID missing",
+            application
+        );
+
+        return;
+    }
+
+    const changes =
+        applicationChanges[
+            submissionId
+        ];
+
+    if (!changes) {
+        return;
+    }
+
+    try {
+        await dispatch(
+            updateSubmission({
+                submissionId,
+
+                statusId:
+                    changes.statusId ||
+                    application.statusId,
+
+                subStatusId:
+                    changes.subStatusId ||
+                    null,
+            })
+        ).unwrap();
+
+        /*
+         * Refresh from backend
+         */
+        await dispatch(
+            getCandidateApplications(
+                candidateId
+            )
+        ).unwrap();
+
+    } catch (error) {
+        console.error(
+            "UPDATE SUBMISSION ERROR:",
+            error
+        );
+    }
+};
+
+const hasApplicationChanges = (
+    application
+) => {
+    const submissionId =
+        application.id ||
+        application.submissionId;
+
+    return Boolean(
+        applicationChanges[
+            submissionId
+        ]
+    );
+};
+
+const handleOpenRatesModal = (application) => {
+    setSelectedRatesApplication(application);
+    setShowRatesModal(true);
+};
+
+const handleCloseRatesModal = () => {
+    setShowRatesModal(false);
+    setSelectedRatesApplication(null);
+};
+
+const handleSaveRates = async (rateData) => {
+    if (!rateData?.submissionId) {
+        console.error(
+            "Submission ID is missing"
+        );
+        return;
+    }
+
+    try {
+        await dispatch(
+            updateSubmissionRates({
+                submissionId:
+                    rateData.submissionId,
+
+                candidateExpectedAmount:
+                    rateData.candidateExpectedAmount,
+
+                candidateExpectedCurrency:
+                    rateData.candidateExpectedCurrency,
+
+                candidateExpectedPeriod:
+                    rateData.candidateExpectedPeriod,
+
+                submissionAmount:
+                    rateData.submissionAmount,
+
+                submissionCurrency:
+                    rateData.submissionCurrency,
+
+                submissionPeriod:
+                    rateData.submissionPeriod,
+
+                ...(rateData.offerAmount !== undefined
+                    ? {
+                          offerAmount:
+                              rateData.offerAmount,
+
+                          offerCurrency:
+                              rateData.offerCurrency,
+
+                          offerPeriod:
+                              rateData.offerPeriod,
+                      }
+                    : {}),
+            })
+        ).unwrap();
+
+        handleCloseRatesModal();
+
+    } catch (error) {
+        console.error(
+            "Failed to save rates:",
+            error
+        );
+    }
 };
 
 useEffect(() => {
@@ -883,6 +1227,26 @@ useEffect(() => {
 
     loadHistoryCounts();
 }, [candidateApplications, dispatch]);
+
+
+useEffect(() => {
+    if (!candidateApplications.length) {
+        return;
+    }
+
+    const statusIds = [
+        ...new Set(
+            candidateApplications
+                .map((application) => application.statusId)
+                .filter(Boolean)
+        ),
+    ];
+
+    statusIds.forEach((statusId) => {
+        dispatch(getSubmissionSubStatuses(statusId));
+    });
+}, [candidateApplications, dispatch]);
+
 
     return (
         <>
@@ -946,7 +1310,10 @@ useEffect(() => {
                                 const submissionId =
                                         app.id ||
                                         app.submissionId;
-
+                                const interview =
+                                     getLatestInterview(submissionId);
+                                     
+    
                                     const historyCount =
                                         historyCounts[submissionId] ??
                                         getHistoryCount(app);
@@ -998,32 +1365,160 @@ useEffect(() => {
                                                     </span>
                                                 </div>
 
+                                                {/* <select
+    className="cxandidate-status-select"
+    value={app.status || ""}
+    onChange={(e) =>
+        handleStatusChange(
+            app.id || app.submissionId,
+            e.target.value
+        )
+    }
+    disabled={submissionStatusesLoading}
+>
+    {submissionStatusesLoading ? (
+        <option value="">
+            Loading statuses...
+        </option>
+    ) : submissionStatuses.length === 0 ? (
+        <option value="">
+            No statuses available
+        </option>
+    ) : (
+        submissionStatuses.map((status) => {
+            const statusName =
+                status?.name ||
+                status?.statusName ||
+                status?.label ||
+                "";
+
+            return (
+                <option
+                    key={status.id}
+                    value={statusName}
+                >
+                    {statusName
+                        .toString()
+                        .replace(/_/g, " ")
+                        .replace(
+                            /\b\w/g,
+                            (letter) =>
+                                letter.toUpperCase()
+                        )}
+                </option>
+            );
+        })
+    )}
+</select> */}
+
                                                 <select
                                                     className="cxandidate-status-select"
-                                                    value={app.status}
+                                                    value={app.statusId || ""}
                                                     onChange={(e) =>
                                                         handleStatusChange(
-                                                            app.id ||
-                                                            app.submissionId,
+                                                            app.id || app.submissionId,
                                                             e.target.value
                                                         )
                                                     }
+                                                    disabled={updatingSubmission}
                                                 >
-                                                    {statuses.map(
-                                                        (status) => (
-                                                            <option
-                                                                key={
-                                                                    status
-                                                                }
-                                                                value={
-                                                                    status
-                                                                }
-                                                            >
-                                                                {status}
-                                                            </option>
-                                                        )
+                                                    {submissionStatusesLoading ? (
+                                                        <option value="">
+                                                            Loading statuses...
+                                                        </option>
+                                                    ) : (
+                                                        submissionStatuses.map((status) => {
+                                                            const statusName =
+                                                                status?.name ||
+                                                                status?.statusName ||
+                                                                status?.label ||
+                                                                "";
+
+                                                            return (
+                                                                <option
+                                                                    key={status.id}
+                                                                    value={status.id}
+                                                                >
+                                                                    {statusName
+                                                                        .toString()
+                                                                        .replace(/_/g, " ")
+                                                                        .replace(
+                                                                            /\b\w/g,
+                                                                            (letter) =>
+                                                                                letter.toUpperCase()
+                                                                        )}
+                                                                </option>
+                                                            );
+                                                        })
                                                     )}
                                                 </select>
+                                               {(() => {
+    const submissionId =
+        app.id || app.submissionId;
+
+    const statusId = app.statusId;
+
+    const subStatuses =
+        submissionSubStatuses[statusId] || [];
+
+    const subStatusesLoading =
+        submissionSubStatusesLoading[statusId];
+
+    return (
+        <select
+            className="cxandidate-sub-status-select"
+            value={app.subStatusId || ""}
+            onChange={(e) =>
+                handleSubStatusChange(
+                    submissionId,
+                    e.target.value
+                )
+            }
+            disabled={
+                !statusId ||
+                subStatusesLoading ||
+                updatingSubmission
+            }
+        >
+            {subStatusesLoading ? (
+                <option value="">
+                    Loading sub-statuses...
+                </option>
+            ) : (
+                <>
+                    <option value="">
+                        Select sub-status
+                    </option>
+
+                    {subStatuses.map((subStatus) => (
+                        <option
+                            key={subStatus.id}
+                            value={subStatus.id}
+                        >
+                            {subStatus.name}
+                        </option>
+                    ))}
+                </>
+            )}
+        </select>
+    );
+})()}
+
+                                                <button
+                                                    type="button"
+                                                    className="cxandidate-save-status-btn"
+                                                    disabled={
+                                                        !hasApplicationChanges(app) ||
+                                                        updatingSubmission
+                                                    }
+                                                    onClick={() =>
+                                                        handleSaveStatus(app)
+                                                    }
+                                                >
+                                                    {updatingSubmission
+                                                        ? "Saving..."
+                                                        : "Save"}
+                                                </button>
 
                                                 <button
                                                     type="button"
@@ -1043,6 +1538,7 @@ useEffect(() => {
                                                 <button
                                                     type="button"
                                                     className="cxandidate-application-action"
+                                                    onClick={() => handleOpenRatesModal(app)}
                                                 >
                                                     <FiDollarSign />
                                                     <span>
@@ -1121,6 +1617,57 @@ useEffect(() => {
                                                     </>
                                                 )}
                                             </div>
+{interview && (
+    <div className="cxandidate-application-interview-info">
+
+        <span>
+            🗓️{" "}
+            {interview.interviewDate ||
+                interview.date ||
+                "-"}
+        </span>
+
+        <span>
+            {" "}
+            {interview.interviewTime ||
+                interview.time ||
+                ""}
+        </span>
+
+        <span> · </span>
+
+        <span>
+            {interview.interviewType ||
+                interview.type ||
+                "-"}
+        </span>
+
+        <span> · </span>
+
+        <span>
+            {interview.round === "Technical"
+                ? "Technical Round"
+                : interview.round === "HR"
+                ? "HR Round"
+                : interview.round === "Final"
+                ? "Final Round"
+                : interview.round ||
+                  "-"}
+        </span>
+
+        {interview.interviewerName && (
+            <>
+                <span> · </span>
+
+                <span>
+                    {interview.interviewerName}
+                </span>
+            </>
+        )}
+
+    </div>
+)}
+
                                         </div>
                                     </div>
                                 );
@@ -1172,7 +1719,7 @@ useEffect(() => {
 
                                         <div className="cxandidate-input-icon-wrapper">
                                             <input
-                                                type="text"
+                                                type="date"
                                                 className="form-control cxandidate-form-control"
                                                 value={
                                                     interviewData.date
@@ -1196,7 +1743,7 @@ useEffect(() => {
 
                                         <div className="cxandidate-input-icon-wrapper">
                                             <input
-                                                type="text"
+                                                type="time"
                                                 className="form-control cxandidate-form-control"
                                                 value={
                                                     interviewData.time
@@ -1230,16 +1777,19 @@ useEffect(() => {
                                                 )
                                             }
                                         >
-                                            <option value="Teams">
+                                            <option value="TEAMS">
                                                 Teams
                                             </option>
-                                            <option value="Zoom">
+
+                                            <option value="ZOOM">
                                                 Zoom
                                             </option>
-                                            <option value="Phone">
+
+                                            <option value="PHONE">
                                                 Phone
                                             </option>
-                                            <option value="Onsite">
+
+                                            <option value="ONSITE">
                                                 Onsite
                                             </option>
                                         </select>
@@ -1262,15 +1812,17 @@ useEffect(() => {
                                                 )
                                             }
                                         >
-                                            <option value="Technical Round">
-                                                Technical Round
-                                            </option>
-                                            <option value="HR Round">
-                                                HR Round
-                                            </option>
-                                            <option value="Final Round">
-                                                Final Round
-                                            </option>
+                                            <option value="Technical">
+                                                    Technical Round
+                                                </option>
+
+                                                <option value="HR">
+                                                    HR Round
+                                                </option>
+
+                                                <option value="Final">
+                                                    Final Round
+                                                </option>
                                         </select>
                                     </div>
 
@@ -1311,25 +1863,43 @@ useEffect(() => {
                                 <button
                                     type="button"
                                     className="cxandidate-save-interview-btn"
-                                    onClick={
-                                        handleSaveInterview
-                                    }
+                                    onClick={handleSaveInterview}
+                                    disabled={creatingInterview}
                                 >
-                                    Save & set to Interview
+                                    {creatingInterview
+                                        ? "Scheduling..."
+                                        : "Schedule Interview"}
                                 </button>
                             </div>
                         </div>
+                        {createInterviewError && (
+    <div className="cxandidate-interview-error">
+        {createInterviewError}
+    </div>
+)}
                     </div>
                 )}
+                
 
-            {showApplyJobModal && (
-                <ApplyJobModal
-                    jobs={openJobs}
-                    jobsLoading={isOpenJobsLoading}
-                    onClose={() => setShowApplyJobModal(false)}
-                    onApply={handleApplyJobSubmit}
-                />
-            )}
+           {showApplyJobModal && (
+    <ApplyJobModal
+        candidateId={candidateId}
+
+        jobs={openJobs}
+        jobsLoading={isOpenJobsLoading}
+
+        statuses={submissionStatuses}
+        statusesLoading={submissionStatusesLoading}
+
+        creatingSubmission={creatingSubmission}
+
+        onClose={() =>
+            setShowApplyJobModal(false)
+        }
+
+        onApply={onApplyJob}
+    />
+)}
 
             {showHistoryModal && selectedHistoryApplication && (
     <div
@@ -1498,6 +2068,15 @@ useEffect(() => {
             </div>
         </div>
     </div>
+)}
+
+{showRatesModal && selectedRatesApplication && (
+    <RatesModal
+        application={selectedRatesApplication}
+        onClose={handleCloseRatesModal}
+        onSave={handleSaveRates}
+        saving={updatingSubmissionRates}
+    />
 )}
         </>
     );

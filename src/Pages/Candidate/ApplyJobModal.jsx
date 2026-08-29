@@ -403,16 +403,9 @@ const ApplyJobModal = ({
                 <div className="apply-job-modal-header">
 
                     <div>
-
                         <h3>
                             Apply candidate to a job
                         </h3>
-
-                        <p>
-                            Select a job and the initial
-                            recruitment status.
-                        </p>
-
                     </div>
 
 
@@ -619,22 +612,6 @@ const ApplyJobModal = ({
                             <span
                                 className="apply-job-status-dot"
                             ></span>
-
-
-                            <span>
-
-                                Candidate will start at{" "}
-
-                                <strong>
-
-                                    {getStatusLabel(
-                                        selectedStatusData
-                                    )}
-
-                                </strong>
-
-                            </span>
-
                         </div>
 
                     )}
