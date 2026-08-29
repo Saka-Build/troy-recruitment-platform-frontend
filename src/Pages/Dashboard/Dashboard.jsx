@@ -1,11 +1,172 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./Dashboard.css";
 import "flag-icons/css/flag-icons.min.css";
-import AddCandidateModal from "../Add_Edit_CandidateModal";
+import { useDispatch, useSelector } from "react-redux";
 
 
 function Dashboard() {
-  const [showCandidateModal, setShowCandidateModal] = useState(false);
+    const dispatch = useDispatch();
+      const {
+    user,
+    activeRole,
+    roles = [],
+  } = useSelector(
+    (state) => state.auth || {}
+  );
+
+  const [showCandidateModal, setShowCandidateModal] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date());
+    const [selectedRoleId, setSelectedRoleId] = useState(
+    activeRole?.id || ""
+  );
+
+  const [switchingRole, setSwitchingRole] = useState(false);
+
+
+  useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
+
+  const normalizedRoles = useMemo(() => {
+    return (roles || [])
+      .map((roleItem) => {
+        const id =
+          roleItem?.id ||
+          roleItem?.roleId ||
+          roleItem?.role?.id;
+
+        const name =
+          roleItem?.name ||
+          roleItem?.roleName ||
+          roleItem?.role?.name;
+
+        if (!id || !name) {
+          return null;
+        }
+
+        return {
+          id,
+          name,
+        };
+      })
+      .filter(Boolean);
+  }, [roles]);
+
+
+    useEffect(() => {
+    if (activeRole?.id) {
+      setSelectedRoleId(activeRole.id);
+    }
+  }, [activeRole?.id]);
+
+
+    const currentRole = normalizedRoles.find(
+    (roleItem) =>
+      String(roleItem.id) ===
+      String(selectedRoleId)
+  );
+
+  const currentRoleName =
+    activeRole?.id &&
+    String(activeRole.id) ===
+      String(selectedRoleId)
+      ? activeRole?.name
+      : currentRole?.name;
+
+  const role =
+    currentRoleName ||
+    activeRole?.name ||
+    user?.role ||
+    "";
+
+
+
+      const handleRoleChange = async (event) => {
+    const newRoleId = event.target.value;
+
+    if (
+      !newRoleId ||
+      String(newRoleId) === String(selectedRoleId)
+    ) {
+      return;
+    }
+
+    const previousRoleId = selectedRoleId;
+
+    const selectedRole = normalizedRoles.find(
+      (roleItem) =>
+        String(roleItem.id) ===
+        String(newRoleId)
+    );
+
+    try {
+      setSwitchingRole(true);
+
+      const response = await dispatch(
+        switchRole(newRoleId)
+      ).unwrap();
+
+      console.log(
+        "Dashboard role switch response:",
+        response
+      );
+
+      const newAccessToken =
+        response?.accessToken ||
+        response?.data?.accessToken;
+
+      const newRefreshToken =
+        response?.refreshToken ||
+        response?.data?.refreshToken;
+
+      const newActiveRole =
+        response?.activeRole ||
+        response?.data?.activeRole ||
+        selectedRole;
+
+      // Update access token
+      if (newAccessToken) {
+        localStorage.setItem(
+          "accessToken",
+          newAccessToken
+        );
+      }
+
+      // Update refresh token
+      if (newRefreshToken) {
+        localStorage.setItem(
+          "refreshToken",
+          newRefreshToken
+        );
+      }
+
+      // Update Redux active role
+      if (newActiveRole) {
+        dispatch(
+          setActiveRole(newActiveRole)
+        );
+      }
+
+      // Update local selector
+      setSelectedRoleId(newRoleId);
+
+    } catch (error) {
+      console.error(
+        "Dashboard role switch failed:",
+        error
+      );
+
+      // Restore previous role
+      setSelectedRoleId(previousRoleId);
+
+    } finally {
+      setSwitchingRole(false);
+    }
+  };
 const summaryCards = [
   {
     title: "Total candidates",
@@ -25,35 +186,26 @@ const summaryCards = [
     icon: "bi-building-fill",
     iconClass: "blue-icon",
   },
-  {
-    title: "Placements",
-    value: "1",
-    icon: "bi-trophy-fill",
-    iconClass: "trophy-icon",
-  },
 ];
 
 const timeZones = [
   {
     country: "India",
     code: "IN",
-    flag: "🇮🇳",
     timezone: "IST",
-    time: "08:25:21 PM",
+    ianaTimezone: "Asia/Kolkata",
   },
   {
     country: "United Kingdom",
     code: "GB",
-    flag: "🇬🇧",
     timezone: "UK",
-    time: "03:55:21 PM",
+    ianaTimezone: "Europe/London",
   },
   {
     country: "Qatar · Middle East",
     code: "QA",
-    flag: "🇶🇦",
     timezone: "AST",
-    time: "05:55:21 PM",
+    ianaTimezone: "Asia/Qatar",
   },
 ];
 
@@ -139,7 +291,25 @@ const attentionItems = [
     type: "warning",
   },
 ];
+const formatTime = (timeZone) => {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(currentTime);
+};
 
+const formatDate = (timeZone) => {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(currentTime);
+};
   return (
     <div className="page">
 
@@ -161,30 +331,39 @@ const attentionItems = [
             </p>
           </div>
 
-          <div className="page-header-actions">
+<div className="page-header-actions">
 
-            <select
-              className="admin-select"
-              defaultValue="Super Admin"
-            >
-              <option>Super Admin</option>
-              <option>Admin</option>
-            </select>
+  {normalizedRoles.length > 0 ? (
+    <select
+      className="admin-select"
+      value={selectedRoleId}
+      onChange={handleRoleChange}
+      disabled={switchingRole}
+    >
+      {normalizedRoles.map((roleItem) => (
+        <option
+          key={roleItem.id}
+          value={roleItem.id}
+        >
+          {roleItem.name}
+        </option>
+      ))}
+    </select>
+  ) : (
+    <div className="admin-select role-display">
+      {role || "User"}
+    </div>
+  )}
 
-          </div>
+</div>
 
         </div>
-
-
-        {/* =========================================
-            SUMMARY CARDS
-        ========================================= */}
 
         <div className="row g-3 dashboard-row">
 
           {summaryCards.map((card) => (
             <div
-              className="col-12 col-sm-6 col-xl-3"
+              className="col-12 col-sm-6 col-xl-4"
               key={card.title}
             >
               <div className="dashboard-card summary-card">
@@ -256,13 +435,13 @@ const attentionItems = [
 
             </div>
 
-            <div className="timezone-time">
-              {zone.time}
-            </div>
+<div className="timezone-time">
+  {formatTime(zone.ianaTimezone)}
+</div>
 
-            <div className="timezone-date">
-              Sun, Aug 02
-            </div>
+<div className="timezone-date">
+  {formatDate(zone.ianaTimezone)}
+</div>
 
           </div>
 
@@ -517,11 +696,6 @@ const attentionItems = [
     </div>
 
       </div>
-      <AddCandidateModal
-  show={showCandidateModal}
-  onClose={() => setShowCandidateModal(false)}
-/>
-
     </div>
   );
 }
