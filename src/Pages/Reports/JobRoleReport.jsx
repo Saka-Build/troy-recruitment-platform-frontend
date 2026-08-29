@@ -9,1555 +9,1682 @@ import {
     useSelector,
 } from "react-redux";
 
-import ExcelJS from "exceljs";
+import {
+    useNavigate,
+} from "react-router-dom";
+
+import {
+    FiSearch,
+    FiRotateCcw,
+    FiChevronDown,
+    FiMail,
+    FiPhone,
+    FiDownload,
+    FiArrowLeft,
+    FiUsers,
+    FiUserPlus,
+    FiCheckCircle,
+    FiClock,
+} from "react-icons/fi";
+
+import {
+    getAllSubmissions,
+} from "../../Redux/Slice/employeeSlice";
 
 import "./JobRoleReport.css";
 
-import {
-    getAllJobs,
-} from "../../Redux/Slice/jobSlice";
 
-import {
-    getAllCandidates,
-    getAllEmployees,
-} from "../../Redux/Slice/candidateSlice";
-
-
-/*
-|--------------------------------------------------------------------------
-| STATIC APPLICATION DATA
-|--------------------------------------------------------------------------
-| Temporary until Application API is available.
-*/
-
-const STATIC_APPLICATIONS = [
-    {
-        id: "APP001",
-        jobId: "VEAKL317",
-        candidateId: "CAND001",
-        team: "Aakila",
-        roleSubStatus: "Critical",
-        applicationStatus: "Submitted",
-        candidateSubStatus: "Awaiting client feedback",
-    },
-
-    {
-        id: "APP002",
-        jobId: "VEAKL317",
-        candidateId: "CAND002",
-        team: "Aakila",
-        roleSubStatus: "Critical",
-        applicationStatus: "Submitted",
-        candidateSubStatus: "Awaiting client feedback",
-    },
-
-    {
-        id: "APP003",
-        jobId: "NTAKL338",
-        candidateId: "CAND003",
-        team: "Aakila",
-        roleSubStatus: "Critical",
-        applicationStatus: "Submitted",
-        candidateSubStatus: "Awaiting client feedback",
-    },
-
-    {
-        id: "APP004",
-        jobId: "NTDBL501",
-        candidateId: "CAND004",
-        team: "Sweety",
-        roleSubStatus: "Critical",
-        applicationStatus: "Submitted",
-        candidateSubStatus: "Awaiting client feedback",
-    },
-
-    {
-        id: "APP005",
-        jobId: "NTSPO055",
-        candidateId: "CAND005",
-        team: "Sweety",
-        roleSubStatus: "Critical",
-        applicationStatus: "Submitted",
-        candidateSubStatus: "Awaiting client feedback",
-    },
-];
-
-
-const JobRoleReport = () => {
+function JobRoleReport() {
 
     const dispatch = useDispatch();
 
+    const navigate = useNavigate();
+
 
     /*
-    |--------------------------------------------------------------------------
-    | REDUX
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * SUBMISSIONS STATE
+     * =====================================================
+     */
 
     const {
-        jobs = [],
-        isFetching: jobsLoading,
+        submissions = [],
+        submissionsLoading,
+        submissionsError,
+        submissionsPagination,
     } = useSelector(
-        (state) => state.jobs
-    );
-
-
-    const {
-        candidates = [],
-        employees = [],
-        loading: candidatesLoading,
-        employeesLoading,
-    } = useSelector(
-        (state) => state.candidate
+        (state) => state.employees || {}
     );
 
 
     /*
-    |--------------------------------------------------------------------------
-    | FILTER STATE
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * FILTER STATES
+     * =====================================================
+     */
+
+    const [search, setSearch] = useState("");
+
+    const [jobFilter, setJobFilter] = useState("");
 
     const [
-        search,
-        setSearch,
+        applicationStatusFilter,
+        setApplicationStatusFilter,
+    ] = useState("");
+
+    const [
+        subStatusFilter,
+        setSubStatusFilter,
     ] = useState("");
 
 
-    const [
-        jobStatus,
-        setJobStatus,
-    ] = useState("All");
-
-
-    const [
-        candidateStatus,
-        setCandidateStatus,
-    ] = useState("All");
-
-
-    const [
-        applicationStatus,
-        setApplicationStatus,
-    ] = useState("All");
-
-
-    const [
-        teamFilter,
-        setTeamFilter,
-    ] = useState("All");
-
-
-    const [
-        ownerFilter,
-        setOwnerFilter,
-    ] = useState("All");
-
-
-    const [
-        noticePeriodFilter,
-        setNoticePeriodFilter,
-    ] = useState("All");
-
-
     /*
-    |--------------------------------------------------------------------------
-    | FETCH DATA
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * GET SUBMISSIONS
+     * =====================================================
+     */
 
     useEffect(() => {
 
         dispatch(
-            getAllJobs()
-        );
-
-        dispatch(
-            getAllCandidates()
-        );
-
-        dispatch(
-            getAllEmployees()
+            getAllSubmissions()
         );
 
     }, [dispatch]);
 
 
     /*
-    |--------------------------------------------------------------------------
-    | CREATE REPORT ROWS
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * JOB OPTIONS
+     *
+     * Derived from backend response.
+     * =====================================================
+     */
 
-    const reportRows = useMemo(() => {
+    const jobs = useMemo(() => {
 
-        const rows = [];
+        const uniqueJobs = {};
 
-
-        STATIC_APPLICATIONS.forEach(
-            (application) => {
-
-                const job =
-                    jobs.find(
-                        (item) =>
-                            item.jobId ===
-                            application.jobId ||
-                            item.id ===
-                            application.jobId
-                    );
-
-
-                const candidate =
-                    candidates.find(
-                        (item) =>
-                            item.id ===
-                            application.candidateId ||
-                            item.cvId ===
-                            application.candidateId
-                    );
-
-
-                /*
-                 * If application has no matching
-                 * job/candidate, still don't crash.
-                 */
-
-                if (!job && !candidate) {
-                    return;
-                }
-
-
-                const owner =
-                    candidate?.cvOwnerName ||
-                    "";
-
-
-                const noticePeriod =
-                    candidate?.noticePeriodDays;
-
-
-                let noticePeriodText =
-                    "—";
-
+        submissions.forEach(
+            (item) => {
 
                 if (
-                    noticePeriod === 0 ||
-                    noticePeriod === "0"
+                    item.jobId &&
+                    !uniqueJobs[item.jobId]
                 ) {
 
-                    noticePeriodText =
-                        "Immediate";
+                    uniqueJobs[item.jobId] = {
 
-                } else if (
-                    noticePeriod !== null &&
-                    noticePeriod !== undefined &&
-                    noticePeriod !== ""
-                ) {
+                        id: item.jobId,
 
-                    noticePeriodText =
-                        `${noticePeriod} days`;
+                        name:
+                            item.jobName ||
+                            "Unnamed Job",
+
+                    };
 
                 }
-
-
-                rows.push({
-
-                    applicationId:
-                        application.id,
-
-                    jobId:
-                        job?.jobId ||
-                        application.jobId ||
-                        "—",
-
-                    jobName:
-                        job?.title ||
-                        "—",
-
-                    client:
-                        job?.clientName ||
-                        "—",
-
-                    endClient:
-                        job?.endClientName ||
-                        "—",
-
-                    location:
-                        job?.location ||
-                        "—",
-
-                    jobStatus:
-                        job?.status ||
-                        "—",
-
-                    priority:
-                        job?.priority ||
-                        "—",
-
-                    team:
-                        application.team ||
-                        "—",
-
-                    roleSubStatus:
-                        application.roleSubStatus ||
-                        "—",
-
-                    candidateId:
-                        candidate?.cvId ||
-                        candidate?.id ||
-                        "—",
-
-                    candidateName:
-                        candidate?.fullName ||
-                        "—",
-
-                    candidateStatus:
-                        candidate?.status ||
-                        "Active",
-
-                    candidateSubStatus:
-                        application.candidateSubStatus ||
-                        "—",
-
-                    applicationStatus:
-                        application.applicationStatus ||
-                        "—",
-
-                    noticePeriod:
-                        noticePeriodText,
-
-                    noticePeriodDays:
-                        noticePeriod,
-
-                    phone:
-                        candidate?.phone ||
-                        "—",
-
-                    email:
-                        candidate?.email ||
-                        "—",
-
-                    owner:
-                        owner ||
-                        "—",
-
-                    originalCV:
-                        candidate?.originalCV ||
-                        candidate?.originalCv ||
-                        null,
-
-                });
 
             }
         );
 
+        return Object.values(
+            uniqueJobs
+        );
 
-        return rows;
-
-    }, [
-        jobs,
-        candidates,
-    ]);
+    }, [submissions]);
 
 
     /*
-    |--------------------------------------------------------------------------
-    | FILTER OPTIONS
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * APPLICATION STATUS MASTER LIST
+     *
+     * These are the statuses provided by backend.
+     *
+     * Backend value:
+     * Ready_to_Submit
+     *
+     * UI label:
+     * Ready to Submit
+     * =====================================================
+     */
 
-    const teams =
-        useMemo(
-            () => [
-                "All",
-                ...new Set(
-                    reportRows
-                        .map(
-                            (row) =>
-                                row.team
-                        )
-                        .filter(
-                            (value) =>
-                                value &&
-                                value !== "—"
-                        )
-                ),
-            ],
-            [reportRows]
-        );
-
-
-    const owners =
-        useMemo(
-            () => [
-                "All",
-                ...new Set(
-                    reportRows
-                        .map(
-                            (row) =>
-                                row.owner
-                        )
-                        .filter(
-                            (value) =>
-                                value &&
-                                value !== "—"
-                        )
-                ),
-            ],
-            [reportRows]
-        );
+    const applicationStatuses = [
+        {
+            value: "Applied",
+            label: "Applied",
+        },
+        {
+            value: "Screening",
+            label: "Actively Sourcing",
+        },
+        {
+            value: "Ready_to_Submit",
+            label: "Ready to Submit",
+        },
+        {
+            value: "Submitted",
+            label: "Submitted",
+        },
+        {
+            value: "Interview",
+            label: "Interview",
+        },
+        {
+            value: "Selected",
+            label: "Selected",
+        },
+        {
+            value: "Offer Released",
+            label: "Offer Released",
+        },
+        {
+            value: "Onboarding",
+            label: "Onboarding",
+        },
+        {
+            value: "Onboarded",
+            label: "Onboarded",
+        },
+        {
+            value: "Hold",
+            label: "Hold",
+        },
+        {
+            value: "Rejected",
+            label: "Rejected",
+        },
+        {
+            value: "Offboarded",
+            label: "Offboarded",
+        },
+    ];
 
 
     /*
-    |--------------------------------------------------------------------------
-    | FILTERED REPORT
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * SUB STATUS OPTIONS
+     *
+     * Dynamically taken from API response.
+     * =====================================================
+     */
 
-    const filteredRows =
+    const subStatuses = useMemo(() => {
+
+        const uniqueSubStatuses =
+            new Set();
+
+        submissions.forEach(
+            (item) => {
+
+                if (
+                    item.subStatusName
+                ) {
+
+                    uniqueSubStatuses.add(
+                        item.subStatusName.trim()
+                    );
+
+                }
+
+            }
+        );
+
+        return Array.from(
+            uniqueSubStatuses
+        ).sort();
+
+    }, [submissions]);
+
+
+    /*
+     * =====================================================
+     * SEARCH + FILTERING
+     * =====================================================
+     */
+
+    const filteredSubmissions =
         useMemo(() => {
 
-            const query =
+            const searchValue =
                 search
-                    .trim()
-                    .toLowerCase();
+                    .toLowerCase()
+                    .trim();
 
 
-            return reportRows.filter(
-                (row) => {
+            return submissions.filter(
+                (item) => {
 
-                    const searchMatch =
-                        !query ||
-                        [
-                            row.jobId,
-                            row.jobName,
-                            row.client,
-                            row.endClient,
-                            row.candidateId,
-                            row.candidateName,
-                            row.phone,
-                            row.email,
-                            row.owner,
-                            row.team,
-                            row.applicationStatus,
-                            row.candidateStatus,
-                            row.candidateSubStatus,
-                        ]
-                            .some(
-                                (value) =>
-                                    String(
-                                        value ||
-                                        ""
-                                    )
-                                        .toLowerCase()
-                                        .includes(
-                                            query
-                                        )
+                    /*
+                     * Search
+                     */
+
+                    const matchesSearch =
+                        !searchValue ||
+
+                        item.candidateName
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.candidateId
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.candidateCVId
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.candidateDesignation
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.candidateEmail
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.candidatePhone
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.jobName
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.troyJobId
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.clientName
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
+                            ) ||
+
+                        item.endClientName
+                            ?.toLowerCase()
+                            .includes(
+                                searchValue
                             );
 
 
-                    const jobStatusMatch =
-                        jobStatus === "All" ||
-                        row.jobStatus ===
-                            jobStatus;
+                    /*
+                     * Job filter
+                     */
+
+                    const matchesJob =
+                        !jobFilter ||
+                        item.jobId ===
+                            jobFilter;
 
 
-                    const candidateStatusMatch =
-                        candidateStatus === "All" ||
-                        row.candidateStatus ===
-                            candidateStatus;
+                    /*
+                     * Application Status
+                     */
+
+                    const matchesApplicationStatus =
+                        !applicationStatusFilter ||
+                        item.statusName
+                            ?.trim() ===
+                            applicationStatusFilter;
 
 
-                    const applicationStatusMatch =
-                        applicationStatus === "All" ||
-                        row.applicationStatus ===
-                            applicationStatus;
+                    /*
+                     * Sub Status
+                     */
 
-
-                    const teamMatch =
-                        teamFilter === "All" ||
-                        row.team ===
-                            teamFilter;
-
-
-                    const ownerMatch =
-                        ownerFilter === "All" ||
-                        row.owner ===
-                            ownerFilter;
-
-
-                    let noticeMatch =
-                        true;
-
-
-                    if (
-                        noticePeriodFilter !==
-                        "All"
-                    ) {
-
-                        if (
-                            noticePeriodFilter ===
-                            "Immediate"
-                        ) {
-
-                            noticeMatch =
-                                row.noticePeriodDays ===
-                                    0 ||
-                                row.noticePeriodDays ===
-                                    "0";
-
-                        } else if (
-                            noticePeriodFilter ===
-                            "30 days"
-                        ) {
-
-                            noticeMatch =
-                                Number(
-                                    row.noticePeriodDays
-                                ) === 30;
-
-                        } else if (
-                            noticePeriodFilter ===
-                            "60+ days"
-                        ) {
-
-                            noticeMatch =
-                                Number(
-                                    row.noticePeriodDays
-                                ) >= 60;
-
-                        }
-
-                    }
+                    const matchesSubStatus =
+                        !subStatusFilter ||
+                        item.subStatusName
+                            ?.trim() ===
+                            subStatusFilter;
 
 
                     return (
-                        searchMatch &&
-                        jobStatusMatch &&
-                        candidateStatusMatch &&
-                        applicationStatusMatch &&
-                        teamMatch &&
-                        ownerMatch &&
-                        noticeMatch
+                        matchesSearch &&
+                        matchesJob &&
+                        matchesApplicationStatus &&
+                        matchesSubStatus
                     );
 
                 }
             );
 
         }, [
-            reportRows,
+            submissions,
             search,
-            jobStatus,
-            candidateStatus,
-            applicationStatus,
-            teamFilter,
-            ownerFilter,
-            noticePeriodFilter,
+            jobFilter,
+            applicationStatusFilter,
+            subStatusFilter,
         ]);
 
 
     /*
-    |--------------------------------------------------------------------------
-    | CLEAR FILTERS
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * STATUS CARD COUNTS
+     *
+     * IMPORTANT:
+     * Counts are calculated from the FILTERED data.
+     *
+     * Cards are informational only.
+     * They are NOT clickable.
+     * =====================================================
+     */
 
-    const clearFilters = () => {
+    const statusCounts =
+        useMemo(() => {
+
+            const counts = {
+
+                Applied: 0,
+
+                Submitted: 0,
+
+                Interview: 0,
+
+                Onboarded: 0,
+
+            };
+
+
+            filteredSubmissions.forEach(
+                (item) => {
+
+                    const status =
+                        item.statusName
+                            ?.trim()
+                            ?.toLowerCase();
+
+
+                    if (
+                        status ===
+                        "applied"
+                    ) {
+
+                        counts.Applied++;
+
+                    }
+
+
+                    if (
+                        status ===
+                        "submitted"
+                    ) {
+
+                        counts.Submitted++;
+
+                    }
+
+
+                    if (
+                        status ===
+                            "interview" ||
+                        status ===
+                            "interviewing"
+                    ) {
+
+                        counts.Interview++;
+
+                    }
+
+
+                    if (
+                        status ===
+                        "onboarded"
+                    ) {
+
+                        counts.Onboarded++;
+
+                    }
+
+                }
+            );
+
+
+            return counts;
+
+        }, [
+            filteredSubmissions,
+        ]);
+
+
+    /*
+     * =====================================================
+     * STATUS CARDS
+     * =====================================================
+     */
+
+    const statusCards = [
+
+        {
+            label: "Applied",
+
+            value:
+                statusCounts.Applied,
+
+            icon: FiClock,
+
+            color: "#3B82F6",
+        },
+
+        {
+            label: "Submitted",
+
+            value:
+                statusCounts.Submitted,
+
+            icon: FiUserPlus,
+
+            color: "#8B5CF6",
+        },
+
+        {
+            label: "Interview",
+
+            value:
+                statusCounts.Interview,
+
+            icon: FiUsers,
+
+            color: "#F59E0B",
+        },
+
+        {
+            label: "Onboarded",
+
+            value:
+                statusCounts.Onboarded,
+
+            icon: FiCheckCircle,
+
+            color: "#16A34A",
+        },
+
+    ];
+
+
+    /*
+     * =====================================================
+     * RESET FILTERS
+     * =====================================================
+     */
+
+    const resetFilters = () => {
 
         setSearch("");
 
-        setJobStatus("All");
+        setJobFilter("");
 
-        setCandidateStatus("All");
+        setApplicationStatusFilter("");
 
-        setApplicationStatus("All");
-
-        setTeamFilter("All");
-
-        setOwnerFilter("All");
-
-        setNoticePeriodFilter("All");
+        setSubStatusFilter("");
 
     };
 
 
     /*
-    |--------------------------------------------------------------------------
-    | GROUP BY JOB ROLE
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * INITIALS
+     * =====================================================
+     */
 
-    const groupedRows =
-        useMemo(() => {
+    const getInitials = (
+        name
+    ) => {
 
-            const groups = {};
+        if (!name) {
 
+            return "--";
 
-            filteredRows.forEach(
-                (row) => {
-
-                    if (!groups[row.jobId]) {
-
-                        groups[row.jobId] = {
-
-                            job: row,
-
-                            candidates: [],
-
-                        };
-
-                    }
+        }
 
 
-                    groups[
-                        row.jobId
-                    ].candidates.push(
-                        row
-                    );
-
-                }
-            );
-
-
-            return Object.values(
-                groups
-            );
-
-        }, [
-            filteredRows,
-        ]);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATS
-    |--------------------------------------------------------------------------
-    */
-
-    const totalApplications =
-        filteredRows.length;
-
-
-    const submitted =
-        filteredRows.filter(
-            (row) =>
-                row.applicationStatus
-                    ?.toLowerCase() ===
-                "submitted"
-        ).length;
-
-
-    const awaitingFeedback =
-        filteredRows.filter(
-            (row) =>
-                row.candidateSubStatus
-                    ?.toLowerCase()
-                    .includes(
-                        "awaiting"
-                    )
-        ).length;
-
-
-    const uniqueRoles =
-        new Set(
-            filteredRows.map(
-                (row) =>
-                    row.jobId
+        return name
+            .split(" ")
+            .filter(Boolean)
+            .map(
+                (part) =>
+                    part[0]
             )
-        ).size;
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+
+    };
 
 
     /*
-    |--------------------------------------------------------------------------
-    | EXPORT EXCEL
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * DISPLAY VALUE
+     * =====================================================
+     */
 
-    const handleExportExcel =
-        async () => {
+    const displayValue = (
+        value
+    ) => {
 
-            const workbook =
-                new ExcelJS.Workbook();
+        return (
+            value ||
+            "—"
+        );
+
+    };
 
 
-            const worksheet =
-                workbook.addWorksheet(
-                    "Job Role Report"
+    /*
+     * =====================================================
+     * BADGE CLASS
+     * =====================================================
+     */
+
+    const getBadgeClass = (
+        value
+    ) => {
+
+        return (
+            value
+                ?.toLowerCase()
+                .replace(
+                    /_/g,
+                    "-"
+                )
+                .replace(
+                    /\s+/g,
+                    "-"
+                ) ||
+            ""
+        );
+
+    };
+
+
+    /*
+     * =====================================================
+     * APPLICATION STATUS LABEL
+     *
+     * Converts backend values to UI labels.
+     * =====================================================
+     */
+
+    const getApplicationStatusLabel =
+        (status) => {
+
+            const found =
+                applicationStatuses.find(
+                    (item) =>
+                        item.value ===
+                        status
                 );
 
 
-            worksheet.columns = [
-
-                {
-                    header: "Role Name",
-                    key: "jobName",
-                    width: 30,
-                },
-
-                {
-                    header: "Team",
-                    key: "team",
-                    width: 18,
-                },
-
-                {
-                    header: "Role Substat",
-                    key: "roleSubStatus",
-                    width: 18,
-                },
-
-                {
-                    header: "ID",
-                    key: "candidateId",
-                    width: 18,
-                },
-
-                {
-                    header: "Original CV Link",
-                    key: "originalCV",
-                    width: 25,
-                },
-
-                {
-                    header: "Name",
-                    key: "candidateName",
-                    width: 25,
-                },
-
-                {
-                    header: "Cand Status",
-                    key: "candidateStatus",
-                    width: 18,
-                },
-
-                {
-                    header: "Cand. Sub-Status",
-                    key: "candidateSubStatus",
-                    width: 28,
-                },
-
-                {
-                    header: "Application Status",
-                    key: "applicationStatus",
-                    width: 22,
-                },
-
-                {
-                    header: "NP",
-                    key: "noticePeriod",
-                    width: 15,
-                },
-
-                {
-                    header: "Phone",
-                    key: "phone",
-                    width: 20,
-                },
-
-                {
-                    header: "Email",
-                    key: "email",
-                    width: 32,
-                },
-
-                {
-                    header: "Owner",
-                    key: "owner",
-                    width: 22,
-                },
-
-                {
-                    header: "Client",
-                    key: "client",
-                    width: 22,
-                },
-
-                {
-                    header: "End Client",
-                    key: "endClient",
-                    width: 22,
-                },
-
-                {
-                    header: "Job Status",
-                    key: "jobStatus",
-                    width: 15,
-                },
-
-            ];
-
-
-            filteredRows.forEach(
-                (row) => {
-
-                    worksheet.addRow({
-
-                        jobName:
-                            row.jobName,
-
-                        team:
-                            row.team,
-
-                        roleSubStatus:
-                            row.roleSubStatus,
-
-                        candidateId:
-                            row.candidateId,
-
-                        originalCV:
-                            row.originalCV ||
-                            "",
-
-                        candidateName:
-                            row.candidateName,
-
-                        candidateStatus:
-                            row.candidateStatus,
-
-                        candidateSubStatus:
-                            row.candidateSubStatus,
-
-                        applicationStatus:
-                            row.applicationStatus,
-
-                        noticePeriod:
-                            row.noticePeriod,
-
-                        phone:
-                            row.phone,
-
-                        email:
-                            row.email,
-
-                        owner:
-                            row.owner,
-
-                        client:
-                            row.client,
-
-                        endClient:
-                            row.endClient,
-
-                        jobStatus:
-                            row.jobStatus,
-
-                    });
-
-                }
-            );
-
-
-            /*
-             * Header styling
-             */
-
-            const headerRow =
-                worksheet.getRow(1);
-
-
-            headerRow.height = 28;
-
-
-            headerRow.eachCell(
-                (cell) => {
-
-                    cell.font = {
-                        bold: true,
-                    };
-
-                    cell.alignment = {
-                        vertical:
-                            "middle",
-                        horizontal:
-                            "center",
-                    };
-
-                }
-            );
-
-
-            worksheet.views = [
-                {
-                    state: "frozen",
-                    ySplit: 1,
-                },
-            ];
-
-
-            const buffer =
-                await workbook.xlsx.writeBuffer();
-
-
-            const blob =
-                new Blob(
-                    [buffer],
-                    {
-                        type:
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-
-            link.href = url;
-
-            link.download =
-                "job-role-report.xlsx";
-
-
-            document.body.appendChild(
-                link
-            );
-
-
-            link.click();
-
-
-            document.body.removeChild(
-                link
-            );
-
-
-            URL.revokeObjectURL(
-                url
+            return (
+                found?.label ||
+                status ||
+                "—"
             );
 
         };
 
 
     /*
-    |--------------------------------------------------------------------------
-    | LOADING
-    |--------------------------------------------------------------------------
-    */
+     * =====================================================
+     * EXPORT CSV
+     *
+     * Exports CURRENT filtered results.
+     * =====================================================
+     */
 
-    const loading =
-        jobsLoading ||
-        candidatesLoading ||
-        employeesLoading;
+    const handleExport = () => {
 
+        if (
+            !filteredSubmissions.length
+        ) {
+
+            return;
+
+        }
+
+
+        const headers = [
+
+            "BDM",
+
+            "Client",
+
+            "End Client",
+
+            "Job Name",
+
+            "Job Priority",
+
+            "Candidate ID",
+
+            "Candidate Name",
+
+            "Candidate Designation",
+
+            "Email",
+
+            "Phone",
+
+            "CV ID",
+
+            "Candidate Status",
+
+            "Candidate Sub Status",
+
+        ];
+
+
+        const rows =
+            filteredSubmissions.map(
+                (item) => [
+
+                    item.bdm || "",
+
+                    item.clientName || "",
+
+                    item.endClientName || "",
+
+                    item.jobName || "",
+
+                    item.jobPriority || "",
+
+                    item.candidateId || "",
+
+                    item.candidateName || "",
+
+                    item.candidateDesignation || "",
+
+                    item.candidateEmail || "",
+
+                    item.candidatePhone || "",
+
+                    item.candidateCVId || "",
+
+                    getApplicationStatusLabel(
+                        item.statusName
+                    ),
+
+                    item.subStatusName || "",
+
+                ]
+            );
+
+
+        const csvContent =
+            [
+                headers,
+                ...rows,
+            ]
+                .map(
+                    (row) =>
+                        row
+                            .map(
+                                (value) =>
+                                    `"${String(
+                                        value
+                                    ).replace(
+                                        /"/g,
+                                        '""'
+                                    )}"`
+                            )
+                            .join(",")
+                )
+                .join("\n");
+
+
+        const blob =
+            new Blob(
+                [
+                    csvContent,
+                ],
+                {
+                    type:
+                        "text/csv;charset=utf-8;",
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href = url;
+
+        link.download =
+            "submission-report.csv";
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        document.body.removeChild(
+            link
+        );
+
+
+        URL.revokeObjectURL(
+            url
+        );
+
+    };
+
+
+    /*
+     * =====================================================
+     * RENDER
+     * =====================================================
+     */
 
     return (
 
-        <div className="job-role-report-page">
+        <div className="reports-page">
 
-            {/* HEADER */}
 
-            <div className="job-role-report-header">
+            {/* =================================================
+                HEADER
+            ================================================= */}
 
-                <div>
+            <div className="reports-header">
 
-                    <h1>
-                        Job Role Report
-                    </h1>
+                <div className="report-header-left">
 
-                    <p>
-                        Candidate applications
-                        by job role
-                    </p>
+                    <div>
+
+                        <h1>
+                            Reports Dashboard
+                        </h1>
+
+
+                        <p>
+                            Track candidate submissions,
+                            jobs, and recruitment status
+                            at a glance
+                        </p>
+
+                    </div>
 
                 </div>
 
 
                 <button
                     type="button"
-                    className="job-role-report-export"
+                    className="primary-btn"
                     onClick={
-                        handleExportExcel
+                        handleExport
                     }
                     disabled={
-                        filteredRows.length === 0
+                        !filteredSubmissions.length
                     }
                 >
 
-                    <i className="bi bi-download"></i>
+                    <FiDownload />
 
-                    Export Excel
+                    <span>
+                        Export Report
+                    </span>
 
                 </button>
 
             </div>
 
 
-            {/* STATS */}
+            {/* =================================================
+                STATUS CARDS
+                NON CLICKABLE
+            ================================================= */}
 
-            <div className="job-role-report-stats">
+            <div className="report-status-cards">
 
-                <div className="report-stat-card">
+                {statusCards.map(
+                    (card) => {
 
-                    <strong>
-                        {uniqueRoles}
-                    </strong>
-
-                    <span>
-                        Job Roles
-                    </span>
-
-                </div>
+                        const Icon =
+                            card.icon;
 
 
-                <div className="report-stat-card">
+                        return (
 
-                    <strong>
-                        {totalApplications}
-                    </strong>
+                            <div
+                                key={
+                                    card.label
+                                }
+                                className="report-status-card"
+                            >
 
-                    <span>
-                        Applications
-                    </span>
+                                <div
+                                    className="report-status-card-icon"
+                                    style={{
+                                        background:
+                                            `${card.color}15`,
+                                        color:
+                                            card.color,
+                                    }}
+                                >
 
-                </div>
+                                    <Icon />
 
-
-                <div className="report-stat-card">
-
-                    <strong>
-                        {submitted}
-                    </strong>
-
-                    <span>
-                        Submitted
-                    </span>
-
-                </div>
+                                </div>
 
 
-                <div className="report-stat-card">
+                                <div className="report-status-card-content">
 
-                    <strong>
-                        {awaitingFeedback}
-                    </strong>
+                                    <span className="report-status-card-label">
 
-                    <span>
-                        Awaiting Feedback
-                    </span>
+                                        {
+                                            card.label
+                                        }
 
-                </div>
+                                    </span>
+
+
+                                    <strong className="report-status-card-count">
+
+                                        {
+                                            card.value
+                                        }
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        );
+
+                    }
+                )}
 
             </div>
 
 
-            {/* FILTERS */}
+            {/* =================================================
+                FILTERS
+            ================================================= */}
 
-            <div className="job-role-report-filters">
+            <div className="reports-filter-card">
+
+
+                {/* SEARCH */}
 
                 <div className="report-search">
 
-                    <i className="bi bi-search"></i>
+                    <FiSearch />
 
                     <input
                         type="text"
-                        value={search}
-                        onChange={(e) =>
+                        placeholder="Search candidates, IDs, emails..."
+                        value={
+                            search
+                        }
+                        onChange={(
+                            e
+                        ) =>
                             setSearch(
                                 e.target.value
                             )
                         }
-                        placeholder="Search role, candidate, CV ID, email, phone..."
                     />
 
                 </div>
 
 
-                <select
-                    value={jobStatus}
-                    onChange={(e) =>
-                        setJobStatus(
-                            e.target.value
-                        )
-                    }
-                >
+                {/* JOB */}
 
-                    <option value="All">
-                        All job statuses
-                    </option>
+                <div className="report-select">
 
-                    <option value="Open">
-                        Open
-                    </option>
+                    <select
+                        value={
+                            jobFilter
+                        }
+                        onChange={(
+                            e
+                        ) =>
+                            setJobFilter(
+                                e.target.value
+                            )
+                        }
+                    >
 
-                    <option value="Closed">
-                        Closed
-                    </option>
-
-                    <option value="on_hold">
-                        On hold
-                    </option>
-
-                </select>
+                        <option value="">
+                            All Jobs
+                        </option>
 
 
-                <select
-                    value={candidateStatus}
-                    onChange={(e) =>
-                        setCandidateStatus(
-                            e.target.value
-                        )
-                    }
-                >
+                        {jobs.map(
+                            (job) => (
 
-                    <option value="All">
-                        All candidate statuses
-                    </option>
+                                <option
+                                    key={
+                                        job.id
+                                    }
+                                    value={
+                                        job.id
+                                    }
+                                >
 
-                    <option value="Active">
-                        Active
-                    </option>
+                                    {
+                                        job.name
+                                    }
 
-                    <option value="Inactive">
-                        Inactive
-                    </option>
+                                </option>
 
-                    <option value="Blacklisted">
-                        Blacklisted
-                    </option>
+                            )
+                        )}
 
-                </select>
+                    </select>
 
 
-                <select
-                    value={applicationStatus}
-                    onChange={(e) =>
-                        setApplicationStatus(
-                            e.target.value
-                        )
-                    }
-                >
+                    <FiChevronDown />
 
-                    <option value="All">
-                        All application statuses
-                    </option>
-
-                    <option value="Submitted">
-                        Submitted
-                    </option>
-
-                    <option value="Screening">
-                        Screening
-                    </option>
-
-                    <option value="Interview">
-                        Interview
-                    </option>
-
-                    <option value="Selected">
-                        Selected
-                    </option>
-
-                    <option value="Rejected">
-                        Rejected
-                    </option>
-
-                </select>
+                </div>
 
 
-                <select
-                    value={teamFilter}
-                    onChange={(e) =>
-                        setTeamFilter(
-                            e.target.value
-                        )
-                    }
-                >
+                {/* APPLICATION STATUS */}
 
-                    {teams.map(
-                        (team) => (
+                <div className="report-select">
 
-                            <option
-                                key={team}
-                                value={team}
-                            >
-                                {team === "All"
-                                    ? "All teams"
-                                    : team}
-                            </option>
+                    <select
+                        value={
+                            applicationStatusFilter
+                        }
+                        onChange={(
+                            e
+                        ) =>
+                            setApplicationStatusFilter(
+                                e.target.value
+                            )
+                        }
+                    >
 
-                        )
-                    )}
-
-                </select>
+                        <option value="">
+                            All Application Statuses
+                        </option>
 
 
-                <select
-                    value={ownerFilter}
-                    onChange={(e) =>
-                        setOwnerFilter(
-                            e.target.value
-                        )
-                    }
-                >
+                        {applicationStatuses.map(
+                            (status) => (
 
-                    {owners.map(
-                        (owner) => (
+                                <option
+                                    key={
+                                        status.value
+                                    }
+                                    value={
+                                        status.value
+                                    }
+                                >
 
-                            <option
-                                key={owner}
-                                value={owner}
-                            >
-                                {owner === "All"
-                                    ? "All owners"
-                                    : owner}
-                            </option>
+                                    {
+                                        status.label
+                                    }
 
-                        )
-                    )}
+                                </option>
 
-                </select>
+                            )
+                        )}
+
+                    </select>
 
 
-                <select
-                    value={noticePeriodFilter}
-                    onChange={(e) =>
-                        setNoticePeriodFilter(
-                            e.target.value
-                        )
-                    }
-                >
+                    <FiChevronDown />
 
-                    <option value="All">
-                        All notice periods
-                    </option>
+                </div>
 
-                    <option value="Immediate">
-                        Immediate
-                    </option>
 
-                    <option value="30 days">
-                        30 days
-                    </option>
+                {/* SUB STATUS */}
 
-                    <option value="60+ days">
-                        60+ days
-                    </option>
+                {/* <div className="report-select">
 
-                </select>
+                    <select
+                        value={
+                            subStatusFilter
+                        }
+                        onChange={(
+                            e
+                        ) =>
+                            setSubStatusFilter(
+                                e.target.value
+                            )
+                        }
+                    >
 
+                        <option value="">
+                            All Sub Statuses
+                        </option>
+
+
+                        {subStatuses.map(
+                            (status) => (
+
+                                <option
+                                    key={
+                                        status
+                                    }
+                                    value={
+                                        status
+                                    }
+                                >
+
+                                    {
+                                        status
+                                    }
+
+                                </option>
+
+                            )
+                        )}
+
+                    </select>
+
+
+                    <FiChevronDown />
+
+                </div> */}
+
+
+                {/* RESET */}
 
                 <button
-                    type="button"
-                    className="report-clear-btn"
+                    className="report-reset-btn"
                     onClick={
-                        clearFilters
+                        resetFilters
                     }
+                    type="button"
                 >
-                    Clear
+
+                    <FiRotateCcw />
+
+                    <span>
+                        Reset
+                    </span>
+
                 </button>
 
             </div>
 
 
-            {/* REPORT */}
+            {/* =================================================
+                LOADING
+            ================================================= */}
 
-            <div className="job-role-report-wrapper">
+            {submissionsLoading ? (
 
-                {loading ? (
+                <div className="reports-table-card">
 
-                    <div className="report-empty">
+                    <div className="empty-report">
 
-                        Loading report...
+                        <div className="empty-report-content">
+
+                            <div className="spinner"></div>
+
+                            <strong>
+                                Loading submissions...
+                            </strong>
+
+                        </div>
 
                     </div>
 
-                ) : groupedRows.length === 0 ? (
+                </div>
 
-                    <div className="report-empty">
+            ) : submissionsError ? (
 
-                        No matching applications found.
+                <div className="reports-table-card">
+
+                    <div className="empty-report">
+
+                        <div className="empty-report-content">
+
+                            <strong>
+                                Failed to load submissions
+                            </strong>
+
+
+                            <span>
+                                {
+                                    submissionsError
+                                }
+                            </span>
+
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    dispatch(
+                                        getAllSubmissions()
+                                    )
+                                }
+                            >
+                                Try Again
+                            </button>
+
+                        </div>
 
                     </div>
 
-                ) : (
+                </div>
 
-                    <table className="job-role-report-table">
+            ) : (
 
-                        <thead>
-
-                            <tr>
-
-                                <th>ROLE NAME</th>
-
-                                <th>TEAM</th>
-
-                                <th>ROLE SUBSTAT</th>
-
-                                <th>ID</th>
-
-                                <th>ORIGINAL CV LINK</th>
-
-                                <th>NAME</th>
-
-                                <th>CAND STATUS</th>
-
-                                <th>CAND. SUB-STATUS</th>
-
-                                <th>APPLICATION STATUS</th>
-
-                                <th>NP</th>
-
-                                <th>PHONE</th>
-
-                                <th>EMAIL</th>
-
-                                <th>OWNER</th>
-
-                            </tr>
-
-                        </thead>
+                <div className="reports-table-card">
 
 
-                        <tbody>
+                    {/* =================================================
+                        TABLE
+                    ================================================= */}
 
-                            {groupedRows.map(
-                                (group) => (
+                    <div className="reports-table-wrapper">
 
-                                    <React.Fragment
-                                        key={
-                                            group.job.jobId
-                                        }
-                                    >
+                        <table className="reports-table">
 
-                                        {group.candidates.map(
-                                            (
-                                                row,
-                                                index
-                                            ) => (
+                            <thead>
 
-                                                <tr
-                                                    key={
-                                                        row.applicationId
-                                                    }
-                                                >
+                                <tr>
 
-                                                    <td>
+                                    <th>
+                                        BDM
+                                    </th>
 
-                                                        {index ===
-                                                        0 ? (
+                                    <th>
+                                        Client
+                                    </th>
 
-                                                            <div className="report-role-cell">
+                                    <th>
+                                        End Client
+                                    </th>
 
-                                                                <strong>
-                                                                    {row.jobName}
-                                                                </strong>
+                                    <th>
+                                        Job Name
+                                    </th>
 
-                                                                <small>
-                                                                    {row.jobId}
-                                                                </small>
+                                    <th>
+                                        Priority
+                                    </th>
+
+                                    <th>
+                                        Candidate ID
+                                    </th>
+
+                                    <th>
+                                        Candidate
+                                    </th>
+
+                                    <th>
+                                        CV ID
+                                    </th>
+
+                                    <th>
+                                        Cand. Status
+                                    </th>
+
+                                    <th>
+                                        Cand. Sub Status
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {filteredSubmissions.length >
+                                0 ? (
+
+                                    filteredSubmissions.map(
+                                        (item) => (
+
+                                            <tr
+                                                key={
+                                                    item.submissionId
+                                                }
+                                            >
+
+
+                                                {/* BDM */}
+
+                                                <td>
+
+                                                    <span className="report-text">
+
+                                                        {
+                                                            displayValue(
+                                                                item.bdm
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* CLIENT */}
+
+                                                <td>
+
+                                                    <span className="report-text report-client">
+
+                                                        {
+                                                            displayValue(
+                                                                item.clientName
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* END CLIENT */}
+
+                                                <td>
+
+                                                    <span className="report-text">
+
+                                                        {
+                                                            displayValue(
+                                                                item.endClientName
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* JOB NAME */}
+
+                                                <td>
+
+                                                    <div className="report-job-name-cell">
+
+                                                        <span className="report-job-name">
+
+                                                            {
+                                                                displayValue(
+                                                                    item.jobName
+                                                                )
+                                                            }
+
+                                                        </span>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* JOB PRIORITY */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`report-job-priority-badge ${getBadgeClass(
+                                                            item.jobPriority
+                                                        )}`}
+                                                    >
+
+                                                        {
+                                                            displayValue(
+                                                                item.jobPriority
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* CANDIDATE ID */}
+
+                                                <td>
+
+                                                    <span className="report-candidate-id">
+
+                                                        {
+                                                            displayValue(
+                                                                item.candidateId
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* CANDIDATE */}
+
+                                                <td>
+
+                                                    <div className="report-candidate-cell">
+
+
+                                                        <div className="report-candidate-avatar">
+
+                                                            {
+                                                                getInitials(
+                                                                    item.candidateName
+                                                                )
+                                                            }
+
+                                                        </div>
+
+
+                                                        <div className="report-candidate-info">
+
+
+                                                            {/* NAME */}
+
+                                                            <div className="report-candidate-name">
+
+                                                                {
+                                                                    displayValue(
+                                                                        item.candidateName
+                                                                    )
+                                                                }
 
                                                             </div>
 
-                                                        ) : null}
 
-                                                    </td>
+                                                            {/* DESIGNATION */}
 
+                                                            <div className="report-candidate-designation">
 
-                                                    <td>
-
-                                                        {row.team}
-
-                                                    </td>
-
-
-                                                    <td>
-
-                                                        <span className="report-critical">
-
-                                                            {row.roleSubStatus}
-
-                                                        </span>
-
-                                                    </td>
-
-
-                                                    <td>
-
-                                                        <span className="report-cv-id">
-
-                                                            {row.candidateId}
-
-                                                        </span>
-
-                                                    </td>
-
-
-                                                    <td>
-
-                                                        {row.originalCV ? (
-
-                                                            <button
-                                                                type="button"
-                                                                className="report-cv-link"
-                                                                onClick={() =>
-                                                                    window.open(
-                                                                        row.originalCV,
-                                                                        "_blank"
+                                                                {
+                                                                    displayValue(
+                                                                        item.candidateDesignation
                                                                     )
                                                                 }
-                                                            >
 
-                                                                <i className="bi bi-file-earmark-pdf"></i>
-
-                                                                View CV
-
-                                                            </button>
-
-                                                        ) : (
-
-                                                            <span>
-                                                                —
-                                                            </span>
-
-                                                        )}
-
-                                                    </td>
+                                                            </div>
 
 
-                                                    <td>
+                                                            {/* CONTACT */}
 
-                                                        <strong>
-                                                            {row.candidateName}
-                                                        </strong>
-
-                                                    </td>
+                                                            <div className="report-candidate-contact">
 
 
-                                                    <td>
+                                                                {/* EMAIL */}
 
-                                                        <span
-                                                            className={`report-status report-status-${row.candidateStatus
-                                                                ?.toLowerCase()
-                                                                .replace(
-                                                                    /\s+/g,
-                                                                    "-"
-                                                                )}`}
-                                                        >
+                                                                {item.candidateEmail ? (
 
-                                                            {row.candidateStatus}
+                                                                    <a
+                                                                        href={`mailto:${item.candidateEmail}`}
+                                                                        className="report-candidate-contact-icon"
+                                                                        title={
+                                                                            item.candidateEmail
+                                                                        }
+                                                                    >
 
-                                                        </span>
+                                                                        <FiMail />
 
-                                                    </td>
+                                                                    </a>
 
+                                                                ) : (
 
-                                                    <td>
+                                                                    <span
+                                                                        className="report-candidate-contact-icon report-candidate-contact-disabled"
+                                                                        title="Email not available"
+                                                                    >
 
-                                                        <span className="report-sub-status">
+                                                                        <FiMail />
 
-                                                            {row.candidateSubStatus}
+                                                                    </span>
 
-                                                        </span>
-
-                                                    </td>
-
-
-                                                    <td>
-
-                                                        <span className="report-application-status">
-
-                                                            {row.applicationStatus}
-
-                                                        </span>
-
-                                                    </td>
+                                                                )}
 
 
-                                                    <td>
+                                                                {/* PHONE */}
 
-                                                        <span className="report-np">
+                                                                {item.candidatePhone ? (
 
-                                                            {row.noticePeriod}
+                                                                    <a
+                                                                        href={`tel:${item.candidatePhone}`}
+                                                                        className="report-candidate-contact-icon"
+                                                                        title={
+                                                                            item.candidatePhone
+                                                                        }
+                                                                    >
 
-                                                        </span>
+                                                                        <FiPhone />
 
-                                                    </td>
+                                                                    </a>
 
+                                                                ) : (
 
-                                                    <td>
+                                                                    <span
+                                                                        className="report-candidate-contact-icon report-candidate-contact-disabled"
+                                                                        title="Phone not available"
+                                                                    >
 
-                                                        {row.phone}
+                                                                        <FiPhone />
 
-                                                    </td>
+                                                                    </span>
 
+                                                                )}
 
-                                                    <td>
+                                                            </div>
 
-                                                        <a
-                                                            href={`mailto:${row.email}`}
-                                                            className="report-email"
-                                                        >
+                                                        </div>
 
-                                                            {row.email}
+                                                    </div>
 
-                                                        </a>
-
-                                                    </td>
-
-
-                                                    <td>
-
-                                                        {row.owner}
-
-                                                    </td>
-
-                                                </tr>
-
-                                            )
-                                        )}
+                                                </td>
 
 
-                                        {/* JOB TOTAL */}
+                                                {/* CV ID */}
 
-                                        <tr className="report-role-total">
+                                                <td>
 
-                                            <td colSpan="7">
+                                                    <span className="report-cv-id">
+
+                                                        {
+                                                            displayValue(
+                                                                item.candidateCVId
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* APPLICATION STATUS */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`report-application-status-badge ${getBadgeClass(
+                                                            item.statusName
+                                                        )}`}
+                                                    >
+
+                                                        {
+                                                            getApplicationStatusLabel(
+                                                                item.statusName
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* SUB STATUS */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`report-sub-status-badge ${
+                                                            getBadgeClass(
+                                                                item.subStatusName
+                                                            )
+                                                        }`}
+                                                    >
+
+                                                        {
+                                                            displayValue(
+                                                                item.subStatusName
+                                                            )
+                                                        }
+
+                                                    </span>
+
+                                                </td>
+
+                                            </tr>
+
+                                        )
+                                    )
+
+                                ) : (
+
+                                    <tr>
+
+                                        <td
+                                            colSpan="10"
+                                            className="empty-report"
+                                        >
+
+                                            <div className="empty-report-content">
+
+                                                <div className="empty-report-icon">
+
+                                                    <FiSearch />
+
+                                                </div>
+
 
                                                 <strong>
-                                                    {group.job.jobName}
+                                                    No submissions found
                                                 </strong>
 
-                                            </td>
 
-                                            <td colSpan="6">
+                                                <span>
+                                                    Try adjusting your filters
+                                                </span>
 
-                                                <strong>
-                                                    {group.candidates.length} candidate
-                                                    {group.candidates.length !== 1
-                                                        ? "s"
-                                                        : ""}
-                                                </strong>
+                                            </div>
 
-                                            </td>
+                                        </td>
 
-                                        </tr>
+                                    </tr>
 
-                                    </React.Fragment>
+                                )}
 
-                                )
-                            )}
+                            </tbody>
 
-                        </tbody>
+                        </table>
 
-                    </table>
+                    </div>
 
-                )}
 
-            </div>
+                    {/* =================================================
+                        FOOTER
+                    ================================================= */}
+
+                    <div className="reports-table-footer">
+
+                        <span>
+
+                            Showing{" "}
+
+                            <strong>
+                                {
+                                    filteredSubmissions.length
+                                }
+                            </strong>
+
+                            {" "}of{" "}
+
+                            <strong>
+                                {
+                                    submissionsPagination?.totalElements ??
+                                    submissions.length
+                                }
+                            </strong>
+
+                            {" "}submissions
+
+                        </span>
+
+
+                        <div className="report-pagination">
+
+                            <button
+                                type="button"
+                                disabled={
+                                    submissionsPagination?.first ??
+                                    true
+                                }
+                            >
+                                Previous
+                            </button>
+
+
+                            <span className="active-page">
+
+                                {
+                                    (
+                                        submissionsPagination?.pageNumber ??
+                                        0
+                                    ) + 1
+                                }
+
+                            </span>
+
+
+                            <button
+                                type="button"
+                                disabled={
+                                    submissionsPagination?.last ??
+                                    true
+                                }
+                            >
+                                Next
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
 
         </div>
 
     );
 
-};
+}
 
 
 export default JobRoleReport;
