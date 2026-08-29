@@ -365,7 +365,47 @@ export const updateEmployee = createAsyncThunk(
         }
     }
 );
+/*
+|--------------------------------------------------------------------------
+| GET ALL SUBMISSIONS
+|
+| GET /api/v1/submissions
+|--------------------------------------------------------------------------
+*/
+export const getAllSubmissions = createAsyncThunk(
+    "employees/getAllSubmissions",
+    async (_, { rejectWithValue }) => {
 
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions`
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to fetch submissions."
+                );
+            }
+
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch submissions."
+            );
+        }
+    }
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -394,6 +434,31 @@ const employeeSlice =
             error: null,
 
             countriesError: null,
+            submissions: [],
+
+            submissionsPagination: {
+
+                pageNumber: 0,
+
+                pageSize: 20,
+
+                totalPages: 0,
+
+                totalElements: 0,
+
+                numberOfElements: 0,
+
+                first: true,
+
+                last: true,
+
+                empty: true,
+            },
+
+            submissionsLoading: false,
+
+            submissionsError: null,
+
         },
 
 
@@ -412,6 +477,40 @@ const employeeSlice =
             ) => {
 
                 state.selectedEmployee = null;
+            },
+            clearSubmissionError: (
+                state
+            ) => {
+
+                state.submissionsError =
+                    null;
+            },
+
+
+            clearSubmissions: (
+                state
+            ) => {
+
+                state.submissions = [];
+
+                state.submissionsPagination = {
+
+                    pageNumber: 0,
+
+                    pageSize: 20,
+
+                    totalPages: 0,
+
+                    totalElements: 0,
+
+                    numberOfElements: 0,
+
+                    first: true,
+
+                    last: true,
+
+                    empty: true,
+                };
             },
         },
 
@@ -726,7 +825,116 @@ const employeeSlice =
                             action.payload ||
                             "Failed to update employee.";
                     }
+                )
+            /*
+             * -------------------------------------------------------
+             * GET ALL SUBMISSIONS
+             * -------------------------------------------------------
+             */
+
+            builder
+
+                .addCase(
+                    getAllSubmissions.pending,
+                    (state) => {
+
+                        state.submissionsLoading =
+                            true;
+
+                        state.submissionsError =
+                            null;
+                    }
+                )
+
+
+                .addCase(
+                    getAllSubmissions.fulfilled,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.submissionsLoading =
+                            false;
+
+
+                        const data =
+                            action.payload;
+
+
+                        /*
+                         * API returns:
+                         *
+                         * {
+                         *     content: [],
+                         *     pageable: {},
+                         *     totalPages: 1,
+                         *     totalElements: 5,
+                         *     ...
+                         * }
+                         */
+
+                        state.submissions =
+                            data?.content ||
+                            [];
+
+
+                        state.submissionsPagination = {
+
+                            pageNumber:
+                                data?.number ??
+                                data?.pageable?.pageNumber ??
+                                0,
+
+                            pageSize:
+                                data?.size ??
+                                data?.pageable?.pageSize ??
+                                20,
+
+                            totalPages:
+                                data?.totalPages ??
+                                0,
+
+                            totalElements:
+                                data?.totalElements ??
+                                0,
+
+                            numberOfElements:
+                                data?.numberOfElements ??
+                                0,
+
+                            first:
+                                data?.first ??
+                                true,
+
+                            last:
+                                data?.last ??
+                                true,
+
+                            empty:
+                                data?.empty ??
+                                true,
+                        };
+                    }
+                )
+
+
+                .addCase(
+                    getAllSubmissions.rejected,
+                    (
+                        state,
+                        action
+                    ) => {
+
+                        state.submissionsLoading =
+                            false;
+
+                        state.submissionsError =
+                            action.payload ||
+                            "Failed to fetch submissions.";
+                    }
                 );
+
         },
     });
 
@@ -734,6 +942,8 @@ const employeeSlice =
 export const {
     clearEmployeeError,
     clearSelectedEmployee,
+    clearSubmissionError,
+    clearSubmissions,
 } = employeeSlice.actions;
 
 

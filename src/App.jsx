@@ -72,7 +72,7 @@ function App() {
                     <Route path="employees" element={<Employees />}/>
                     <Route path="employees/:employeeId" element={<EmployeeDetails />}/>
 
-                    <Route path="/dashboard/reports" element={<JobRoleReport />}/>
+                    <Route path="reports" element={<JobRoleReport />}/>
 
                 </Route>
 
