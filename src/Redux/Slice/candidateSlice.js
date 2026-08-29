@@ -893,6 +893,674 @@ export const createSubmission = createAsyncThunk(
     }
 );
 
+export const getSubmissionSubStatuses = createAsyncThunk(
+    "candidates/getSubmissionSubStatuses",
+    async (statusId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/substatus/allSubStatuses/${statusId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                "Submission Sub-Statuses API Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch submission sub-statuses"
+                );
+            }
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+            console.error(
+                "Submission Sub-Statuses API Error:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching submission sub-statuses"
+            );
+        }
+    }
+);
+
+
+export const updateSubmission = createAsyncThunk(
+    "candidates/updateSubmission",
+    async (
+        {
+            submissionId,
+            statusId,
+            subStatusId,
+        },
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/update/${submissionId}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify({
+                        statusId,
+                        subStatusId:
+                            subStatusId || null,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                "Update Submission API Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to update submission"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+            console.error(
+                "Update Submission API Error:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while updating submission"
+            );
+        }
+    }
+);
+
+export const updateSubmissionRates = createAsyncThunk(
+    "candidates/updateSubmissionRates",
+    async (
+        {
+            submissionId,
+
+            candidateExpectedAmount,
+            candidateExpectedCurrency,
+            candidateExpectedPeriod,
+
+            submissionAmount,
+            submissionCurrency,
+            submissionPeriod,
+
+            offerAmount,
+            offerCurrency,
+            offerPeriod,
+        },
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            /*
+             * Base rate request
+             */
+            const requestBody = {
+                candidateExpectedAmount:
+                    candidateExpectedAmount !== "" &&
+                    candidateExpectedAmount !== null &&
+                    candidateExpectedAmount !== undefined
+                        ? Number(candidateExpectedAmount)
+                        : null,
+
+                candidateExpectedCurrency:
+                    candidateExpectedCurrency || null,
+
+                candidateExpectedPeriod:
+                    candidateExpectedPeriod || null,
+
+                submissionAmount:
+                    submissionAmount !== "" &&
+                    submissionAmount !== null &&
+                    submissionAmount !== undefined
+                        ? Number(submissionAmount)
+                        : null,
+
+                submissionCurrency:
+                    submissionCurrency || null,
+
+                submissionPeriod:
+                    submissionPeriod || null,
+            };
+
+            /*
+             * Offer / release rate is only added
+             * when the modal provides it.
+             */
+            if (
+                offerAmount !== undefined ||
+                offerCurrency !== undefined ||
+                offerPeriod !== undefined
+            ) {
+                requestBody.offerAmount =
+                    offerAmount !== "" &&
+                    offerAmount !== null &&
+                    offerAmount !== undefined
+                        ? Number(offerAmount)
+                        : null;
+
+                requestBody.offerCurrency =
+                    offerCurrency || null;
+
+                requestBody.offerPeriod =
+                    offerPeriod || null;
+            }
+
+            console.log(
+                "========== UPDATE SUBMISSION RATES =========="
+            );
+
+            console.log(
+                "Submission ID:",
+                submissionId
+            );
+
+            console.log(
+                "Rate Request Body:",
+                requestBody
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/update/${submissionId}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify(
+                        requestBody
+                    ),
+                }
+            );
+
+            const data =
+                await response.json();
+
+            console.log(
+                "Update Submission Rates Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to update submission rates"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+            console.error(
+                "UPDATE SUBMISSION RATES ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while updating submission rates"
+            );
+        }
+    }
+);
+
+export const createInterview = createAsyncThunk(
+    "candidates/createInterview",
+    async (
+        {
+            submissionId,
+            candidateId,
+            jobId,
+            interviewDate,
+            interviewTime,
+            interviewType,
+            round,
+            interviewerName,
+            status = "scheduled",
+        },
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const requestBody = {
+                submissionId,
+                candidateId,
+                jobId,
+                interviewDate,
+                interviewTime,
+                interviewType,
+                round,
+                interviewerName,
+                status,
+            };
+
+            console.log(
+                "========== CREATE INTERVIEW =========="
+            );
+
+            console.log(
+                "Interview Request Body:",
+                requestBody
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/interviews/create`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify(
+                        requestBody
+                    ),
+                }
+            );
+
+            const data =
+                await response.json();
+
+            console.log(
+                "Create Interview Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to schedule interview"
+                );
+            }
+
+            return data;
+        } catch (error) {
+            console.error(
+                "CREATE INTERVIEW ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while scheduling interview"
+            );
+        }
+    }
+);
+
+export const getInterviewsBySubmission = createAsyncThunk(
+    "candidates/getInterviewsBySubmission",
+    async (submissionId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue({
+                    submissionId,
+                    message:
+                        "Authentication token not found. Please login again.",
+                });
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            console.log(
+                "========== GET INTERVIEWS BY SUBMISSION =========="
+            );
+
+            console.log(
+                "Submission ID:",
+                submissionId
+            );
+
+            const url =
+                `${API_BASE_URL}/api/v1/interviews/submission/${submissionId}`;
+
+            console.log(
+                "Interview API URL:",
+                url
+            );
+
+            const response = await fetch(
+                url,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const contentType =
+                response.headers.get("content-type");
+
+            let data;
+
+            if (
+                contentType &&
+                contentType.includes("application/json")
+            ) {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
+
+            console.log(
+                "Get Interviews Response:",
+                data
+            );
+
+            console.log(
+                "Get Interviews Status:",
+                response.status
+            );
+
+            if (!response.ok) {
+                return rejectWithValue({
+                    submissionId,
+                    message:
+                        typeof data === "object"
+                            ? data?.message ||
+                              data?.error ||
+                              "Failed to fetch interviews"
+                            : `Failed to fetch interviews (${response.status})`,
+                });
+            }
+
+            /*
+             * Backend returns:
+             *
+             * [
+             *   {
+             *     id: "...",
+             *     interviewDate: "28-08-2026",
+             *     interviewTime: "01:40 PM",
+             *     interviewType: "Teams",
+             *     round: "Final",
+             *     interviewerName: "biswa",
+             *     status: "Scheduled"
+             *   }
+             * ]
+             */
+
+            let interviews = [];
+
+            if (Array.isArray(data)) {
+                interviews = data;
+            } else if (Array.isArray(data?.content)) {
+                interviews = data.content;
+            } else if (Array.isArray(data?.data)) {
+                interviews = data.data;
+            }
+
+            return {
+                submissionId,
+                interviews,
+            };
+
+        } catch (error) {
+            console.error(
+                "GET INTERVIEWS BY SUBMISSION ERROR:",
+                error
+            );
+
+            return rejectWithValue({
+                submissionId,
+                message:
+                    error.message ||
+                    "Something went wrong while fetching interviews",
+            });
+        }
+    }
+);
+
+
+export const createNote = createAsyncThunk(
+    "candidates/createNote",
+    async (noteData, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/notes/create`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify({
+                        entityType:
+                            noteData.entityType || "candidate",
+
+                        entityId:
+                            noteData.entityId,
+
+                        content:
+                            noteData.content,
+
+                        chatWith:
+                            noteData.chatWith,
+                    }),
+                }
+            );
+
+            const data =
+                await response.json().catch(() => null);
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to create note"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while creating note"
+            );
+        }
+    }
+);
+
+
+export const getCandidateNotes = createAsyncThunk(
+    "candidates/getCandidateNotes",
+    async (candidateId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            if (!candidateId) {
+                return rejectWithValue(
+                    "Candidate ID is required"
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/notes/candidate/${candidateId}`,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data =
+                await response.json().catch(() => null);
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to fetch candidate notes"
+                );
+            }
+
+            /*
+             * Backend currently returns:
+             *
+             * [
+             *   {
+             *      entityType,
+             *      entityId,
+             *      content,
+             *      chatWith,
+             *      chatAt
+             *   }
+             * ]
+             */
+
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            /*
+             * Safety for wrapped responses
+             */
+            if (Array.isArray(data?.content)) {
+                return data.content;
+            }
+
+            if (Array.isArray(data?.data)) {
+                return data.data;
+            }
+
+            return [];
+
+        } catch (error) {
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching candidate notes"
+            );
+        }
+    }
+);
+
+
 const initialState = {
     candidates: [],
     employees: [],
@@ -923,6 +1591,27 @@ const initialState = {
 
     creatingSubmission: false,
     createSubmissionError: null,
+
+    submissionSubStatuses: {},
+    submissionSubStatusesLoading: {},
+    submissionSubStatusesError: {},
+
+    updatingSubmission: false,
+    updateSubmissionError: null,
+
+    updatingSubmissionRates: false,
+    updateSubmissionRatesError: null,
+    creatingInterview: false,
+    createInterviewError: null,
+    interviewsBySubmission: {},
+interviewsBySubmissionLoading: {},
+interviewsBySubmissionError: {},
+notes: [],
+notesLoading: false,
+notesError: null,
+
+creatingNote: false,
+createNoteError: null,
 };
 
 const candidateSlice = createSlice({
@@ -1322,6 +2011,307 @@ const candidateSlice = createSlice({
         state.createSubmissionError =
             action.payload ||
             "Failed to create submission";
+    }
+)
+/*
+|--------------------------------------------------------------------------
+| GET SUBMISSION SUB-STATUSES
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    getSubmissionSubStatuses.pending,
+    (state, action) => {
+        const statusId = action.meta.arg;
+
+        state.submissionSubStatusesLoading[statusId] = true;
+
+        state.submissionSubStatusesError[statusId] = null;
+    }
+)
+
+.addCase(
+    getSubmissionSubStatuses.fulfilled,
+    (state, action) => {
+        const statusId = action.meta.arg;
+
+        state.submissionSubStatusesLoading[statusId] = false;
+
+        state.submissionSubStatuses[statusId] =
+            action.payload;
+    }
+)
+
+.addCase(
+    getSubmissionSubStatuses.rejected,
+    (state, action) => {
+        const statusId = action.meta.arg;
+
+        state.submissionSubStatusesLoading[statusId] = false;
+
+        state.submissionSubStatusesError[statusId] =
+            action.payload ||
+            "Failed to fetch submission sub-statuses";
+    }
+)
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE SUBMISSION
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    updateSubmission.pending,
+    (state) => {
+        state.updatingSubmission = true;
+        state.updateSubmissionError = null;
+    }
+)
+
+.addCase(
+    updateSubmission.fulfilled,
+    (state, action) => {
+        state.updatingSubmission = false;
+        state.updateSubmissionError = null;
+
+        const updated = action.payload;
+
+        const index =
+            state.candidateApplications.findIndex(
+                (application) =>
+                    (
+                        application.id ||
+                        application.submissionId
+                    ) === updated.submissionId
+            );
+
+        if (index !== -1) {
+            state.candidateApplications[index] =
+                updated;
+        }
+    }
+)
+
+.addCase(
+    updateSubmission.rejected,
+    (state, action) => {
+        state.updatingSubmission = false;
+
+        state.updateSubmissionError =
+            action.payload ||
+            "Failed to update submission";
+    }
+)
+/*
+|--------------------------------------------------------------------------
+| UPDATE SUBMISSION RATES
+|--------------------------------------------------------------------------
+*/
+.addCase(
+    updateSubmissionRates.pending,
+    (state) => {
+        state.updatingSubmissionRates = true;
+        state.updateSubmissionRatesError = null;
+    }
+)
+
+.addCase(
+    updateSubmissionRates.fulfilled,
+    (state, action) => {
+        state.updatingSubmissionRates = false;
+        state.updateSubmissionRatesError = null;
+
+        const updated = action.payload;
+
+        const index =
+            state.candidateApplications.findIndex(
+                (application) =>
+                    (
+                        application.id ||
+                        application.submissionId
+                    ) === updated.submissionId
+            );
+
+        if (index !== -1) {
+            state.candidateApplications[index] =
+                updated;
+        }
+    }
+)
+
+.addCase(
+    updateSubmissionRates.rejected,
+    (state, action) => {
+        state.updatingSubmissionRates = false;
+
+        state.updateSubmissionRatesError =
+            action.payload ||
+            "Failed to update submission rates";
+    }
+)
+/*
+|--------------------------------------------------------------------------
+| CREATE INTERVIEW
+|--------------------------------------------------------------------------
+*/
+
+.addCase(
+    createInterview.pending,
+    (state) => {
+        state.creatingInterview = true;
+        state.createInterviewError = null;
+    }
+)
+
+.addCase(
+    createInterview.fulfilled,
+    (state) => {
+        state.creatingInterview = false;
+        state.createInterviewError = null;
+    }
+)
+
+.addCase(
+    createInterview.rejected,
+    (state, action) => {
+        state.creatingInterview = false;
+
+        state.createInterviewError =
+            action.payload ||
+            "Failed to schedule interview";
+    }
+)
+.addCase(
+    getInterviewsBySubmission.pending,
+    (state, action) => {
+        const submissionId = action.meta.arg;
+
+        state.interviewsBySubmissionLoading[
+            submissionId
+        ] = true;
+
+        state.interviewsBySubmissionError[
+            submissionId
+        ] = null;
+    }
+)
+
+.addCase(
+    getInterviewsBySubmission.fulfilled,
+    (state, action) => {
+        const {
+            submissionId,
+            interviews,
+        } = action.payload;
+
+        state.interviewsBySubmission[
+            submissionId
+        ] = Array.isArray(interviews)
+            ? interviews
+            : [];
+
+        state.interviewsBySubmissionLoading[
+            submissionId
+        ] = false;
+
+        state.interviewsBySubmissionError[
+            submissionId
+        ] = null;
+    }
+)
+
+.addCase(
+    getInterviewsBySubmission.rejected,
+    (state, action) => {
+        const submissionId =
+            action.payload?.submissionId ||
+            action.meta.arg;
+
+        state.interviewsBySubmissionLoading[
+            submissionId
+        ] = false;
+
+        state.interviewsBySubmissionError[
+            submissionId
+        ] =
+            action.payload?.message ||
+            "Failed to fetch interviews";
+    }
+)
+/*
+|--------------------------------------------------------------------------
+| GET CANDIDATE NOTES
+|--------------------------------------------------------------------------
+*/
+
+.addCase(
+    getCandidateNotes.pending,
+    (state) => {
+        state.notesLoading = true;
+        state.notesError = null;
+    }
+)
+
+.addCase(
+    getCandidateNotes.fulfilled,
+    (state, action) => {
+        state.notesLoading = false;
+        state.notes = action.payload || [];
+        state.notesError = null;
+    }
+)
+
+.addCase(
+    getCandidateNotes.rejected,
+    (state, action) => {
+        state.notesLoading = false;
+        state.notes = [];
+        state.notesError =
+            action.payload ||
+            "Failed to fetch candidate notes";
+    }
+)
+
+
+/*
+|--------------------------------------------------------------------------
+| CREATE NOTE
+|--------------------------------------------------------------------------
+*/
+
+.addCase(
+    createNote.pending,
+    (state) => {
+        state.creatingNote = true;
+        state.createNoteError = null;
+    }
+)
+
+.addCase(
+    createNote.fulfilled,
+    (state, action) => {
+        state.creatingNote = false;
+        state.createNoteError = null;
+
+        /*
+         * Add newly created note immediately.
+         */
+        if (action.payload) {
+            state.notes = [
+                ...state.notes,
+                action.payload,
+            ];
+        }
+    }
+)
+
+.addCase(
+    createNote.rejected,
+    (state, action) => {
+        state.creatingNote = false;
+
+        state.createNoteError =
+            action.payload ||
+            "Failed to create note";
     }
 );
     },
