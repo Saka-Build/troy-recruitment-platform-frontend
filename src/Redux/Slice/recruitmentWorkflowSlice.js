@@ -60,6 +60,65 @@ export const getSubmissionCounts = createAsyncThunk(
     }
 );
 
+export const getSubmissionsByStage = createAsyncThunk(
+    "recruitmentWorkflow/getSubmissionsByStage",
+    async (pipelineStage, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions?pipelineStage=${encodeURIComponent(
+                    pipelineStage
+                )}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                `Submissions API Response - ${pipelineStage}:`,
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    `Failed to fetch ${pipelineStage} submissions`
+                );
+            }
+
+            return data;
+        } catch (error) {
+            console.error(
+                `Submissions API Error - ${pipelineStage}:`,
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching submissions"
+            );
+        }
+    }
+);
+
 const initialState = {
     submissionCounts: {
         totalApplied: 0,
@@ -72,6 +131,9 @@ const initialState = {
         totalOnBoarding: 0,
         totalOnBoarded: 0,
     },
+    submissions: [],
+    submissionsLoading: false,
+    submissionsError: null,
 
     loading: false,
     error: null,
@@ -139,7 +201,41 @@ const recruitmentWorkflowSlice = createSlice({
                         action.payload ||
                         "Failed to fetch submission counts";
                 }
-            );
+            )
+            
+            .addCase(
+    getSubmissionsByStage.pending,
+    (state) => {
+        state.submissionsLoading = true;
+        state.submissionsError = null;
+    }
+)
+.addCase(
+    getSubmissionsByStage.fulfilled,
+    (state, action) => {
+        state.submissionsLoading = false;
+        state.submissionsError = null;
+
+        state.submissions =
+            action.payload?.content || [];
+
+        console.log(
+            "Updated submissions:",
+            state.submissions
+        );
+    }
+)
+.addCase(
+    getSubmissionsByStage.rejected,
+    (state, action) => {
+        state.submissionsLoading = false;
+        state.submissionsError =
+            action.payload ||
+            "Failed to fetch submissions";
+
+        state.submissions = [];
+    }
+);
     },
 });
 
