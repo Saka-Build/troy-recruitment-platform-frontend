@@ -132,6 +132,23 @@ const authSlice = createSlice({
                 JSON.stringify(action.payload)
             );
         },
+
+            handleUnauthorized: (state) => {
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.user = null;
+        state.activeRole = null;
+        state.roles = [];
+        state.isAuthenticated = false;
+        state.isLoading = false;
+        state.error = "Your session has expired. Please sign in again.";
+
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        localStorage.removeItem("activeRole");
+        localStorage.removeItem("roles");
+    },
     },
 
     extraReducers: (builder) => {
@@ -194,6 +211,6 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearAuthError, setActiveRole, } = authSlice.actions;
+export const { clearAuthError, setActiveRole, handleUnauthorized, } = authSlice.actions;
 
 export default authSlice.reducer;
