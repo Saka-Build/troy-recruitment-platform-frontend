@@ -25,15 +25,6 @@ function Header() {
 
   return (
     <header className="top-header">
-      <div className="search-wrapper">
-        <span className="search-icon">🔍</span>
-        <input
-          type="text"
-          placeholder="Search candidates, jobs, clients..."
-          className="search-input"
-        />
-      </div>
-
       <div className="header-actions">
         <button className="advanced-btn" onClick={openAdvanced}>
           <span className="advanced-icon">⚡</span>
