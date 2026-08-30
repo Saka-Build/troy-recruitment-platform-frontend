@@ -5,6 +5,7 @@ import { FiSearch, FiRotateCcw, FiChevronDown, FiMail, FiPhone, FiDownload, FiAr
 import { getAllSubmissions } from "../../Redux/Slice/employeeSlice";
 import "./JobRoleReport.css";
 import ExcelJS from "exceljs";
+import { getSubmissionStatuses } from "../../Redux/Slice/recruitmentWorkflowSlice";
 
 function JobRoleReport() {
     const dispatch = useDispatch();
@@ -15,6 +16,13 @@ function JobRoleReport() {
         submissionsError,
         submissionsPagination,
     } = useSelector((state) => state.employees || {});
+
+    const {
+        submissionStatuses = [],
+        submissionStatusesLoading,
+        submissionStatusesError,
+    } = useSelector((state) => state.recruitmentWorkflow || {});
+
     const [search, setSearch] = useState("");
     const [jobFilter, setJobFilter] = useState("");
     const [applicationStatusFilter, setApplicationStatusFilter] = useState("");
@@ -22,6 +30,7 @@ function JobRoleReport() {
 
     useEffect(() => {
         dispatch(getAllSubmissions());
+        dispatch(getSubmissionStatuses());
     }, [dispatch]);
 
     const jobs = useMemo(() => {
@@ -37,20 +46,14 @@ function JobRoleReport() {
         return Object.values(uniqueJobs);
     }, [submissions]);
 
-    const applicationStatuses = [
-        { value: "Applied", label: "Applied" },
-        { value: "Screening", label: "Actively Sourcing" },
-        { value: "Ready_to_Submit", label: "Ready to Submit" },
-        { value: "Submitted", label: "Submitted" },
-        { value: "Interview", label: "Interview" },
-        { value: "Selected", label: "Selected" },
-        { value: "Offer Released", label: "Offer Released" },
-        { value: "Onboarding", label: "Onboarding" },
-        { value: "Onboarded", label: "Onboarded" },
-        { value: "Hold", label: "Hold" },
-        { value: "Rejected", label: "Rejected" },
-        { value: "Offboarded", label: "Offboarded" },
-    ];
+        const applicationStatuses = useMemo(() => {
+            return submissionStatuses.map((status) => ({
+                value: status.name,
+                label: status.name?.replace(/_/g, " "),
+                id: status.id,
+                colourHex: status.colourHex,
+            }));
+        }, [submissionStatuses]);
 
     const subStatuses = useMemo(() => {
         const uniqueSubStatuses = new Set();
@@ -120,10 +123,13 @@ function JobRoleReport() {
         return value?.toLowerCase().replace(/_/g, "-").replace(/\s+/g, "-") || "";
     };
 
-    const getApplicationStatusLabel = (status) => {
-        const found = applicationStatuses.find((item) => item.value === status);
-        return found?.label || status || "—";
-    };
+const getApplicationStatusLabel = (status) => {
+    const found = applicationStatuses.find(
+        (item) => item.value === status
+    );
+
+    return found?.label || status?.replace(/_/g, " ") || "—";
+};
 
     const handleExport = async () => {
         if (!filteredSubmissions.length) return;

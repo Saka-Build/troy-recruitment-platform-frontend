@@ -2,15 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "./Job.css";
-import {
-  deleteJob,
-  getAllJobs,
-  getJobById,
-} from "../../Redux/Slice/jobSlice";
+import {deleteJob,getAllJobs,getJobById,} from "../../Redux/Slice/jobSlice";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CommonPagination from "../../components/CommonPagination";
 import ManualCreationModal from "./ManualCreationModal";
 import ExcelJS from "exceljs";
+import Toast from "../../Components/Toast";
 
 function JobPage() {
   const navigate = useNavigate();
@@ -39,6 +36,25 @@ function JobPage() {
     useState(null);
   const [isLoadingJob, setIsLoadingJob] =
     useState(false);
+
+    const [toast, setToast] = useState({
+  show: false,
+  type: "success",
+  message: "",
+});
+const showToast = (type, message) => {
+  setToast({
+    show: true,
+    type,
+    message,
+  });
+};
+const closeToast = () => {
+  setToast((prev) => ({
+    ...prev,
+    show: false,
+  }));
+};
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -266,47 +282,62 @@ const handleExport = async () => {
     setShowDeleteModal(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!selectedJob?.id) {
-      return;
-    }
+const handleDeleteConfirm = async () => {
+  if (!selectedJob?.id) {
+    return;
+  }
 
-    try {
-      await dispatch(
-        deleteJob(selectedJob.id)
-      ).unwrap();
+  try {
+    await dispatch(
+      deleteJob(selectedJob.id)
+    ).unwrap();
 
-      setShowDeleteModal(false);
-      setSelectedJob(null);
-    } catch (error) {
-      console.error("Delete Job Error:",error);
-    }
-  };
+    setShowDeleteModal(false);
+    setSelectedJob(null);
+
+    showToast(
+      "success",
+      "Job deleted successfully."
+    );
+  } catch (error) {
+    console.error("Delete Job Error:", error);
+
+    showToast(
+      "error",
+      error || "Unable to delete job. Please try again."
+    );
+  }
+};
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
     setSelectedJob(null);
   };
 
-  const handleEditJob = async (job) => {
-    try {
-      setIsLoadingJob(true);
+const handleEditJob = async (job) => {
+  try {
+    setIsLoadingJob(true);
 
-      const response = await dispatch(
-        getJobById(job.id)
-      ).unwrap();
+    const response = await dispatch(
+      getJobById(job.id)
+    ).unwrap();
 
-      setEditingJob(response);
-      setShowManualModal(true);
-    } catch (error) {
-      console.error(
-        "Get Job By ID Error:",
-        error
-      );
-    } finally {
-      setIsLoadingJob(false);
-    }
-  };
+    setEditingJob(response);
+    setShowManualModal(true);
+  } catch (error) {
+    console.error(
+      "Get Job By ID Error:",
+      error
+    );
+
+    showToast(
+      "error",
+      error || "Unable to load job. Please try again."
+    );
+  } finally {
+    setIsLoadingJob(false);
+  }
+};
 
   const formatStatus = (status) => {
     if (!status) return "—";
@@ -634,17 +665,28 @@ const handleExport = async () => {
             setShowManualModal(false);
             setEditingJob(null);
           }}
-          onSave={(updatedJob) => {
-            console.log(
-              "Updated job:",
-              updatedJob
-            );
+onSave={(updatedJob) => {
+  console.log(
+    "Updated job:",
+    updatedJob
+  );
 
-            setShowManualModal(false);
-            setEditingJob(null);
-          }}
+  setShowManualModal(false);
+  setEditingJob(null);
+
+  showToast(
+    "success",
+    "Job updated successfully."
+  );
+}}
         />
       )}
+      <Toast
+  show={toast.show}
+  type={toast.type}
+  message={toast.message}
+  onClose={closeToast}
+/>
     </div>
   );
 }

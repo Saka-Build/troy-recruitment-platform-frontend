@@ -99,6 +99,7 @@ function JobDetails() {
           onSave={(updatedJob) => {console.log("Job updated:", updatedJob);
                                     setShowManualCreationModal(false);
                                     dispatch(getJobById(id));
+                                    dispatch(getJobActivities(id));
                                   }}
         />
       )}

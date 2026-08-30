@@ -11,6 +11,7 @@ import {
 } from "../../Redux/Slice/jobSlice";
 import { getAllEmployees } from "../../Redux/Slice/employeeSlice";
 import { useNavigate } from "react-router-dom";
+import Toast from "../../Components/Toast";
 
 function ManualCreationModal({
   title = "Manual creation",
@@ -42,7 +43,11 @@ function ManualCreationModal({
     createError,
     error,
   } = useSelector((state) => state.jobs);
-
+const [toast, setToast] = useState({
+  show: false,
+  type: "success",
+  message: "",
+});
   const submitting = isCreating || isUpdating;
 
   const [recruiterDropdownOpen, setRecruiterDropdownOpen] =
@@ -66,11 +71,11 @@ function ManualCreationModal({
 
     clientRateAmount: "",
     clientRateCurrency: "INR",
-    clientRatePeriod: "month",
+    clientRatePeriod: "MONTH",
 
     candidateRateAmount: "",
     candidateRateCurrency: "INR",
-    candidateRatePeriod: "month",
+    candidateRatePeriod: "MONTH",
 
     skills: "",
     priority: "High",
@@ -134,58 +139,86 @@ function ManualCreationModal({
           .filter(Boolean)
       : [];
 
-    setFormData({
-      title: editJob.title || "",
-      clientId:
-        editJob.clientId ||
-        editJob.client?.id ||
-        "",
-      endClientId:
-        editJob.endClientId ||
-        editJob.endClient?.id ||
-        "",
-      countryCode:
-        editJob.countryCode ||
-        editJob.country?.code ||
-        "",
-      location: editJob.location || "",
-      jobType: editJob.jobType || "Permanent",
-      workMode: editJob.workMode || "Onsite",
-      clientRateAmount:
-        editJob.clientRateAmount ?? "",
-      clientRateCurrency:
-        editJob.clientRateCurrency || "INR",
-      clientRatePeriod:
-        editJob.clientRatePeriod || "month",
-      candidateRateAmount:
-        editJob.candidateRateAmount ?? "",
-      candidateRateCurrency:
-        editJob.candidateRateCurrency || "INR",
-      candidateRatePeriod:
-        editJob.candidateRatePeriod || "month",
-      skills: Array.isArray(editJob.skillsRequired)
-        ? editJob.skillsRequired.join(", ")
-        : "",
-      priority: editJob.priority || "High",
-      status:
-        editJob.status === "On hold"
-          ? "on_hold"
-          : editJob.status || "Open",
-      ownerId:
-        editJob.ownerId ||
-        editJob.owner?.id ||
-        editJob.leadId ||
-        editJob.lead ||
-        "",
-      assignedRecruiters: recruiterIds,
-      description: editJob.description || "",
-      leadNote: editJob.leadNote || "",
-      industry:
-        editJob.industry ||
-        "Information Technology",
-      isTemplate: editJob.isTemplate ?? false,
-      templateName: editJob.templateName ?? null,
-    });
+setFormData({
+  title: editJob.title || "",
+  clientId:
+    editJob.clientId ||
+    editJob.client?.id ||
+    "",
+  endClientId:
+    editJob.endClientId ||
+    editJob.endClient?.id ||
+    "",
+  countryCode:
+    editJob.countryCode ||
+    editJob.country?.code ||
+    "",
+  location: editJob.location || "",
+  jobType: editJob.jobType || "Permanent",
+  workMode: editJob.workMode || "Onsite",
+
+  clientRateAmount:
+    editJob.clientRateAmount ?? "",
+
+  clientRateCurrency:
+    editJob.clientRateCurrency
+      ? String(editJob.clientRateCurrency).toUpperCase()
+      : "INR",
+
+  clientRatePeriod:
+    editJob.clientRatePeriod
+      ? String(editJob.clientRatePeriod).toUpperCase()
+      : "MONTH",
+
+  candidateRateAmount:
+    editJob.candidateRateAmount ?? "",
+
+  candidateRateCurrency:
+    editJob.candidateRateCurrency
+      ? String(editJob.candidateRateCurrency).toUpperCase()
+      : "INR",
+
+  candidateRatePeriod:
+    editJob.candidateRatePeriod
+      ? String(editJob.candidateRatePeriod).toUpperCase()
+      : "MONTH",
+
+  skills: Array.isArray(editJob.skillsRequired)
+    ? editJob.skillsRequired.join(", ")
+    : "",
+
+  priority: editJob.priority || "High",
+
+  status:
+    editJob.status === "On hold"
+      ? "on_hold"
+      : editJob.status || "Open",
+
+  ownerId:
+    editJob.ownerId ||
+    editJob.owner?.id ||
+    editJob.leadId ||
+    editJob.lead ||
+    "",
+
+  assignedRecruiters: recruiterIds,
+
+  description:
+    editJob.description || "",
+
+  leadNote:
+    editJob.leadNote || "",
+
+  industry:
+    editJob.industry ||
+    "Information Technology",
+
+  isTemplate:
+    editJob.isTemplate ?? false,
+
+  templateName:
+    editJob.templateName ?? null,
+});
   }, [editJob, isEdit]);
 
   const handleChange = (e) => {
@@ -467,48 +500,72 @@ function ManualCreationModal({
       payload
     );
 
-    try {
-      let response;
+try {
+  let response;
 
-      if (isEdit) {
-        response = await dispatch(
-          updateJob({
-            id: editJob.id,
-            jobData: payload,
-          })
-        ).unwrap();
-      } else {
-        response = await dispatch(
-          createJob(payload)
-        ).unwrap();
-      }
+  if (isEdit) {
+    response = await dispatch(
+      updateJob({
+        id: editJob.id,
+        jobData: payload,
+      })
+    ).unwrap();
+  } else {
+    response = await dispatch(
+      createJob(payload)
+    ).unwrap();
+  }
 
-      console.log(
-        isEdit
-          ? "JOB UPDATED:"
-          : "JOB CREATED:",
-        response
-      );
+  console.log(
+    isEdit
+      ? "JOB UPDATED:"
+      : "JOB CREATED:",
+    response
+  );
 
-      if (onSave) {
-        onSave(response);
-      }
+  setToast({
+    show: true,
+    type: "success",
+    message: isEdit
+      ? "Job updated successfully."
+      : "Job created successfully.",
+  });
 
-      if (!isEdit && response?.id) {
-        onClose();
-        navigate(`/dashboard/jobs`);
-        return;
-      }
+  if (onSave) {
+    onSave(response);
+  }
 
+  if (!isEdit && response?.id) {
+    setTimeout(() => {
       onClose();
-    } catch (error) {
-      console.error(
-        isEdit
-          ? "Update Job Error:"
-          : "Create Job Error:",
-        error
-      );
-    }
+      navigate("/dashboard/jobs");
+    }, 1200);
+
+    return;
+  }
+
+  setTimeout(() => {
+    onClose();
+  }, 1200);
+
+} catch (error) {
+  console.error(
+    isEdit
+      ? "Update Job Error:"
+      : "Create Job Error:",
+    error
+  );
+
+  setToast({
+    show: true,
+    type: "error",
+    message:
+      error ||
+      (isEdit
+        ? "Unable to update job. Please try again."
+        : "Unable to create job. Please try again."),
+  });
+}
   };
 
   // ---------------------------------------------------------
@@ -529,6 +586,7 @@ function ManualCreationModal({
   };
 
   return (
+  <>
     <div
       className="job-modal-overlay"
       onMouseDown={onClose}
@@ -799,28 +857,21 @@ function ManualCreationModal({
               <label>Client rate</label>
 
               <div className="rate-field">
-                <select
-                  name="clientRateCurrency"
-                  value={
-                    formData.clientRateCurrency
-                  }
-                  onChange={handleChange}
-                  className="rate-currency"
-                  disabled={submitting}
-                >
-                  <option value="INR">
-                    INR
-                  </option>
-                  <option value="GBP">
-                    GBP
-                  </option>
-                  <option value="USD">
-                    USD
-                  </option>
-                  <option value="EUR">
-                    EUR
-                  </option>
-                </select>
+<select
+  name="clientRateCurrency"
+  value={formData.clientRateCurrency}
+  onChange={handleChange}
+  className="rate-currency"
+  disabled={submitting}
+>
+  <option value="USD">USD</option>
+  <option value="QAR">QAR</option>
+  <option value="GBP">GBP</option>
+  <option value="INR">INR</option>
+  <option value="PLN">PLN</option>
+  <option value="EUR">EUR</option>
+  <option value="CAD">CAD</option>
+</select>
 
                 <input
                   type="number"
@@ -834,25 +885,19 @@ function ManualCreationModal({
                   disabled={submitting}
                 />
 
-                <select
-                  name="clientRatePeriod"
-                  value={
-                    formData.clientRatePeriod
-                  }
-                  onChange={handleChange}
-                  className="rate-period"
-                  disabled={submitting}
-                >
-                  <option value="day">
-                    Day
-                  </option>
-                  <option value="month">
-                    Month
-                  </option>
-                  <option value="annum">
-                    Annum
-                  </option>
-                </select>
+<select
+  name="clientRatePeriod"
+  value={formData.clientRatePeriod}
+  onChange={handleChange}
+  className="rate-period"
+  disabled={submitting}
+>
+  <option value="HOUR">Hour</option>
+  <option value="DAY">Day</option>
+  <option value="WEEK">Week</option>
+  <option value="MONTH">Month</option>
+  <option value="YEAR">Year</option>
+</select>
               </div>
             </div>
 
@@ -861,28 +906,21 @@ function ManualCreationModal({
               <label>Candidate rate</label>
 
               <div className="rate-field">
-                <select
-                  name="candidateRateCurrency"
-                  value={
-                    formData.candidateRateCurrency
-                  }
-                  onChange={handleChange}
-                  className="rate-currency"
-                  disabled={submitting}
-                >
-                  <option value="INR">
-                    INR
-                  </option>
-                  <option value="GBP">
-                    GBP
-                  </option>
-                  <option value="USD">
-                    USD
-                  </option>
-                  <option value="EUR">
-                    EUR
-                  </option>
-                </select>
+<select
+  name="candidateRateCurrency"
+  value={formData.candidateRateCurrency}
+  onChange={handleChange}
+  className="rate-currency"
+  disabled={submitting}
+>
+  <option value="USD">USD</option>
+  <option value="QAR">QAR</option>
+  <option value="GBP">GBP</option>
+  <option value="INR">INR</option>
+  <option value="PLN">PLN</option>
+  <option value="EUR">EUR</option>
+  <option value="CAD">CAD</option>
+</select>
 
                 <input
                   type="number"
@@ -896,25 +934,19 @@ function ManualCreationModal({
                   disabled={submitting}
                 />
 
-                <select
-                  name="candidateRatePeriod"
-                  value={
-                    formData.candidateRatePeriod
-                  }
-                  onChange={handleChange}
-                  className="rate-period"
-                  disabled={submitting}
-                >
-                  <option value="day">
-                    Day
-                  </option>
-                  <option value="month">
-                    Month
-                  </option>
-                  <option value="annum">
-                    Annum
-                  </option>
-                </select>
+<select
+  name="candidateRatePeriod"
+  value={formData.candidateRatePeriod}
+  onChange={handleChange}
+  className="rate-period"
+  disabled={submitting}
+>
+  <option value="HOUR">Hour</option>
+  <option value="DAY">Day</option>
+  <option value="WEEK">Week</option>
+  <option value="MONTH">Month</option>
+  <option value="YEAR">Year</option>
+</select>
               </div>
             </div>
 
@@ -1252,7 +1284,21 @@ function ManualCreationModal({
         </div>
       </div>
     </div>
-  );
+    {toast.show && (
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        onClose={() =>
+          setToast({
+            show: false,
+            type: "success",
+            message: "",
+          })
+        }
+      />
+    )}
+  </>
+);
 }
 
 export default ManualCreationModal;
