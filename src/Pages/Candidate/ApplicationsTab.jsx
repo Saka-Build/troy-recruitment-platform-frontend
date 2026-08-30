@@ -817,6 +817,7 @@ const ApplicationsTab = ({
 
         return time;
     };
+
     const getInterviewTypeForApi = (type) => {
         return (
             type || "TEAMS"
@@ -838,23 +839,118 @@ const ApplicationsTab = ({
             round
         );
     };
-    const handleOpenInterview = (application) => {
-        console.log(
-            "Opening interview modal for:",
-            application
-        );
-
-        setSelectedApplication(
-            application
-        );
-
-        setInterviewData({
-            date: "",
-            time: "",
-            type: "TEAMS",
-            round: "Final",
-            interviewer: "",
+    const handleOpenInterview = (application, interview = null) => {
+        console.log("Opening interview modal:", {
+            application,
+            interview,
         });
+
+        setSelectedApplication(application);
+
+        /*
+         * If an interview already exists,
+         * populate the modal with its current values.
+         *
+         * This will be used for RESCHEDULE later.
+         */
+        if (interview) {
+            const interviewDate =
+                interview.interviewDate ||
+                interview.date ||
+                "";
+
+            const interviewTime =
+                interview.interviewTime ||
+                interview.time ||
+                "";
+
+            const interviewType =
+                interview.interviewType ||
+                interview.type ||
+                "TEAMS";
+
+            const interviewRound =
+                interview.round ||
+                "Final";
+
+            const interviewer =
+                interview.interviewerName ||
+                interview.interviewer ||
+                "";
+
+            /*
+             * Convert DD-MM-YYYY to YYYY-MM-DD
+             * because <input type="date"> requires YYYY-MM-DD.
+             */
+            let formattedDate = interviewDate;
+
+            if (/^\d{2}-\d{2}-\d{4}$/.test(interviewDate)) {
+                const [day, month, year] =
+                    interviewDate.split("-");
+
+                formattedDate =
+                    `${year}-${month}-${day}`;
+            }
+
+            /*
+             * Convert API time to HH:mm
+             * because <input type="time"> requires HH:mm.
+             */
+            let formattedTime = interviewTime;
+
+            if (
+                /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(
+                    interviewTime
+                )
+            ) {
+                const match = interviewTime.match(
+                    /^(\d{1,2}):(\d{2})\s?(AM|PM)$/i
+                );
+
+                if (match) {
+                    let hours = Number(match[1]);
+                    const minutes = match[2];
+                    const period =
+                        match[3].toUpperCase();
+
+                    if (
+                        period === "PM" &&
+                        hours !== 12
+                    ) {
+                        hours += 12;
+                    }
+
+                    if (
+                        period === "AM" &&
+                        hours === 12
+                    ) {
+                        hours = 0;
+                    }
+
+                    formattedTime =
+                        `${String(hours).padStart(2, "0")}:${minutes}`;
+                }
+            }
+
+            setInterviewData({
+                date: formattedDate,
+                time: formattedTime,
+                type: interviewType.toUpperCase(),
+                round: interviewRound,
+                interviewer,
+            });
+        } else {
+            /*
+             * Normal Schedule Interview
+             */
+            setInterviewData({
+                date: "",
+                time: "",
+                type: "TEAMS",
+                round: "Final",
+                interviewer: "",
+            });
+        }
 
         setShowInterviewModal(true);
     };
@@ -1593,7 +1689,41 @@ const ApplicationsTab = ({
         });
     }, [candidateApplications, dispatch]);
 
+    const isInterviewStatus = (application) => {
+        const status =
+            application?.status ||
+            application?.statusName ||
+            "";
 
+        return (
+            String(status)
+                .trim()
+                .toLowerCase() === "interview"
+        );
+    };
+    const getInterviewRoundLabel = (interview) => {
+        const round =
+            interview?.round || "";
+
+        const normalizedRound =
+            String(round)
+                .trim()
+                .toLowerCase();
+
+        if (normalizedRound === "technical") {
+            return "Technical Round";
+        }
+
+        if (normalizedRound === "hr") {
+            return "HR Round";
+        }
+
+        if (normalizedRound === "final") {
+            return "Final Round";
+        }
+
+        return round || "-";
+    };
     return (
         <>
             <div className="candidate-tab-card cxandidate applications-tab">
@@ -1971,53 +2101,80 @@ const ApplicationsTab = ({
                                                     </>
                                                 )}
                                             </div>
-                                            {interview && (
-                                                <div className="cxandidate-application-interview-info">
+                                            {interview && isInterviewStatus(app) && (
+                                                <div className="cxandidate-interview-scheduled-box">
 
-                                                    <span>
-                                                        🗓️{" "}
-                                                        {interview.interviewDate ||
-                                                            interview.date ||
-                                                            "-"}
-                                                    </span>
+                                                    <div className="cxandidate-interview-scheduled-left">
 
-                                                    <span>
-                                                        {" "}
-                                                        {interview.interviewTime ||
-                                                            interview.time ||
-                                                            ""}
-                                                    </span>
+                                                        <div className="cxandidate-interview-scheduled-badge">
+                                                            <span className="cxandidate-interview-badge-icon">
+                                                                🎤
+                                                            </span>
 
-                                                    <span> · </span>
+                                                            INTERVIEW SCHEDULED
+                                                        </div>
 
-                                                    <span>
-                                                        {interview.interviewType ||
-                                                            interview.type ||
-                                                            "-"}
-                                                    </span>
+                                                        <div className="cxandidate-interview-scheduled-details">
 
-                                                    <span> · </span>
-
-                                                    <span>
-                                                        {interview.round === "Technical"
-                                                            ? "Technical Round"
-                                                            : interview.round === "HR"
-                                                                ? "HR Round"
-                                                                : interview.round === "Final"
-                                                                    ? "Final Round"
-                                                                    : interview.round ||
+                                                            <strong>
+                                                                {interview.interviewDate ||
+                                                                    interview.date ||
                                                                     "-"}
-                                                    </span>
+                                                            </strong>
 
-                                                    {interview.interviewerName && (
-                                                        <>
-                                                            <span> · </span>
+                                                            <strong>
+                                                                {interview.interviewTime ||
+                                                                    interview.time ||
+                                                                    ""}
+                                                            </strong>
+
+                                                            <span className="cxandidate-interview-dot">
+                                                                ·
+                                                            </span>
 
                                                             <span>
-                                                                {interview.interviewerName}
+                                                                {interview.interviewType ||
+                                                                    interview.type ||
+                                                                    "-"}
                                                             </span>
-                                                        </>
-                                                    )}
+
+                                                            <span className="cxandidate-interview-dot">
+                                                                ·
+                                                            </span>
+
+                                                            <span>
+                                                                {getInterviewRoundLabel(
+                                                                    interview
+                                                                )}
+                                                            </span>
+
+                                                            {interview.interviewerName && (
+                                                                <>
+                                                                    <span className="cxandidate-interview-dot">
+                                                                        ·
+                                                                    </span>
+
+                                                                    <span>
+                                                                        {interview.interviewerName}
+                                                                    </span>
+                                                                </>
+                                                            )}
+
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        className="cxandidate-reschedule-btn"
+                                                        onClick={() =>
+                                                            handleOpenInterview(
+                                                                app,
+                                                                interview
+                                                            )
+                                                        }
+                                                    >
+                                                        Reschedule
+                                                    </button>
 
                                                 </div>
                                             )}
