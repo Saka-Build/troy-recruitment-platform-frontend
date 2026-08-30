@@ -20,6 +20,7 @@ import {
 import RoleModal from "./RoleModal";
 import "./Roles.css";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import Toast from "../../Components/Toast";
 
 const Roles = () => {
     const dispatch = useDispatch();
@@ -43,6 +44,25 @@ const Roles = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [roleToDelete, setRoleToDelete] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [toast, setToast] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
+const showToast = (type, message) => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
+
+const closeToast = () => {
+    setToast((current) => ({
+        ...current,
+        show: false,
+    }));
+};
 
     /*
      * =========================================================
@@ -114,9 +134,14 @@ const Roles = () => {
 
             setEditingRole(result);
             setShowRoleModal(true);
-        } catch (error) {
-            console.error("Failed to load role:", error);
-        }
+} catch (error) {
+    console.error("Failed to load role:", error);
+
+    showToast(
+        "danger",
+        error || "Failed to load role."
+    );
+}
     };
 
     /*
@@ -148,36 +173,44 @@ const Roles = () => {
      * CONFIRM DELETE
      * =========================================================
      */
-    const handleConfirmDelete = async () => {
-        if (!roleToDelete?.id) {
-            return;
-        }
+const handleConfirmDelete = async () => {
+    if (!roleToDelete?.id) {
+        return;
+    }
 
-        try {
-            setDeleteLoading(true);
+    try {
+        setDeleteLoading(true);
 
-            await dispatch(
-                deleteRole(roleToDelete.id)
-            ).unwrap();
+        await dispatch(
+            deleteRole(roleToDelete.id)
+        ).unwrap();
 
-            // Refresh roles after successful deletion
-            await dispatch(
-                getAllRoles()
-            ).unwrap();
+        await dispatch(
+            getAllRoles()
+        ).unwrap();
 
-            // Keep module/permission data in sync
-            await dispatch(
-                getAllRolesAndModules()
-            ).unwrap();
+        await dispatch(
+            getAllRolesAndModules()
+        ).unwrap();
 
-            setShowDeleteModal(false);
-            setRoleToDelete(null);
-        } catch (error) {
-            console.error("Failed to delete role:", error);
-        } finally {
-            setDeleteLoading(false);
-        }
-    };
+        setShowDeleteModal(false);
+        setRoleToDelete(null);
+
+        showToast(
+            "success",
+            "Role deleted successfully."
+        );
+    } catch (error) {
+        console.error("Failed to delete role:", error);
+
+        showToast(
+            "danger",
+            error || "Failed to delete role."
+        );
+    } finally {
+        setDeleteLoading(false);
+    }
+};
 
     /*
      * =========================================================
@@ -194,24 +227,36 @@ const Roles = () => {
      * AFTER CREATE / UPDATE
      * =========================================================
      */
-    const handleRoleSaved = async () => {
-        try {
-            await dispatch(
-                getAllRoles()
-            ).unwrap();
+const handleRoleSaved = async (actionType) => {
+    try {
+        await dispatch(
+            getAllRoles()
+        ).unwrap();
 
-            await dispatch(
-                getAllRolesAndModules()
-            ).unwrap();
+        await dispatch(
+            getAllRolesAndModules()
+        ).unwrap();
 
-            handleModalClose();
-        } catch (error) {
-            console.error(
-                "Failed to refresh roles:",
-                error
-            );
-        }
-    };
+        handleModalClose();
+
+        showToast(
+            "success",
+            actionType === "update"
+                ? "Role updated successfully."
+                : "Role created successfully."
+        );
+    } catch (error) {
+        console.error(
+            "Failed to refresh roles:",
+            error
+        );
+
+        showToast(
+            "danger",
+            error || "Failed to refresh roles."
+        );
+    }
+};
 
     /*
      * =========================================================
@@ -250,7 +295,12 @@ const Roles = () => {
 
     return (
         <div className="page roles-page">
-
+<Toast
+            show={toast.show}
+            type={toast.type}
+            message={toast.message}
+            onClose={closeToast}
+        />
             {/* =================================================
                 PAGE HEADER
             ================================================= */}

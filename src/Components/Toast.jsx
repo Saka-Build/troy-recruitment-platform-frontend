@@ -14,9 +14,14 @@ const toastConfig = {
     icon: "!",
     className: "toast-danger",
   },
+  error: {
+    icon: "!",
+    className: "toast-danger",
+  },
 };
 
 function Toast({
+  show = true,
   type = "success",
   message,
   onClose,
@@ -25,7 +30,7 @@ function Toast({
   const config = toastConfig[type] || toastConfig.success;
 
   useEffect(() => {
-    if (!duration) {
+    if (!show || !message || !duration) {
       return;
     }
 
@@ -34,9 +39,9 @@ function Toast({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [show, message, duration, onClose]);
 
-  if (!message) {
+  if (!show || !message) {
     return null;
   }
 

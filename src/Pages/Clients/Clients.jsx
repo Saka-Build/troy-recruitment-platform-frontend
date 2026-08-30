@@ -44,13 +44,38 @@ import {
     faGoogle,
     faWhatsapp,
 } from "@fortawesome/free-brands-svg-icons";
+import Toast from "../../Components/Toast";
 
 
 function Clients() {
 
     const dispatch =
         useDispatch();
+const [
+    toast,
+    setToast,
+] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
+const showToast = (
+    type,
+    message
+) => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
 
+const hideToast = () => {
+    setToast((prev) => ({
+        ...prev,
+        show: false,
+    }));
+};
 
     /* =========================================================
        CLIENT REDUX STATE
@@ -259,59 +284,121 @@ function Clients() {
     /* =========================================================
        SAVE CLIENT
     ========================================================= */
+const getFriendlyErrorMessage = (
+    error
+) => {
 
-    const handleSaveClient = async (
-        clientData
-    ) => {
+    if (!error) {
+        return "Something went wrong. Please try again.";
+    }
+
+    if (typeof error === "string") {
 
         try {
 
-            if (editingClient) {
+            const parsed =
+                JSON.parse(error);
 
-                await dispatch(
-
-                    updateClient({
-
-                        id:
-                            editingClient.id,
-
-                        ...clientData,
-
-                    })
-
-                ).unwrap();
-
-            } else {
-
-                await dispatch(
-
-                    createClient(
-                        clientData
-                    )
-
-                ).unwrap();
-
-            }
-
-
-            /*
-                Close modal only after
-                successful API response.
-            */
-
-            handleCloseModal();
-
-
-        } catch (error) {
-
-            console.error(
-                "Client save error:",
+            return (
+                parsed?.message ||
                 error
             );
 
+        } catch {
+
+            return error;
+
+        }
+    }
+
+    if (
+        typeof error === "object"
+    ) {
+
+        if (error.message) {
+
+            const message =
+                error.message;
+
+            if (
+                message.includes(
+                    "Client with email already exists"
+                )
+            ) {
+
+                return "This email is already registered. Please use a different email address.";
+
+            }
+
+            if (
+                message
+                    .toLowerCase()
+                    .includes("duplicate")
+            ) {
+
+                return "This record already exists. Please check your data.";
+
+            }
+
+            return message;
         }
 
-    };
+        if (error.error) {
+            return error.error;
+        }
+    }
+
+    return "Something went wrong. Please try again.";
+};
+const handleSaveClient = async (
+    clientData
+) => {
+
+    try {
+
+        if (editingClient) {
+
+            await dispatch(
+                updateClient({
+                    id: editingClient.id,
+                    ...clientData,
+                })
+            ).unwrap();
+
+            showToast(
+                "success",
+                "Client updated successfully."
+            );
+
+        } else {
+
+            await dispatch(
+                createClient(
+                    clientData
+                )
+            ).unwrap();
+
+            showToast(
+                "success",
+                "Client added successfully."
+            );
+        }
+
+        handleCloseModal();
+
+    } catch (error) {
+
+        console.error(
+            "Client save error:",
+            error
+        );
+
+        showToast(
+            "error",
+            getFriendlyErrorMessage(error)
+        );
+    }
+};
 
 
     /* =========================================================
@@ -333,48 +420,47 @@ function Clients() {
        CONFIRM DELETE
     ========================================================= */
 
-    const handleConfirmDelete =
-        async () => {
+const handleConfirmDelete =
+    async () => {
 
-            if (!clientToDelete) {
+        if (!clientToDelete) {
+            return;
+        }
 
-                return;
+        try {
 
-            }
+            await dispatch(
+                deleteClient(
+                    clientToDelete.id
+                )
+            ).unwrap();
 
+            setShowDeleteModal(
+                false
+            );
 
-            try {
+            setClientToDelete(
+                null
+            );
 
-                await dispatch(
+            showToast(
+                "success",
+                "Client deleted successfully."
+            );
 
-                    deleteClient(
-                        clientToDelete.id
-                    )
+        } catch (error) {
 
-                ).unwrap();
+            console.error(
+                "Client delete error:",
+                error
+            );
 
-
-                setShowDeleteModal(
-                    false
-                );
-
-
-                setClientToDelete(
-                    null
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    "Client delete error:",
-                    error
-                );
-
-            }
-
-        };
-
+            showToast(
+                "error",
+                getFriendlyErrorMessage(error)
+            );
+        }
+    };
 
     /* =========================================================
        CANCEL DELETE
@@ -616,20 +702,20 @@ function Clients() {
                DATE VALIDATION
             ===================================================== */
 
-            if (
-                exportFromDate &&
-                exportToDate &&
-                exportFromDate >
-                exportToDate
-            ) {
+if (
+    exportFromDate &&
+    exportToDate &&
+    exportFromDate >
+    exportToDate
+) {
 
-                alert(
-                    "From date cannot be later than To date."
-                );
+    showToast(
+        "warning",
+        "From date cannot be later than To date."
+    );
 
-                return;
-
-            }
+    return;
+}
 
 
             /* =====================================================
@@ -720,21 +806,24 @@ function Clients() {
             ===================================================== */
 
             setShowExportModal(false);
+            showToast(
+    "success",
+    "Clients exported successfully."
+);
 
+} catch (error) {
 
-        } catch (error) {
+    console.error(
+        "Client export error:",
+        error
+    );
 
-            console.error(
-                "Client export error:",
-                error
-            );
+    showToast(
+        "error",
+        getFriendlyErrorMessage(error)
+    );
 
-            alert(
-                error ||
-                "Failed to export clients."
-            );
-
-        }
+}
 
     };
 
@@ -769,6 +858,12 @@ function Clients() {
     return (
 
         <div className="clients-page page">
+                    <Toast
+            show={toast.show}
+            type={toast.type}
+            message={toast.message}
+            onClose={hideToast}
+        />
 
             <div className="clients-content">
 
