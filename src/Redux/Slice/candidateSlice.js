@@ -1308,17 +1308,52 @@ export const updateInterview = createAsyncThunk(
                 .replace(/^Bearer\s+/i, "")
                 .trim();
 
-            const requestBody = {
-                submissionId,
-                candidateId,
-                jobId,
-                interviewDate,
-                interviewTime,
-                interviewType,
-                round,
-                interviewerName,
-                status,
-            };
+            let requestBody;
+
+            /*
+             * CANCEL
+             * --------------------------------------------------
+             * Backend requires:
+             * submissionId
+             * candidateId
+             * jobId
+             * status
+             *
+             * Do NOT send:
+             * interviewDate
+             * interviewTime
+             * interviewType
+             * round
+             * interviewerName
+             */
+            if (
+                String(status)
+                    .trim()
+                    .toLowerCase() ===
+                "cancelled"
+            ) {
+                requestBody = {
+                    submissionId,
+                    candidateId,
+                    jobId,
+                    status: "Cancelled",
+                };
+            } else {
+                /*
+                 * RESCHEDULE
+                 */
+                requestBody = {
+                    submissionId,
+                    candidateId,
+                    jobId,
+                    interviewDate,
+                    interviewTime,
+                    interviewType,
+                    round,
+                    interviewerName,
+                    status,
+                };
+            }
 
             console.log(
                 "========== UPDATE INTERVIEW =========="
@@ -1340,7 +1375,9 @@ export const updateInterview = createAsyncThunk(
                     method: "POST",
 
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type":
+                            "application/json",
+
                         Authorization:
                             `Bearer ${cleanToken}`,
                     },
@@ -1363,11 +1400,12 @@ export const updateInterview = createAsyncThunk(
                 return rejectWithValue(
                     data?.message ||
                     data?.error ||
-                    "Failed to reschedule interview"
+                    "Failed to update interview"
                 );
             }
 
             return data;
+
         } catch (error) {
             console.error(
                 "UPDATE INTERVIEW ERROR:",
@@ -1376,7 +1414,7 @@ export const updateInterview = createAsyncThunk(
 
             return rejectWithValue(
                 error.message ||
-                "Something went wrong while rescheduling interview"
+                "Something went wrong while updating interview"
             );
         }
     }

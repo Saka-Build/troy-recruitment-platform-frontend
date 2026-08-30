@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 import "./Components.css";
 
+
 const RatesModal = ({
     application,
     onClose,
@@ -31,7 +32,7 @@ const RatesModal = ({
 
         return String(period).toUpperCase();
     };
-
+const [saveMessage, setSaveMessage] = useState("");
 
 
     useEffect(() => {
@@ -111,78 +112,72 @@ const RatesModal = ({
         }));
     };
 
-    const handleSave = () => {
-        const submissionId =
-            application.submissionId ||
-            application.id;
+const handleSave = () => {
+    const submissionId =
+        application.submissionId ||
+        application.id;
 
-        if (!submissionId) {
-            console.error(
-                "Submission ID is missing"
-            );
+    if (!submissionId) {
+        console.error("Submission ID is missing");
+        return;
+    }
 
-            return;
-        }
-
-        /*
-         * Start with EVERY field as null.
-         *
-         * This guarantees that unchanged fields
-         * are explicitly sent as null.
-         */
-        const payload = {
-            submissionId,
-
-            candidateExpectedAmount: null,
-            candidateExpectedCurrency: null,
-            candidateExpectedPeriod: null,
-
-            submissionAmount: null,
-            submissionCurrency: null,
-            submissionPeriod: null,
-
-            offerAmount: null,
-            offerCurrency: null,
-            offerPeriod: null,
-        };
-
-        /*
-         * Only put fields that the USER ACTUALLY
-         * changed into the request.
-         */
-        Object.keys(changedFields).forEach((field) => {
-            if (changedFields[field]) {
-                payload[field] =
-                    formData[field] === ""
-                        ? null
-                        : formData[field];
-            }
-        });
-
-        console.log(
-            "RATE UPDATE PAYLOAD:",
-            payload
+    // User clicked Save without changing anything
+    if (Object.keys(changedFields).length === 0) {
+        setSaveMessage(
+            "Please change at least one rate field before saving."
         );
 
-        /*
-         * If nothing was changed, don't call API.
-         */
-        if (Object.keys(changedFields).length === 0) {
-            console.log(
-                "No rate fields were changed."
-            );
+        return;
+    }
 
-            return;
-        }
+    // Clear message when there is a valid change
+    setSaveMessage("");
 
-        onSave(payload);
+    const payload = {
+        submissionId,
+
+        candidateExpectedAmount: null,
+        candidateExpectedCurrency: null,
+        candidateExpectedPeriod: null,
+
+        submissionAmount: null,
+        submissionCurrency: null,
+        submissionPeriod: null,
+
+        offerAmount: null,
+        offerCurrency: null,
+        offerPeriod: null,
     };
 
+    Object.keys(changedFields).forEach((field) => {
+        if (changedFields[field]) {
+            payload[field] =
+                formData[field] === ""
+                    ? null
+                    : formData[field];
+        }
+    });
+
+    console.log("RATE UPDATE PAYLOAD:", payload);
+
+    onSave(payload);
+};
     return (
+        
+
         <div
             className="cxandidate-rates-overlay"
             onMouseDown={onClose}
         >
+{saveMessage && (
+            <div className="cxandidate-rates-save-message">
+                <span>!</span>
+                {saveMessage}
+            </div>
+        )}
+
+
             <div
                 className="cxandidate-rates-modal"
                 onMouseDown={(event) =>
