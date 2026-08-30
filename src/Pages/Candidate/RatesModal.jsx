@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 import "./Components.css";
@@ -11,16 +12,27 @@ const RatesModal = ({
     const [formData, setFormData] = useState({
         candidateExpectedAmount: "",
         candidateExpectedCurrency: "INR",
-        candidateExpectedPeriod: "day",
+        candidateExpectedPeriod: "DAY",
 
         submissionAmount: "",
         submissionCurrency: "INR",
-        submissionPeriod: "day",
+        submissionPeriod: "DAY",
 
         offerAmount: "",
         offerCurrency: "INR",
-        offerPeriod: "day",
+        offerPeriod: "DAY",
     });
+    const [changedFields, setChangedFields] = useState({});
+
+    const normalizePeriod = (period) => {
+        if (!period) {
+            return "DAY";
+        }
+
+        return String(period).toUpperCase();
+    };
+
+
 
     useEffect(() => {
         if (!application) {
@@ -29,41 +41,40 @@ const RatesModal = ({
 
         setFormData({
             candidateExpectedAmount:
-                application.candidateExpectedAmount ??
-                "",
+                application.candidateExpectedAmount ?? "",
 
             candidateExpectedCurrency:
-                application.candidateExpectedCurrency ||
-                "INR",
+                application.candidateExpectedCurrency || "INR",
 
             candidateExpectedPeriod:
-                application.candidateExpectedPeriod ||
-                "day",
+                normalizePeriod(
+                    application.candidateExpectedPeriod
+                ),
 
             submissionAmount:
-                application.submissionAmount ??
-                "",
+                application.submissionAmount ?? "",
 
             submissionCurrency:
-                application.submissionCurrency ||
-                "INR",
+                application.submissionCurrency || "INR",
 
             submissionPeriod:
-                application.submissionPeriod ||
-                "day",
+                normalizePeriod(
+                    application.submissionPeriod
+                ),
 
             offerAmount:
-                application.offerAmount ??
-                "",
+                application.offerAmount ?? "",
 
             offerCurrency:
-                application.offerCurrency ||
-                "INR",
+                application.offerCurrency || "INR",
 
             offerPeriod:
-                application.offerPeriod ||
-                "day",
+                normalizePeriod(
+                    application.offerPeriod
+                ),
         });
+
+        setChangedFields({});
     }, [application]);
 
     if (!application) {
@@ -82,50 +93,89 @@ const RatesModal = ({
         normalizedStatus === "selected" ||
         normalizedStatus === "offer released";
 
+    /*
+     * Handle field change.
+     *
+     * 1. Update formData
+     * 2. Mark that exact field as changed
+     */
     const handleChange = (field, value) => {
         setFormData((previous) => ({
             ...previous,
             [field]: value,
         }));
+
+        setChangedFields((previous) => ({
+            ...previous,
+            [field]: true,
+        }));
     };
 
     const handleSave = () => {
-        onSave({
-            submissionId:
-                application.submissionId ||
-                application.id,
+        const submissionId =
+            application.submissionId ||
+            application.id;
 
-            candidateExpectedAmount:
-                formData.candidateExpectedAmount,
+        if (!submissionId) {
+            console.error(
+                "Submission ID is missing"
+            );
 
-            candidateExpectedCurrency:
-                formData.candidateExpectedCurrency,
+            return;
+        }
 
-            candidateExpectedPeriod:
-                formData.candidateExpectedPeriod,
+        /*
+         * Start with EVERY field as null.
+         *
+         * This guarantees that unchanged fields
+         * are explicitly sent as null.
+         */
+        const payload = {
+            submissionId,
 
-            submissionAmount:
-                formData.submissionAmount,
+            candidateExpectedAmount: null,
+            candidateExpectedCurrency: null,
+            candidateExpectedPeriod: null,
 
-            submissionCurrency:
-                formData.submissionCurrency,
+            submissionAmount: null,
+            submissionCurrency: null,
+            submissionPeriod: null,
 
-            submissionPeriod:
-                formData.submissionPeriod,
+            offerAmount: null,
+            offerCurrency: null,
+            offerPeriod: null,
+        };
 
-            ...(showOfferRate
-                ? {
-                      offerAmount:
-                          formData.offerAmount,
-
-                      offerCurrency:
-                          formData.offerCurrency,
-
-                      offerPeriod:
-                          formData.offerPeriod,
-                  }
-                : {}),
+        /*
+         * Only put fields that the USER ACTUALLY
+         * changed into the request.
+         */
+        Object.keys(changedFields).forEach((field) => {
+            if (changedFields[field]) {
+                payload[field] =
+                    formData[field] === ""
+                        ? null
+                        : formData[field];
+            }
         });
+
+        console.log(
+            "RATE UPDATE PAYLOAD:",
+            payload
+        );
+
+        /*
+         * If nothing was changed, don't call API.
+         */
+        if (Object.keys(changedFields).length === 0) {
+            console.log(
+                "No rate fields were changed."
+            );
+
+            return;
+        }
+
+        onSave(payload);
     };
 
     return (
@@ -184,18 +234,13 @@ const RatesModal = ({
                                     )
                                 }
                             >
-                                <option value="INR">
-                                    INR
-                                </option>
-                                <option value="USD">
-                                    USD
-                                </option>
-                                <option value="GBP">
-                                    GBP
-                                </option>
-                                <option value="EUR">
-                                    EUR
-                                </option>
+                                <option value="USD">USD</option>
+                                <option value="QAR">QAR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="INR">INR</option>
+                                <option value="PLN">PLN</option>
+                                <option value="EUR">EUR</option>
+                                <option value="CAD">CAD</option>
                             </select>
 
                             <input
@@ -226,14 +271,24 @@ const RatesModal = ({
                                     )
                                 }
                             >
-                                <option value="day">
-                                    day
+                                <option value="HOUR">
+                                    Hour
                                 </option>
-                                <option value="month">
-                                    month
+
+                                <option value="DAY">
+                                    Day
                                 </option>
-                                <option value="annum">
-                                    annum
+
+                                <option value="WEEK">
+                                    Week
+                                </option>
+
+                                <option value="MONTH">
+                                    Month
+                                </option>
+
+                                <option value="YEAR">
+                                    Year
                                 </option>
                             </select>
 
@@ -262,18 +317,13 @@ const RatesModal = ({
                                     )
                                 }
                             >
-                                <option value="INR">
-                                    INR
-                                </option>
-                                <option value="USD">
-                                    USD
-                                </option>
-                                <option value="GBP">
-                                    GBP
-                                </option>
-                                <option value="EUR">
-                                    EUR
-                                </option>
+                                <option value="USD">USD</option>
+                                <option value="QAR">QAR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="INR">INR</option>
+                                <option value="PLN">PLN</option>
+                                <option value="EUR">EUR</option>
+                                <option value="CAD">CAD</option>
                             </select>
 
                             <input
@@ -304,14 +354,24 @@ const RatesModal = ({
                                     )
                                 }
                             >
-                                <option value="day">
-                                    day
+                                <option value="HOUR">
+                                    Hour
                                 </option>
-                                <option value="month">
-                                    month
+
+                                <option value="DAY">
+                                    Day
                                 </option>
-                                <option value="annum">
-                                    annum
+
+                                <option value="WEEK">
+                                    Week
+                                </option>
+
+                                <option value="MONTH">
+                                    Month
+                                </option>
+
+                                <option value="YEAR">
+                                    Year
                                 </option>
                             </select>
 
@@ -342,18 +402,13 @@ const RatesModal = ({
                                         )
                                     }
                                 >
-                                    <option value="INR">
-                                        INR
-                                    </option>
-                                    <option value="USD">
-                                        USD
-                                    </option>
-                                    <option value="GBP">
-                                        GBP
-                                    </option>
-                                    <option value="EUR">
-                                        EUR
-                                    </option>
+                                    <option value="USD">USD</option>
+                                    <option value="QAR">QAR</option>
+                                    <option value="GBP">GBP</option>
+                                    <option value="INR">INR</option>
+                                    <option value="PLN">PLN</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="CAD">CAD</option>
                                 </select>
 
                                 <input
@@ -384,14 +439,24 @@ const RatesModal = ({
                                         )
                                     }
                                 >
-                                    <option value="day">
-                                        day
+                                    <option value="HOUR">
+                                        Hour
                                     </option>
-                                    <option value="month">
-                                        month
+
+                                    <option value="DAY">
+                                        Day
                                     </option>
-                                    <option value="annum">
-                                        annum
+
+                                    <option value="WEEK">
+                                        Week
+                                    </option>
+
+                                    <option value="MONTH">
+                                        Month
+                                    </option>
+
+                                    <option value="YEAR">
+                                        Year
                                     </option>
                                 </select>
 
@@ -400,8 +465,8 @@ const RatesModal = ({
                     )}
 
                     <div className="cxandidate-rates-description">
-                        Pick the country currency and whether it
-                        is per day, month or annum.
+                        Pick the country currency and whether
+                        it is per hour, day, week, month or year.
                     </div>
 
                 </div>
@@ -441,3 +506,4 @@ const RatesModal = ({
 };
 
 export default RatesModal;
+

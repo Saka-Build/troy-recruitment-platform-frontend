@@ -1067,8 +1067,8 @@ export const updateSubmissionRates = createAsyncThunk(
             const requestBody = {
                 candidateExpectedAmount:
                     candidateExpectedAmount !== "" &&
-                    candidateExpectedAmount !== null &&
-                    candidateExpectedAmount !== undefined
+                        candidateExpectedAmount !== null &&
+                        candidateExpectedAmount !== undefined
                         ? Number(candidateExpectedAmount)
                         : null,
 
@@ -1080,8 +1080,8 @@ export const updateSubmissionRates = createAsyncThunk(
 
                 submissionAmount:
                     submissionAmount !== "" &&
-                    submissionAmount !== null &&
-                    submissionAmount !== undefined
+                        submissionAmount !== null &&
+                        submissionAmount !== undefined
                         ? Number(submissionAmount)
                         : null,
 
@@ -1103,8 +1103,8 @@ export const updateSubmissionRates = createAsyncThunk(
             ) {
                 requestBody.offerAmount =
                     offerAmount !== "" &&
-                    offerAmount !== null &&
-                    offerAmount !== undefined
+                        offerAmount !== null &&
+                        offerAmount !== undefined
                         ? Number(offerAmount)
                         : null;
 
@@ -1356,8 +1356,8 @@ export const getInterviewsBySubmission = createAsyncThunk(
                     message:
                         typeof data === "object"
                             ? data?.message ||
-                              data?.error ||
-                              "Failed to fetch interviews"
+                            data?.error ||
+                            "Failed to fetch interviews"
                             : `Failed to fetch interviews (${response.status})`,
                 });
             }
@@ -1560,6 +1560,119 @@ export const getCandidateNotes = createAsyncThunk(
     }
 );
 
+export const deleteSubmission = createAsyncThunk(
+    "candidates/deleteSubmission",
+    async (submissionId, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            if (!submissionId) {
+                return rejectWithValue(
+                    "Submission ID is required"
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            console.log(
+                "========== DELETE SUBMISSION =========="
+            );
+
+            console.log(
+                "Submission ID:",
+                submissionId
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/delete/${submissionId}`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data =
+                await response.json().catch(() => null);
+
+            console.log(
+                "Delete Submission Status:",
+                response.status
+            );
+
+            console.log(
+                "Delete Submission Response:",
+                data
+            );
+
+            if (response.status === 401) {
+                return rejectWithValue(
+                    "User is not authenticated. Please login again."
+                );
+            }
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to delete submission"
+                );
+            }
+
+            /*
+             * Backend response:
+             *
+             * {
+             *     "success": true,
+             *     "message": "Deleted successfully",
+             *     "data": null
+             * }
+             */
+
+            if (data?.success === false) {
+                return rejectWithValue(
+                    data?.message ||
+                    "Failed to delete submission"
+                );
+            }
+
+            /*
+             * Return the deleted submission ID
+             * so Redux can remove it from state.
+             */
+            return {
+                submissionId,
+                message:
+                    data?.message ||
+                    "Deleted successfully",
+            };
+
+        } catch (error) {
+            console.error(
+                "DELETE SUBMISSION ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while deleting submission"
+            );
+        }
+    }
+);
 
 const initialState = {
     candidates: [],
@@ -1592,6 +1705,9 @@ const initialState = {
     creatingSubmission: false,
     createSubmissionError: null,
 
+    deletingSubmission: false,
+    deleteSubmissionError: null,
+
     submissionSubStatuses: {},
     submissionSubStatusesLoading: {},
     submissionSubStatusesError: {},
@@ -1604,14 +1720,14 @@ const initialState = {
     creatingInterview: false,
     createInterviewError: null,
     interviewsBySubmission: {},
-interviewsBySubmissionLoading: {},
-interviewsBySubmissionError: {},
-notes: [],
-notesLoading: false,
-notesError: null,
+    interviewsBySubmissionLoading: {},
+    interviewsBySubmissionError: {},
+    notes: [],
+    notesLoading: false,
+    notesError: null,
 
-creatingNote: false,
-createNoteError: null,
+    creatingNote: false,
+    createNoteError: null,
 };
 
 const candidateSlice = createSlice({
@@ -1638,9 +1754,9 @@ const candidateSlice = createSlice({
             state.candidateActivityError = null;
         },
         clearSubmissionActivities: (state) => {
-        state.submissionActivities = [];
-        state.submissionActivitiesError = null;
-    },
+            state.submissionActivities = [];
+            state.submissionActivitiesError = null;
+        },
 
         clearCandidateApplications: (state) => {
             state.candidateApplications = [];
@@ -1957,363 +2073,408 @@ const candidateSlice = createSlice({
 | GET SUBMISSION STATUSES
 |--------------------------------------------------------------------------
 */
-.addCase(
-    getSubmissionStatuses.pending,
-    (state) => {
-        state.submissionStatusesLoading = true;
-        state.submissionStatusesError = null;
-    }
-)
+            .addCase(
+                getSubmissionStatuses.pending,
+                (state) => {
+                    state.submissionStatusesLoading = true;
+                    state.submissionStatusesError = null;
+                }
+            )
 
-.addCase(
-    getSubmissionStatuses.fulfilled,
-    (state, action) => {
-        state.submissionStatusesLoading = false;
-        state.submissionStatuses = action.payload;
-    }
-)
+            .addCase(
+                getSubmissionStatuses.fulfilled,
+                (state, action) => {
+                    state.submissionStatusesLoading = false;
+                    state.submissionStatuses = action.payload;
+                }
+            )
 
-.addCase(
-    getSubmissionStatuses.rejected,
-    (state, action) => {
-        state.submissionStatusesLoading = false;
-        state.submissionStatusesError =
-            action.payload ||
-            "Failed to fetch submission statuses";
-    }
-)
+            .addCase(
+                getSubmissionStatuses.rejected,
+                (state, action) => {
+                    state.submissionStatusesLoading = false;
+                    state.submissionStatusesError =
+                        action.payload ||
+                        "Failed to fetch submission statuses";
+                }
+            )
 
-/*
+            /*
+            |--------------------------------------------------------------------------
+            | CREATE SUBMISSION
+            |--------------------------------------------------------------------------
+            */
+            .addCase(
+                createSubmission.pending,
+                (state) => {
+                    state.creatingSubmission = true;
+                    state.createSubmissionError = null;
+                }
+            )
+
+            .addCase(
+                createSubmission.fulfilled,
+                (state) => {
+                    state.creatingSubmission = false;
+                    state.createSubmissionError = null;
+                }
+            )
+
+            .addCase(
+                createSubmission.rejected,
+                (state, action) => {
+                    state.creatingSubmission = false;
+                    state.createSubmissionError =
+                        action.payload ||
+                        "Failed to create submission";
+                }
+            )
+            /*
+            |--------------------------------------------------------------------------
+            | GET SUBMISSION SUB-STATUSES
+            |--------------------------------------------------------------------------
+            */
+            .addCase(
+                getSubmissionSubStatuses.pending,
+                (state, action) => {
+                    const statusId = action.meta.arg;
+
+                    state.submissionSubStatusesLoading[statusId] = true;
+
+                    state.submissionSubStatusesError[statusId] = null;
+                }
+            )
+
+            .addCase(
+                getSubmissionSubStatuses.fulfilled,
+                (state, action) => {
+                    const statusId = action.meta.arg;
+
+                    state.submissionSubStatusesLoading[statusId] = false;
+
+                    state.submissionSubStatuses[statusId] =
+                        action.payload;
+                }
+            )
+
+            .addCase(
+                getSubmissionSubStatuses.rejected,
+                (state, action) => {
+                    const statusId = action.meta.arg;
+
+                    state.submissionSubStatusesLoading[statusId] = false;
+
+                    state.submissionSubStatusesError[statusId] =
+                        action.payload ||
+                        "Failed to fetch submission sub-statuses";
+                }
+            )
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE SUBMISSION
+            |--------------------------------------------------------------------------
+            */
+            .addCase(
+                updateSubmission.pending,
+                (state) => {
+                    state.updatingSubmission = true;
+                    state.updateSubmissionError = null;
+                }
+            )
+
+            .addCase(
+                updateSubmission.fulfilled,
+                (state, action) => {
+                    state.updatingSubmission = false;
+                    state.updateSubmissionError = null;
+
+                    const updated = action.payload;
+
+                    const index =
+                        state.candidateApplications.findIndex(
+                            (application) =>
+                                (
+                                    application.id ||
+                                    application.submissionId
+                                ) === updated.submissionId
+                        );
+
+                    if (index !== -1) {
+                        state.candidateApplications[index] =
+                            updated;
+                    }
+                }
+            )
+
+            .addCase(
+                updateSubmission.rejected,
+                (state, action) => {
+                    state.updatingSubmission = false;
+
+                    state.updateSubmissionError =
+                        action.payload ||
+                        "Failed to update submission";
+                }
+            )
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE SUBMISSION RATES
+            |--------------------------------------------------------------------------
+            */
+            .addCase(
+                updateSubmissionRates.pending,
+                (state) => {
+                    state.updatingSubmissionRates = true;
+                    state.updateSubmissionRatesError = null;
+                }
+            )
+
+            .addCase(
+                updateSubmissionRates.fulfilled,
+                (state, action) => {
+                    state.updatingSubmissionRates = false;
+                    state.updateSubmissionRatesError = null;
+
+                    const updated = action.payload;
+
+                    const index =
+                        state.candidateApplications.findIndex(
+                            (application) =>
+                                (
+                                    application.id ||
+                                    application.submissionId
+                                ) === updated.submissionId
+                        );
+
+                    if (index !== -1) {
+                        state.candidateApplications[index] =
+                            updated;
+                    }
+                }
+            )
+
+            .addCase(
+                updateSubmissionRates.rejected,
+                (state, action) => {
+                    state.updatingSubmissionRates = false;
+
+                    state.updateSubmissionRatesError =
+                        action.payload ||
+                        "Failed to update submission rates";
+                }
+            )
+            /*
+            |--------------------------------------------------------------------------
+            | CREATE INTERVIEW
+            |--------------------------------------------------------------------------
+            */
+
+            .addCase(
+                createInterview.pending,
+                (state) => {
+                    state.creatingInterview = true;
+                    state.createInterviewError = null;
+                }
+            )
+
+            .addCase(
+                createInterview.fulfilled,
+                (state) => {
+                    state.creatingInterview = false;
+                    state.createInterviewError = null;
+                }
+            )
+
+            .addCase(
+                createInterview.rejected,
+                (state, action) => {
+                    state.creatingInterview = false;
+
+                    state.createInterviewError =
+                        action.payload ||
+                        "Failed to schedule interview";
+                }
+            )
+            .addCase(
+                getInterviewsBySubmission.pending,
+                (state, action) => {
+                    const submissionId = action.meta.arg;
+
+                    state.interviewsBySubmissionLoading[
+                        submissionId
+                    ] = true;
+
+                    state.interviewsBySubmissionError[
+                        submissionId
+                    ] = null;
+                }
+            )
+
+            .addCase(
+                getInterviewsBySubmission.fulfilled,
+                (state, action) => {
+                    const {
+                        submissionId,
+                        interviews,
+                    } = action.payload;
+
+                    state.interviewsBySubmission[
+                        submissionId
+                    ] = Array.isArray(interviews)
+                            ? interviews
+                            : [];
+
+                    state.interviewsBySubmissionLoading[
+                        submissionId
+                    ] = false;
+
+                    state.interviewsBySubmissionError[
+                        submissionId
+                    ] = null;
+                }
+            )
+
+            .addCase(
+                getInterviewsBySubmission.rejected,
+                (state, action) => {
+                    const submissionId =
+                        action.payload?.submissionId ||
+                        action.meta.arg;
+
+                    state.interviewsBySubmissionLoading[
+                        submissionId
+                    ] = false;
+
+                    state.interviewsBySubmissionError[
+                        submissionId
+                    ] =
+                        action.payload?.message ||
+                        "Failed to fetch interviews";
+                }
+            )
+            /*
+            |--------------------------------------------------------------------------
+            | GET CANDIDATE NOTES
+            |--------------------------------------------------------------------------
+            */
+
+            .addCase(
+                getCandidateNotes.pending,
+                (state) => {
+                    state.notesLoading = true;
+                    state.notesError = null;
+                }
+            )
+
+            .addCase(
+                getCandidateNotes.fulfilled,
+                (state, action) => {
+                    state.notesLoading = false;
+                    state.notes = action.payload || [];
+                    state.notesError = null;
+                }
+            )
+
+            .addCase(
+                getCandidateNotes.rejected,
+                (state, action) => {
+                    state.notesLoading = false;
+                    state.notes = [];
+                    state.notesError =
+                        action.payload ||
+                        "Failed to fetch candidate notes";
+                }
+            )
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CREATE NOTE
+            |--------------------------------------------------------------------------
+            */
+
+            .addCase(
+                createNote.pending,
+                (state) => {
+                    state.creatingNote = true;
+                    state.createNoteError = null;
+                }
+            )
+
+            .addCase(
+                createNote.fulfilled,
+                (state, action) => {
+                    state.creatingNote = false;
+                    state.createNoteError = null;
+
+                    /*
+                     * Add newly created note immediately.
+                     */
+                    if (action.payload) {
+                        state.notes = [
+                            ...state.notes,
+                            action.payload,
+                        ];
+                    }
+                }
+            )
+
+            .addCase(
+                createNote.rejected,
+                (state, action) => {
+                    state.creatingNote = false;
+
+                    state.createNoteError =
+                        action.payload ||
+                        "Failed to create note";
+                }
+            )
+            /*
 |--------------------------------------------------------------------------
-| CREATE SUBMISSION
+| DELETE SUBMISSION
 |--------------------------------------------------------------------------
 */
-.addCase(
-    createSubmission.pending,
-    (state) => {
-        state.creatingSubmission = true;
-        state.createSubmissionError = null;
-    }
-)
+            .addCase(
+                deleteSubmission.pending,
+                (state) => {
+                    state.deletingSubmission = true;
+                    state.deleteSubmissionError = null;
+                }
+            )
 
-.addCase(
-    createSubmission.fulfilled,
-    (state) => {
-        state.creatingSubmission = false;
-        state.createSubmissionError = null;
-    }
-)
+            .addCase(
+                deleteSubmission.fulfilled,
+                (state, action) => {
+                    state.deletingSubmission = false;
+                    state.deleteSubmissionError = null;
 
-.addCase(
-    createSubmission.rejected,
-    (state, action) => {
-        state.creatingSubmission = false;
-        state.createSubmissionError =
-            action.payload ||
-            "Failed to create submission";
-    }
-)
-/*
-|--------------------------------------------------------------------------
-| GET SUBMISSION SUB-STATUSES
-|--------------------------------------------------------------------------
-*/
-.addCase(
-    getSubmissionSubStatuses.pending,
-    (state, action) => {
-        const statusId = action.meta.arg;
+                    const deletedSubmissionId =
+                        action.payload?.submissionId;
 
-        state.submissionSubStatusesLoading[statusId] = true;
+                    if (deletedSubmissionId) {
+                        state.candidateApplications =
+                            state.candidateApplications.filter(
+                                (application) =>
+                                    (
+                                        application.id ||
+                                        application.submissionId
+                                    ) !== deletedSubmissionId
+                            );
+                    }
+                }
+            )
 
-        state.submissionSubStatusesError[statusId] = null;
-    }
-)
+            .addCase(
+                deleteSubmission.rejected,
+                (state, action) => {
+                    state.deletingSubmission = false;
 
-.addCase(
-    getSubmissionSubStatuses.fulfilled,
-    (state, action) => {
-        const statusId = action.meta.arg;
-
-        state.submissionSubStatusesLoading[statusId] = false;
-
-        state.submissionSubStatuses[statusId] =
-            action.payload;
-    }
-)
-
-.addCase(
-    getSubmissionSubStatuses.rejected,
-    (state, action) => {
-        const statusId = action.meta.arg;
-
-        state.submissionSubStatusesLoading[statusId] = false;
-
-        state.submissionSubStatusesError[statusId] =
-            action.payload ||
-            "Failed to fetch submission sub-statuses";
-    }
-)
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE SUBMISSION
-|--------------------------------------------------------------------------
-*/
-.addCase(
-    updateSubmission.pending,
-    (state) => {
-        state.updatingSubmission = true;
-        state.updateSubmissionError = null;
-    }
-)
-
-.addCase(
-    updateSubmission.fulfilled,
-    (state, action) => {
-        state.updatingSubmission = false;
-        state.updateSubmissionError = null;
-
-        const updated = action.payload;
-
-        const index =
-            state.candidateApplications.findIndex(
-                (application) =>
-                    (
-                        application.id ||
-                        application.submissionId
-                    ) === updated.submissionId
+                    state.deleteSubmissionError =
+                        action.payload ||
+                        "Failed to delete submission";
+                }
             );
-
-        if (index !== -1) {
-            state.candidateApplications[index] =
-                updated;
-        }
-    }
-)
-
-.addCase(
-    updateSubmission.rejected,
-    (state, action) => {
-        state.updatingSubmission = false;
-
-        state.updateSubmissionError =
-            action.payload ||
-            "Failed to update submission";
-    }
-)
-/*
-|--------------------------------------------------------------------------
-| UPDATE SUBMISSION RATES
-|--------------------------------------------------------------------------
-*/
-.addCase(
-    updateSubmissionRates.pending,
-    (state) => {
-        state.updatingSubmissionRates = true;
-        state.updateSubmissionRatesError = null;
-    }
-)
-
-.addCase(
-    updateSubmissionRates.fulfilled,
-    (state, action) => {
-        state.updatingSubmissionRates = false;
-        state.updateSubmissionRatesError = null;
-
-        const updated = action.payload;
-
-        const index =
-            state.candidateApplications.findIndex(
-                (application) =>
-                    (
-                        application.id ||
-                        application.submissionId
-                    ) === updated.submissionId
-            );
-
-        if (index !== -1) {
-            state.candidateApplications[index] =
-                updated;
-        }
-    }
-)
-
-.addCase(
-    updateSubmissionRates.rejected,
-    (state, action) => {
-        state.updatingSubmissionRates = false;
-
-        state.updateSubmissionRatesError =
-            action.payload ||
-            "Failed to update submission rates";
-    }
-)
-/*
-|--------------------------------------------------------------------------
-| CREATE INTERVIEW
-|--------------------------------------------------------------------------
-*/
-
-.addCase(
-    createInterview.pending,
-    (state) => {
-        state.creatingInterview = true;
-        state.createInterviewError = null;
-    }
-)
-
-.addCase(
-    createInterview.fulfilled,
-    (state) => {
-        state.creatingInterview = false;
-        state.createInterviewError = null;
-    }
-)
-
-.addCase(
-    createInterview.rejected,
-    (state, action) => {
-        state.creatingInterview = false;
-
-        state.createInterviewError =
-            action.payload ||
-            "Failed to schedule interview";
-    }
-)
-.addCase(
-    getInterviewsBySubmission.pending,
-    (state, action) => {
-        const submissionId = action.meta.arg;
-
-        state.interviewsBySubmissionLoading[
-            submissionId
-        ] = true;
-
-        state.interviewsBySubmissionError[
-            submissionId
-        ] = null;
-    }
-)
-
-.addCase(
-    getInterviewsBySubmission.fulfilled,
-    (state, action) => {
-        const {
-            submissionId,
-            interviews,
-        } = action.payload;
-
-        state.interviewsBySubmission[
-            submissionId
-        ] = Array.isArray(interviews)
-            ? interviews
-            : [];
-
-        state.interviewsBySubmissionLoading[
-            submissionId
-        ] = false;
-
-        state.interviewsBySubmissionError[
-            submissionId
-        ] = null;
-    }
-)
-
-.addCase(
-    getInterviewsBySubmission.rejected,
-    (state, action) => {
-        const submissionId =
-            action.payload?.submissionId ||
-            action.meta.arg;
-
-        state.interviewsBySubmissionLoading[
-            submissionId
-        ] = false;
-
-        state.interviewsBySubmissionError[
-            submissionId
-        ] =
-            action.payload?.message ||
-            "Failed to fetch interviews";
-    }
-)
-/*
-|--------------------------------------------------------------------------
-| GET CANDIDATE NOTES
-|--------------------------------------------------------------------------
-*/
-
-.addCase(
-    getCandidateNotes.pending,
-    (state) => {
-        state.notesLoading = true;
-        state.notesError = null;
-    }
-)
-
-.addCase(
-    getCandidateNotes.fulfilled,
-    (state, action) => {
-        state.notesLoading = false;
-        state.notes = action.payload || [];
-        state.notesError = null;
-    }
-)
-
-.addCase(
-    getCandidateNotes.rejected,
-    (state, action) => {
-        state.notesLoading = false;
-        state.notes = [];
-        state.notesError =
-            action.payload ||
-            "Failed to fetch candidate notes";
-    }
-)
-
-
-/*
-|--------------------------------------------------------------------------
-| CREATE NOTE
-|--------------------------------------------------------------------------
-*/
-
-.addCase(
-    createNote.pending,
-    (state) => {
-        state.creatingNote = true;
-        state.createNoteError = null;
-    }
-)
-
-.addCase(
-    createNote.fulfilled,
-    (state, action) => {
-        state.creatingNote = false;
-        state.createNoteError = null;
-
-        /*
-         * Add newly created note immediately.
-         */
-        if (action.payload) {
-            state.notes = [
-                ...state.notes,
-                action.payload,
-            ];
-        }
-    }
-)
-
-.addCase(
-    createNote.rejected,
-    (state, action) => {
-        state.creatingNote = false;
-
-        state.createNoteError =
-            action.payload ||
-            "Failed to create note";
-    }
-);
     },
 });
 

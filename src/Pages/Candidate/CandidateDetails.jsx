@@ -33,13 +33,15 @@ import {
   getAllEmployees,
   updateCandidate,
   deleteCandidate,
-   getSubmissionStatuses,
+  //  getSubmissionStatuses,
   createSubmission,
   getCandidateApplications,
   createNote,
   getCandidateNotes,
 } from "../../Redux/Slice/candidateSlice";
-
+import {
+  getSubmissionStatuses,
+} from "../../Redux/Slice/recruitmentWorkflowSlice";
 
 function CandidateDetails() {
 
@@ -54,30 +56,38 @@ function CandidateDetails() {
     useDispatch();
 
   const {
-  selectedCandidate,
-  candidateDetailsLoading,
-  candidateDetailsError,
+    selectedCandidate,
+    candidateDetailsLoading,
+    candidateDetailsError,
 
-  employees = [],
-  employeesLoading = false,
-  employeeError = null,
+    employees = [],
+    employeesLoading = false,
+    employeeError = null,
 
-  adding = false,
+    adding = false,
 
-  submissionStatuses = [],
-  submissionStatusesLoading = false,
-  submissionStatusesError = null,
+    // submissionStatuses = [],
+    // submissionStatusesLoading = false,
+    // submissionStatusesError = null,
 
-  creatingSubmission = false,
-  createSubmissionError = null,
-  notes = [],
-  notesLoading = false,
-  notesError = null,
-  creatingNote = false,
-  createNoteError = null,
-} = useSelector(
-  (state) => state.candidate
-);
+    creatingSubmission = false,
+    createSubmissionError = null,
+    notes = [],
+    notesLoading = false,
+    notesError = null,
+    creatingNote = false,
+    createNoteError = null,
+  } = useSelector(
+    (state) => state.candidate
+  );
+
+  const {
+    submissionStatuses = [],
+    submissionStatusesLoading = false,
+    submissionStatusesError = null,
+  } = useSelector(
+    (state) => state.recruitmentWorkflow
+  );
 
   const {
     openJobs = [],
@@ -152,11 +162,11 @@ function CandidateDetails() {
       getOpenJobs()
     );
     dispatch(
-    getSubmissionStatuses()
-  );
-  dispatch(
-    getCandidateNotes(id)
-  );
+      getSubmissionStatuses()
+    );
+    dispatch(
+      getCandidateNotes(id)
+    );
 
     return () => {
 
@@ -195,78 +205,78 @@ function CandidateDetails() {
   };
 
 
-const handleAddNote = async () => {
+  const handleAddNote = async () => {
 
-  const content = noteText.trim();
+    const content = noteText.trim();
 
-  if (!content) {
-    showNotification(
-      "error",
-      "Please enter a note"
-    );
+    if (!content) {
+      showNotification(
+        "error",
+        "Please enter a note"
+      );
 
-    return;
-  }
+      return;
+    }
 
-  if (!selectedCandidate?.id) {
-    showNotification(
-      "error",
-      "Candidate ID is missing"
-    );
+    if (!selectedCandidate?.id) {
+      showNotification(
+        "error",
+        "Candidate ID is missing"
+      );
 
-    return;
-  }
+      return;
+    }
 
-  try {
+    try {
 
-    console.log(
-      "CREATING NOTE:",
-      {
-        entityType: "candidate",
-        entityId: selectedCandidate.id,
-        content,
-        chatWith: null,
-      }
-    );
+      console.log(
+        "CREATING NOTE:",
+        {
+          entityType: "candidate",
+          entityId: selectedCandidate.id,
+          content,
+          chatWith: null,
+        }
+      );
 
-    await dispatch(
-      createNote({
-        entityType: "candidate",
-        entityId: selectedCandidate.id,
-        content,
-        chatWith: null,
-      })
-    ).unwrap();
+      await dispatch(
+        createNote({
+          entityType: "candidate",
+          entityId: selectedCandidate.id,
+          content,
+          chatWith: null,
+        })
+      ).unwrap();
 
-    // Refresh notes from backend
-    await dispatch(
-      getCandidateNotes(
-        selectedCandidate.id
-      )
-    ).unwrap();
+      // Refresh notes from backend
+      await dispatch(
+        getCandidateNotes(
+          selectedCandidate.id
+        )
+      ).unwrap();
 
-    setNoteText("");
+      setNoteText("");
 
-    showNotification(
-      "success",
-      "Note added successfully"
-    );
+      showNotification(
+        "success",
+        "Note added successfully"
+      );
 
-  } catch (error) {
+    } catch (error) {
 
-    console.error(
-      "CREATE NOTE ERROR:",
-      error
-    );
+      console.error(
+        "CREATE NOTE ERROR:",
+        error
+      );
 
-    showNotification(
-      "error",
-      typeof error === "string"
-        ? error
-        : "Failed to add note"
-    );
-  }
-};
+      showNotification(
+        "error",
+        typeof error === "string"
+          ? error
+          : "Failed to add note"
+      );
+    }
+  };
 
   const handleEditClick = () => {
 
@@ -554,129 +564,129 @@ const handleAddNote = async () => {
     setShowApplyJobModal(true);
   };
 
- const handleApplyJobSubmit = async ({
-  candidateId,
-  jobId,
-  statusId,
-  job,
-  status,
-}) => {
-
-  console.log(
-    "========== APPLY CANDIDATE TO JOB =========="
-  );
-
-  console.log({
+  const handleApplyJobSubmit = async ({
     candidateId,
     jobId,
     statusId,
     job,
     status,
-  });
-
-
-  if (!candidateId) {
-
-    showNotification(
-      "error",
-      "Candidate ID is missing"
-    );
-
-    return;
-  }
-
-
-  if (!jobId) {
-
-    showNotification(
-      "error",
-      "Job ID is missing"
-    );
-
-    return;
-  }
-
-
-  if (!statusId) {
-
-    showNotification(
-      "error",
-      "Submission status is missing"
-    );
-
-    return;
-  }
-
-
-  try {
-
-    const result = await dispatch(
-    createSubmission({
-        candidateId,
-        jobId,
-        statusId,
-    })
-).unwrap();
-
-await dispatch(
-    getCandidateApplications(candidateId)
-).unwrap();
-
-setShowApplyJobModal(false);
-
-showNotification(
-    "success",
-    "Candidate application created successfully"
-);
-
-setActiveTab("Applications");
-
+  }) => {
 
     console.log(
-      "========== SUBMISSION CREATED =========="
+      "========== APPLY CANDIDATE TO JOB =========="
     );
 
-    console.log(
-      "Create submission response:",
-      result
-    );
+    console.log({
+      candidateId,
+      jobId,
+      statusId,
+      job,
+      status,
+    });
 
 
-    setShowApplyJobModal(
-      false
-    );
+    if (!candidateId) {
+
+      showNotification(
+        "error",
+        "Candidate ID is missing"
+      );
+
+      return;
+    }
 
 
-    showNotification(
-      "success",
-      "Candidate application created successfully"
-    );
+    if (!jobId) {
+
+      showNotification(
+        "error",
+        "Job ID is missing"
+      );
+
+      return;
+    }
 
 
-    setActiveTab(
-      "Applications"
-    );
+    if (!statusId) {
+
+      showNotification(
+        "error",
+        "Submission status is missing"
+      );
+
+      return;
+    }
 
 
-  } catch (error) {
+    try {
 
-    console.error(
-      "CREATE SUBMISSION ERROR:",
-      error
-    );
+      const result = await dispatch(
+        createSubmission({
+          candidateId,
+          jobId,
+          statusId,
+        })
+      ).unwrap();
+
+      await dispatch(
+        getCandidateApplications(candidateId)
+      ).unwrap();
+
+      setShowApplyJobModal(false);
+
+      showNotification(
+        "success",
+        "Candidate application created successfully"
+      );
+
+      setActiveTab("Applications");
 
 
-    showNotification(
-      "error",
+      console.log(
+        "========== SUBMISSION CREATED =========="
+      );
 
-      typeof error === "string"
-        ? error
-        : "Failed to apply candidate to this job"
-    );
+      console.log(
+        "Create submission response:",
+        result
+      );
 
-  }
 
-};
+      setShowApplyJobModal(
+        false
+      );
+
+
+      showNotification(
+        "success",
+        "Candidate application created successfully"
+      );
+
+
+      setActiveTab(
+        "Applications"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "CREATE SUBMISSION ERROR:",
+        error
+      );
+
+
+      showNotification(
+        "error",
+
+        typeof error === "string"
+          ? error
+          : "Failed to apply candidate to this job"
+      );
+
+    }
+
+  };
 
   if (
     candidateDetailsLoading
@@ -920,40 +930,40 @@ setActiveTab("Applications");
       )}
 
 
-     {activeTab === "Applications" && (
-    <ApplicationsTab
-        candidateId={candidate.id}
+      {activeTab === "Applications" && (
+        <ApplicationsTab
+          candidateId={candidate.id}
 
-        openJobs={openJobs}
-        isOpenJobsLoading={isOpenJobsLoading}
+          openJobs={openJobs}
+          isOpenJobsLoading={isOpenJobsLoading}
 
-        submissionStatuses={submissionStatuses}
-        submissionStatusesLoading={submissionStatusesLoading}
-        submissionStatusesError={submissionStatusesError}
+          submissionStatuses={submissionStatuses}
+          submissionStatusesLoading={submissionStatusesLoading}
+          submissionStatusesError={submissionStatusesError}
 
-        creatingSubmission={creatingSubmission}
-        createSubmissionError={createSubmissionError}
+          creatingSubmission={creatingSubmission}
+          createSubmissionError={createSubmissionError}
 
-        onApplyJob={handleApplyJobSubmit}
-    />
-)}
+          onApplyJob={handleApplyJobSubmit}
+        />
+      )}
 
 
       {activeTab === "Notes" && (
 
-  <NotesTab
-    candidate={candidate}
-    noteText={noteText}
-    setNoteText={setNoteText}
-    notes={notes}
-    notesLoading={notesLoading}
-    notesError={notesError}
-    creatingNote={creatingNote}
-    createNoteError={createNoteError}
-    handleAddNote={handleAddNote}
-  />
+        <NotesTab
+          candidate={candidate}
+          noteText={noteText}
+          setNoteText={setNoteText}
+          notes={notes}
+          notesLoading={notesLoading}
+          notesError={notesError}
+          creatingNote={creatingNote}
+          createNoteError={createNoteError}
+          handleAddNote={handleAddNote}
+        />
 
-)}
+      )}
 
 
       {activeTab === "History" && (
@@ -1091,43 +1101,43 @@ setActiveTab("Applications");
 
       />
 
-{showApplyJobModal && (
-    <ApplyJobModal
+      {showApplyJobModal && (
+        <ApplyJobModal
 
-        candidateId={
+          candidateId={
             candidate.id
-        }
+          }
 
-        jobs={
+          jobs={
             openJobs
-        }
+          }
 
-        jobsLoading={
+          jobsLoading={
             isOpenJobsLoading
-        }
+          }
 
-        statuses={
+          statuses={
             submissionStatuses
-        }
+          }
 
-        statusesLoading={
+          statusesLoading={
             submissionStatusesLoading
-        }
+          }
 
-        creatingSubmission={
+          creatingSubmission={
             creatingSubmission
-        }
+          }
 
-        onClose={() =>
+          onClose={() =>
             setShowApplyJobModal(false)
-        }
+          }
 
-        onApply={
+          onApply={
             handleApplyJobSubmit
-        }
+          }
 
-    />
-)}
+        />
+      )}
 
     </div>
   );

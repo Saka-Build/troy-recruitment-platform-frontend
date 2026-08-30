@@ -19,9 +19,11 @@ import {
     updateSubmission,
     updateSubmissionRates,
     createInterview,
-     getInterviewsBySubmission,
+    getInterviewsBySubmission,
+    deleteSubmission,
 } from "../../Redux/Slice/candidateSlice";
 import ApplyJobModal from "../Candidate/ApplyJobModal";
+import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import RatesModal from "../Candidate/RatesModal";
 import "./Components.css";
 
@@ -62,6 +64,8 @@ const ApplicationsTab = ({
         interviewsBySubmission = {},
         interviewsBySubmissionLoading = {},
         interviewsBySubmissionError = {},
+        deletingSubmission = false,
+        deleteSubmissionError = null,
     } = useSelector((state) => state.candidate);
 
     const [applications, setApplications] = useState([]);
@@ -72,27 +76,33 @@ const ApplicationsTab = ({
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedHistoryApplication, setSelectedHistoryApplication] = useState(null);
     const [historyCounts, setHistoryCounts] = useState({});
-   
-   const [showRatesModal, setShowRatesModal] =
-    useState(false);
+    const [deletingSubmissionId, setDeletingSubmissionId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
 
-   const [selectedRatesApplication, setSelectedRatesApplication] =
-    useState(null);
+    const [showRatesModal, setShowRatesModal] =
+        useState(false);
 
-  
+    const [selectedRatesApplication, setSelectedRatesApplication] =
+        useState(null);
+
+    const [pendingRateStatus, setPendingRateStatus] =
+        useState(null);
+
+
 
     const [interviewData, setInterviewData] = useState({
-    date: "",
-    time: "",
-    type: "TEAMS",
-    round: "Final",
-    interviewer: "",
-});
+        date: "",
+        time: "",
+        type: "TEAMS",
+        round: "Final",
+        interviewer: "",
+    });
     const [
-    applicationChanges,
-    setApplicationChanges,
-] = useState({});
-   
+        applicationChanges,
+        setApplicationChanges,
+    ] = useState({});
+
     useEffect(() => {
         if (!candidateId) {
             return;
@@ -106,219 +116,219 @@ const ApplicationsTab = ({
     }, [candidateId, dispatch]);
 
     useEffect(() => {
-    setApplications(
-        candidateApplications.map((application) => ({
-            ...application,
+        setApplications(
+            candidateApplications.map((application) => ({
+                ...application,
 
-            status:
-                application.statusName ||
-                "Applied",
+                status:
+                    application.statusName ||
+                    "Applied",
 
-            statusId:
-                application.statusId ||
-                "",
+                statusId:
+                    application.statusId ||
+                    "",
 
-            subStatusId:
-                application.subStatusId ||
-                null,
+                subStatusId:
+                    application.subStatusId ||
+                    null,
 
-            subStatus:
-                application.subStatusName ||
-                "",
-        }))
-    );
+                subStatus:
+                    application.subStatusName ||
+                    "",
+            }))
+        );
 
-    setApplicationChanges({});
-}, [candidateApplications]);
+        setApplicationChanges({});
+    }, [candidateApplications]);
 
-useEffect(() => {
-    if (!candidateApplications.length) {
-        return;
-    }
+    useEffect(() => {
+        if (!candidateApplications.length) {
+            return;
+        }
 
-    candidateApplications.forEach((application) => {
-        const submissionId =
-            application.id ||
-            application.submissionId;
+        candidateApplications.forEach((application) => {
+            const submissionId =
+                application.id ||
+                application.submissionId;
 
+            if (!submissionId) {
+                return;
+            }
+
+            dispatch(
+                getInterviewsBySubmission(
+                    submissionId
+                )
+            );
+        });
+    }, [candidateApplications, dispatch]);
+
+    const getLatestInterview = (submissionId) => {
         if (!submissionId) {
+            return null;
+        }
+
+        const key = String(submissionId);
+
+        const rawInterviews =
+            interviewsBySubmission[key] ||
+            interviewsBySubmission[submissionId];
+
+        if (!rawInterviews) {
+            return null;
+        }
+
+        let interviews = [];
+
+        /*
+         * Support all common response shapes
+         */
+        if (Array.isArray(rawInterviews)) {
+            interviews = rawInterviews;
+        } else if (Array.isArray(rawInterviews.content)) {
+            interviews = rawInterviews.content;
+        } else if (Array.isArray(rawInterviews.data)) {
+            interviews = rawInterviews.data;
+        } else if (
+            Array.isArray(rawInterviews.data?.content)
+        ) {
+            interviews = rawInterviews.data.content;
+        } else {
+            /*
+             * API may return a single interview object
+             */
+            if (
+                rawInterviews.interviewDate ||
+                rawInterviews.date
+            ) {
+                interviews = [rawInterviews];
+            }
+        }
+
+        if (!interviews.length) {
+            return null;
+        }
+
+        const scheduledInterviews =
+            interviews.filter((item) => {
+                const status = String(
+                    item?.status ||
+                    item?.interviewStatus ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+                return (
+                    !status ||
+                    status === "scheduled" ||
+                    status === "schedule"
+                );
+            });
+
+        const validInterviews =
+            scheduledInterviews.length
+                ? scheduledInterviews
+                : interviews;
+
+        /*
+         * Sort newest interview first
+         */
+        const getTimestamp = (item) => {
+            const date =
+                item?.interviewDate ||
+                item?.date;
+
+            const time =
+                item?.interviewTime ||
+                item?.time;
+
+            if (!date) {
+                return 0;
+            }
+
+            /*
+             * DD-MM-YYYY
+             */
+            if (
+                /^\d{2}-\d{2}-\d{4}$/.test(
+                    String(date)
+                )
+            ) {
+                const [
+                    day,
+                    month,
+                    year,
+                ] = String(date).split("-");
+
+                let hours = 0;
+                let minutes = 0;
+
+                if (time) {
+                    const match =
+                        String(time).match(
+                            /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
+                        );
+
+                    if (match) {
+                        hours = Number(match[1]);
+                        minutes = Number(match[2]);
+
+                        const period =
+                            match[3]?.toUpperCase();
+
+                        if (
+                            period === "PM" &&
+                            hours !== 12
+                        ) {
+                            hours += 12;
+                        }
+
+                        if (
+                            period === "AM" &&
+                            hours === 12
+                        ) {
+                            hours = 0;
+                        }
+                    }
+                }
+
+                return new Date(
+                    Number(year),
+                    Number(month) - 1,
+                    Number(day),
+                    hours,
+                    minutes
+                ).getTime();
+            }
+
+            /*
+             * YYYY-MM-DD / ISO
+             */
+            const timestamp =
+                new Date(date).getTime();
+
+            return Number.isNaN(timestamp)
+                ? 0
+                : timestamp;
+        };
+
+        return [...validInterviews].sort(
+            (a, b) =>
+                getTimestamp(b) -
+                getTimestamp(a)
+        )[0];
+    };
+
+    const loadSubStatuses = (statusId) => {
+        if (!statusId) {
             return;
         }
 
         dispatch(
-            getInterviewsBySubmission(
-                submissionId
-            )
+            getSubmissionSubStatuses(statusId)
         );
-    });
-}, [candidateApplications, dispatch]);
-
-const getLatestInterview = (submissionId) => {
-    if (!submissionId) {
-        return null;
-    }
-
-    const key = String(submissionId);
-
-    const rawInterviews =
-        interviewsBySubmission[key] ||
-        interviewsBySubmission[submissionId];
-
-    if (!rawInterviews) {
-        return null;
-    }
-
-    let interviews = [];
-
-    /*
-     * Support all common response shapes
-     */
-    if (Array.isArray(rawInterviews)) {
-        interviews = rawInterviews;
-    } else if (Array.isArray(rawInterviews.content)) {
-        interviews = rawInterviews.content;
-    } else if (Array.isArray(rawInterviews.data)) {
-        interviews = rawInterviews.data;
-    } else if (
-        Array.isArray(rawInterviews.data?.content)
-    ) {
-        interviews = rawInterviews.data.content;
-    } else {
-        /*
-         * API may return a single interview object
-         */
-        if (
-            rawInterviews.interviewDate ||
-            rawInterviews.date
-        ) {
-            interviews = [rawInterviews];
-        }
-    }
-
-    if (!interviews.length) {
-        return null;
-    }
-
-    const scheduledInterviews =
-        interviews.filter((item) => {
-            const status = String(
-                item?.status ||
-                item?.interviewStatus ||
-                ""
-            )
-                .trim()
-                .toLowerCase();
-
-            return (
-                !status ||
-                status === "scheduled" ||
-                status === "schedule"
-            );
-        });
-
-    const validInterviews =
-        scheduledInterviews.length
-            ? scheduledInterviews
-            : interviews;
-
-    /*
-     * Sort newest interview first
-     */
-    const getTimestamp = (item) => {
-        const date =
-            item?.interviewDate ||
-            item?.date;
-
-        const time =
-            item?.interviewTime ||
-            item?.time;
-
-        if (!date) {
-            return 0;
-        }
-
-        /*
-         * DD-MM-YYYY
-         */
-        if (
-            /^\d{2}-\d{2}-\d{4}$/.test(
-                String(date)
-            )
-        ) {
-            const [
-                day,
-                month,
-                year,
-            ] = String(date).split("-");
-
-            let hours = 0;
-            let minutes = 0;
-
-            if (time) {
-                const match =
-                    String(time).match(
-                        /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
-                    );
-
-                if (match) {
-                    hours = Number(match[1]);
-                    minutes = Number(match[2]);
-
-                    const period =
-                        match[3]?.toUpperCase();
-
-                    if (
-                        period === "PM" &&
-                        hours !== 12
-                    ) {
-                        hours += 12;
-                    }
-
-                    if (
-                        period === "AM" &&
-                        hours === 12
-                    ) {
-                        hours = 0;
-                    }
-                }
-            }
-
-            return new Date(
-                Number(year),
-                Number(month) - 1,
-                Number(day),
-                hours,
-                minutes
-            ).getTime();
-        }
-
-        /*
-         * YYYY-MM-DD / ISO
-         */
-        const timestamp =
-            new Date(date).getTime();
-
-        return Number.isNaN(timestamp)
-            ? 0
-            : timestamp;
     };
-
-    return [...validInterviews].sort(
-        (a, b) =>
-            getTimestamp(b) -
-            getTimestamp(a)
-    )[0];
-};
-
-const loadSubStatuses = (statusId) => {
-    if (!statusId) {
-        return;
-    }
-
-    dispatch(
-        getSubmissionSubStatuses(statusId)
-    );
-};
 
     const getJobTitle = (application) => {
         return (
@@ -349,133 +359,133 @@ const loadSubStatuses = (statusId) => {
         );
     };
 
-const getCurrencySymbol = (currency) => {
-    const currencyMap = {
-        INR: "₹",
-        GBP: "£",
-        USD: "$",
-        EUR: "€",
-        AED: "د.إ",
-        CAD: "C$",
-        AUD: "A$",
+    const getCurrencySymbol = (currency) => {
+        const currencyMap = {
+            INR: "₹",
+            GBP: "£",
+            USD: "$",
+            EUR: "€",
+            AED: "د.إ",
+            CAD: "C$",
+            AUD: "A$",
+        };
+
+        return currencyMap[currency] || currency || "";
     };
 
-    return currencyMap[currency] || currency || "";
-};
+    const formatRate = (amount, currency, period) => {
+        if (amount === undefined || amount === null) {
+            return null;
+        }
 
-const formatRate = (amount, currency, period) => {
-    if (amount === undefined || amount === null) {
-        return null;
-    }
+        const symbol = getCurrencySymbol(currency);
 
-    const symbol = getCurrencySymbol(currency);
+        const formattedAmount = Number(amount).toLocaleString("en-IN", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        });
 
-    const formattedAmount = Number(amount).toLocaleString("en-IN", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-    });
+        return `${symbol}${formattedAmount} / ${period || "month"}`;
+    };
 
-    return `${symbol}${formattedAmount} / ${period || "month"}`;
-};
+    const getExpectedSalary = (application) => {
+        // API response fields
+        if (
+            application.candidateExpectedAmount !== undefined &&
+            application.candidateExpectedAmount !== null
+        ) {
+            return formatRate(
+                application.candidateExpectedAmount,
+                application.candidateExpectedCurrency,
+                application.candidateExpectedPeriod
+            );
+        }
 
-const getExpectedSalary = (application) => {
-    // API response fields
-    if (
-        application.candidateExpectedAmount !== undefined &&
-        application.candidateExpectedAmount !== null
-    ) {
-        return formatRate(
-            application.candidateExpectedAmount,
-            application.candidateExpectedCurrency,
-            application.candidateExpectedPeriod
-        );
-    }
+        // Backward compatibility
+        if (application.expectedSalary) {
+            return application.expectedSalary;
+        }
 
-    // Backward compatibility
-    if (application.expectedSalary) {
-        return application.expectedSalary;
-    }
+        const amount =
+            application.expectedSalaryAmount ??
+            application.expectedRateAmount ??
+            application.candidateRateAmount;
 
-    const amount =
-        application.expectedSalaryAmount ??
-        application.expectedRateAmount ??
-        application.candidateRateAmount;
+        const currency =
+            application.expectedSalaryCurrency ||
+            application.expectedRateCurrency ||
+            application.candidateRateCurrency;
 
-    const currency =
-        application.expectedSalaryCurrency ||
-        application.expectedRateCurrency ||
-        application.candidateRateCurrency;
+        const period =
+            application.expectedSalaryPeriod ||
+            application.expectedRatePeriod ||
+            application.candidateRatePeriod;
 
-    const period =
-        application.expectedSalaryPeriod ||
-        application.expectedRatePeriod ||
-        application.candidateRatePeriod;
+        return formatRate(amount, currency, period) || "-";
+    };
 
-    return formatRate(amount, currency, period) || "-";
-};
+    const getSubmissionRate = (application) => {
+        // API response fields
+        if (
+            application.submissionAmount !== undefined &&
+            application.submissionAmount !== null
+        ) {
+            return formatRate(
+                application.submissionAmount,
+                application.submissionCurrency,
+                application.submissionPeriod
+            );
+        }
 
-const getSubmissionRate = (application) => {
-    // API response fields
-    if (
-        application.submissionAmount !== undefined &&
-        application.submissionAmount !== null
-    ) {
-        return formatRate(
-            application.submissionAmount,
-            application.submissionCurrency,
-            application.submissionPeriod
-        );
-    }
+        // Backward compatibility
+        if (application.submissionRate) {
+            return application.submissionRate;
+        }
 
-    // Backward compatibility
-    if (application.submissionRate) {
-        return application.submissionRate;
-    }
+        const amount =
+            application.submissionRateAmount ??
+            application.submittedRateAmount;
 
-    const amount =
-        application.submissionRateAmount ??
-        application.submittedRateAmount;
+        const currency =
+            application.submissionRateCurrency ||
+            application.submittedRateCurrency;
 
-    const currency =
-        application.submissionRateCurrency ||
-        application.submittedRateCurrency;
+        const period =
+            application.submissionRatePeriod ||
+            application.submittedRatePeriod;
 
-    const period =
-        application.submissionRatePeriod ||
-        application.submittedRatePeriod;
+        return formatRate(amount, currency, period);
+    };
 
-    return formatRate(amount, currency, period);
-};
+    const getOfferRate = (application) => {
+        // API response fields
+        if (
+            application.offerAmount !== undefined &&
+            application.offerAmount !== null
+        ) {
+            return formatRate(
+                application.offerAmount,
+                application.offerCurrency,
+                application.offerPeriod
+            );
+        }
 
-const getOfferRate = (application) => {
-    // API response fields
-    if (
-        application.offerAmount !== undefined &&
-        application.offerAmount !== null
-    ) {
-        return formatRate(
-            application.offerAmount,
-            application.offerCurrency,
-            application.offerPeriod
-        );
-    }
+        // Backward compatibility
+        if (application.offer) {
+            return application.offer;
+        }
 
-    // Backward compatibility
-    if (application.offer) {
-        return application.offer;
-    }
+        const amount =
+            application.offerRateAmount;
 
-    const amount =
-        application.offerRateAmount;
+        const currency =
+            application.offerRateCurrency;
 
-    const currency =
-        application.offerRateCurrency;
+        const period =
+            application.offerRatePeriod;
 
-    const period =
-        application.offerRatePeriod;
-
-    return formatRate(amount, currency, period);
-};
+        return formatRate(amount, currency, period);
+    };
 
     const getHistoryCount = (application) => {
         return (
@@ -524,188 +534,330 @@ const getOfferRate = (application) => {
         return icons[status] || <MdWorkOutline />;
     };
 
-   const handleStatusChange = (
-    submissionId,
-    statusId
-) => {
-    const selectedStatus =
-        submissionStatuses.find(
+    // const handleStatusChange = (
+    //     submissionId,
+    //     statusId
+    // ) => {
+    //     const selectedStatus =
+    //         submissionStatuses.find(
+    //             (status) =>
+    //                 String(status.id) ===
+    //                 String(statusId)
+    //         );
+
+    //     if (!selectedStatus) {
+    //         return;
+    //     }
+
+    //     const statusName =
+    //         selectedStatus.name ||
+    //         selectedStatus.statusName ||
+    //         selectedStatus.label ||
+    //         "";
+
+    //     setApplications((prev) =>
+    //         prev.map((application) =>
+    //             (
+    //                 application.id ||
+    //                 application.submissionId
+    //             ) === submissionId
+    //                 ? {
+    //                     ...application,
+
+    //                     statusId:
+    //                         statusId,
+
+    //                     status:
+    //                         statusName,
+
+    //                     /*
+    //                      * Changing parent status means
+    //                      * old sub-status is no longer valid.
+    //                      */
+    //                     subStatusId:
+    //                         null,
+
+    //                     subStatus:
+    //                         "",
+    //                 }
+    //                 : application
+    //         )
+    //     );
+
+    //     setApplicationChanges((prev) => ({
+    //         ...prev,
+
+    //         [submissionId]: {
+    //             ...(prev[submissionId] || {}),
+
+    //             statusId,
+    //             subStatusId: null,
+    //         },
+    //     }));
+
+    //     loadSubStatuses(statusId);
+    // };
+
+
+    const handleStatusChange = (submissionId, statusId) => {
+        console.log("STATUS CHANGE:", {
+            submissionId,
+            statusId,
+            submissionStatuses,
+        });
+
+        const selectedStatus = submissionStatuses.find(
             (status) =>
-                String(status.id) ===
-                String(statusId)
+                String(status?.id) === String(statusId)
         );
 
-    if (!selectedStatus) {
-        return;
-    }
-
-    const statusName =
-        selectedStatus.name ||
-        selectedStatus.statusName ||
-        selectedStatus.label ||
-        "";
-
-    setApplications((prev) =>
-        prev.map((application) =>
-            (
-                application.id ||
-                application.submissionId
-            ) === submissionId
-                ? {
-                    ...application,
-
-                    statusId:
-                        statusId,
-
-                    status:
-                        statusName,
-
-                    /*
-                     * Changing parent status means
-                     * old sub-status is no longer valid.
-                     */
-                    subStatusId:
-                        null,
-
-                    subStatus:
-                        "",
+        if (!selectedStatus) {
+            console.error(
+                "Selected status not found:",
+                {
+                    statusId,
+                    submissionStatuses,
                 }
-                : application
-        )
-    );
+            );
 
-    setApplicationChanges((prev) => ({
-        ...prev,
+            return;
+        }
 
-        [submissionId]: {
-            ...(prev[submissionId] || {}),
+        const statusName =
+            selectedStatus.name ||
+            selectedStatus.statusName ||
+            selectedStatus.label ||
+            selectedStatus.displayName ||
+            selectedStatus.value ||
+            "";
 
-            statusId,
+        const normalizedStatus = String(statusName)
+            .trim()
+            .toLowerCase();
+
+        console.log("SELECTED STATUS:", {
+            selectedStatus,
+            statusName,
+            normalizedStatus,
+        });
+
+        const application = applications.find(
+            (item) =>
+                String(
+                    item.id || item.submissionId
+                ) === String(submissionId)
+        );
+
+        if (!application) {
+            console.error(
+                "Application not found for submission:",
+                submissionId
+            );
+
+            return;
+        }
+
+        const updatedApplication = {
+            ...application,
+
+            statusId: statusId,
+
+            status: statusName,
+
+            statusName: statusName,
+
             subStatusId: null,
-        },
-    }));
 
-    loadSubStatuses(statusId);
-};
+            subStatus: "",
+        };
 
-   const formatInterviewDate = (date) => {
-    if (!date) {
-        return "";
-    }
+        /*
+         * Update UI immediately
+         */
+        setApplications((prev) =>
+            prev.map((item) =>
+                String(
+                    item.id || item.submissionId
+                ) === String(submissionId)
+                    ? updatedApplication
+                    : item
+            )
+        );
 
-    /*
-     * Already in DD-MM-YYYY
-     */
-    if (/^\d{2}-\d{2}-\d{4}$/.test(date)) {
+        /*
+         * SELECTED / OFFER RELEASED
+         * -----------------------------------------
+         * Open RatesModal immediately.
+         *
+         * Do NOT call updateSubmission yet.
+         * Status will be saved after rates are saved.
+         */
+        if (
+            normalizedStatus === "selected" ||
+            normalizedStatus === "offer released"
+        ) {
+            console.log(
+                "Opening RatesModal for status:",
+                normalizedStatus
+            );
+
+            setPendingRateStatus({
+                submissionId: submissionId,
+                statusId: statusId,
+                statusName: statusName,
+            });
+
+            setSelectedRatesApplication(
+                updatedApplication
+            );
+
+            setShowRatesModal(true);
+
+            /*
+             * Load sub-statuses if required.
+             */
+            loadSubStatuses(statusId);
+
+            return;
+        }
+
+        /*
+         * Normal statuses
+         * -----------------------------------------
+         * Store change and let Save button handle API.
+         */
+        setApplicationChanges((prev) => ({
+            ...prev,
+
+            [submissionId]: {
+                ...(prev[submissionId] || {}),
+
+                statusId: statusId,
+
+                subStatusId: null,
+            },
+        }));
+
+        loadSubStatuses(statusId);
+    };
+    const formatInterviewDate = (date) => {
+        if (!date) {
+            return "";
+        }
+
+        /*
+         * Already in DD-MM-YYYY
+         */
+        if (/^\d{2}-\d{2}-\d{4}$/.test(date)) {
+            return date;
+        }
+
+        /*
+         * If browser gives YYYY-MM-DD
+         */
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            const [year, month, day] =
+                date.split("-");
+
+            return `${day}-${month}-${year}`;
+        }
+
         return date;
-    }
-
-    /*
-     * If browser gives YYYY-MM-DD
-     */
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        const [year, month, day] =
-            date.split("-");
-
-        return `${day}-${month}-${year}`;
-    }
-
-    return date;
-};
-
-const formatInterviewTime = (time) => {
-    if (!time) {
-        return "";
-    }
-
-    /*
-     * Already formatted as 01:40 PM
-     */
-    if (
-        /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(
-            time
-        )
-    ) {
-        const [timePart, period] =
-            time.split(/\s+/);
-
-        const [hours, minutes] =
-            timePart.split(":");
-
-        return `${hours.padStart(
-            2,
-            "0"
-        )}:${minutes} ${period.toUpperCase()}`;
-    }
-
-    /*
-     * Convert 24-hour HH:mm
-     * to 12-hour format.
-     */
-    if (/^\d{1,2}:\d{2}$/.test(time)) {
-        const [hoursString, minutes] =
-            time.split(":");
-
-        let hours =
-            Number(hoursString);
-
-        const period =
-            hours >= 12
-                ? "PM"
-                : "AM";
-
-        hours =
-            hours % 12 || 12;
-
-        return `${String(hours).padStart(
-            2,
-            "0"
-        )}:${minutes} ${period}`;
-    }
-
-    return time;
-};
-const getInterviewTypeForApi = (type) => {
-    return (
-        type || "TEAMS"
-    ).toUpperCase();
-};
-const getInterviewRoundForApi = (round) => {
-    const roundMap = {
-        "Technical Round": "Technical",
-        "HR Round": "HR",
-        "Final Round": "Final",
-
-        Technical: "Technical",
-        HR: "HR",
-        Final: "Final",
     };
 
-    return (
-        roundMap[round] ||
-        round
-    );
-};
+    const formatInterviewTime = (time) => {
+        if (!time) {
+            return "";
+        }
+
+        /*
+         * Already formatted as 01:40 PM
+         */
+        if (
+            /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(
+                time
+            )
+        ) {
+            const [timePart, period] =
+                time.split(/\s+/);
+
+            const [hours, minutes] =
+                timePart.split(":");
+
+            return `${hours.padStart(
+                2,
+                "0"
+            )}:${minutes} ${period.toUpperCase()}`;
+        }
+
+        /*
+         * Convert 24-hour HH:mm
+         * to 12-hour format.
+         */
+        if (/^\d{1,2}:\d{2}$/.test(time)) {
+            const [hoursString, minutes] =
+                time.split(":");
+
+            let hours =
+                Number(hoursString);
+
+            const period =
+                hours >= 12
+                    ? "PM"
+                    : "AM";
+
+            hours =
+                hours % 12 || 12;
+
+            return `${String(hours).padStart(
+                2,
+                "0"
+            )}:${minutes} ${period}`;
+        }
+
+        return time;
+    };
+    const getInterviewTypeForApi = (type) => {
+        return (
+            type || "TEAMS"
+        ).toUpperCase();
+    };
+    const getInterviewRoundForApi = (round) => {
+        const roundMap = {
+            "Technical Round": "Technical",
+            "HR Round": "HR",
+            "Final Round": "Final",
+
+            Technical: "Technical",
+            HR: "HR",
+            Final: "Final",
+        };
+
+        return (
+            roundMap[round] ||
+            round
+        );
+    };
     const handleOpenInterview = (application) => {
-    console.log(
-        "Opening interview modal for:",
-        application
-    );
+        console.log(
+            "Opening interview modal for:",
+            application
+        );
 
-    setSelectedApplication(
-        application
-    );
+        setSelectedApplication(
+            application
+        );
 
-    setInterviewData({
-        date: "",
-        time: "",
-        type: "TEAMS",
-        round: "Final",
-        interviewer: "",
-    });
+        setInterviewData({
+            date: "",
+            time: "",
+            type: "TEAMS",
+            round: "Final",
+            interviewer: "",
+        });
 
-    setShowInterviewModal(true);
-};
+        setShowInterviewModal(true);
+    };
 
     const handleCloseInterview = () => {
         setShowInterviewModal(false);
@@ -719,533 +871,727 @@ const getInterviewRoundForApi = (round) => {
         }));
     };
 
-const handleSaveInterview = async () => {
-    if (!selectedApplication) {
-        return;
-    }
-
-    const submissionId =
-        selectedApplication.submissionId ||
-        selectedApplication.id;
-
-    const currentCandidateId =
-        selectedApplication.candidateId ||
-        candidateId;
-
-    const jobId =
-        selectedApplication.jobId ||
-        selectedApplication.job?.id;
-
-    if (!submissionId) {
-        console.error(
-            "Submission ID missing",
-            selectedApplication
-        );
-        return;
-    }
-
-    if (!currentCandidateId) {
-        console.error("Candidate ID missing");
-        return;
-    }
-
-    if (!jobId) {
-        console.error(
-            "Job ID missing",
-            selectedApplication
-        );
-        return;
-    }
-
-    if (!interviewData.date) {
-        alert("Please select interview date.");
-        return;
-    }
-
-    if (!interviewData.time) {
-        alert("Please select interview time.");
-        return;
-    }
-
-    if (!interviewData.interviewer.trim()) {
-        alert("Please enter interviewer name.");
-        return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | FIND INTERVIEW STATUS
-    |--------------------------------------------------------------------------
-    */
-
-    const interviewStatus = submissionStatuses.find(
-        (status) => {
-            const statusName =
-                status?.name ||
-                status?.statusName ||
-                status?.label ||
-                "";
-
-            return (
-                statusName
-                    .toString()
-                    .trim()
-                    .toLowerCase() === "interview"
-            );
+    const handleSaveInterview = async () => {
+        if (!selectedApplication) {
+            return;
         }
-    );
 
-    if (!interviewStatus?.id) {
-        console.error(
-            "Interview status not found in submissionStatuses:",
-            submissionStatuses
-        );
+        const submissionId =
+            selectedApplication.submissionId ||
+            selectedApplication.id;
 
-        alert(
-            "Interview status is not available. Please refresh the page and try again."
-        );
+        const currentCandidateId =
+            selectedApplication.candidateId ||
+            candidateId;
 
-        return;
-    }
+        const jobId =
+            selectedApplication.jobId ||
+            selectedApplication.job?.id;
 
-    const requestData = {
-        submissionId,
+        if (!submissionId) {
+            console.error(
+                "Submission ID missing",
+                selectedApplication
+            );
+            return;
+        }
 
-        candidateId:
-            currentCandidateId,
+        if (!currentCandidateId) {
+            console.error("Candidate ID missing");
+            return;
+        }
 
-        jobId,
+        if (!jobId) {
+            console.error(
+                "Job ID missing",
+                selectedApplication
+            );
+            return;
+        }
 
-        interviewDate:
-            formatInterviewDate(
-                interviewData.date
-            ),
+        if (!interviewData.date) {
+            alert("Please select interview date.");
+            return;
+        }
 
-        interviewTime:
-            formatInterviewTime(
-                interviewData.time
-            ),
+        if (!interviewData.time) {
+            alert("Please select interview time.");
+            return;
+        }
 
-        interviewType:
-            getInterviewTypeForApi(
-                interviewData.type
-            ),
-
-        round:
-            getInterviewRoundForApi(
-                interviewData.round
-            ),
-
-        interviewerName:
-            interviewData.interviewer.trim(),
-
-        status: "scheduled",
-    };
-
-    console.log(
-        "Creating interview:",
-        requestData
-    );
-
-    try {
-        /*
-        |--------------------------------------------------------------------------
-        | STEP 1 — CREATE INTERVIEW
-        |--------------------------------------------------------------------------
-        */
-
-        const interviewResponse =
-            await dispatch(
-                createInterview(
-                    requestData
-                )
-            ).unwrap();
-
-        console.log(
-            "Interview created successfully:",
-            interviewResponse
-        );
+        if (!interviewData.interviewer.trim()) {
+            alert("Please enter interviewer name.");
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | STEP 2 — CHANGE SUBMISSION STATUS TO INTERVIEW
+        | FIND INTERVIEW STATUS
         |--------------------------------------------------------------------------
         */
 
-        console.log(
-            "Updating submission status to Interview:",
-            {
-                submissionId,
-                statusId: interviewStatus.id,
-                statusName:
-                    interviewStatus.name ||
-                    interviewStatus.statusName ||
-                    interviewStatus.label,
+        const interviewStatus = submissionStatuses.find(
+            (status) => {
+                const statusName =
+                    status?.name ||
+                    status?.statusName ||
+                    status?.label ||
+                    "";
+
+                return (
+                    statusName
+                        .toString()
+                        .trim()
+                        .toLowerCase() === "interview"
+                );
             }
         );
 
-        await dispatch(
-            updateSubmission({
-                submissionId,
+        if (!interviewStatus?.id) {
+            console.error(
+                "Interview status not found in submissionStatuses:",
+                submissionStatuses
+            );
 
-                statusId:
-                    interviewStatus.id,
+            alert(
+                "Interview status is not available. Please refresh the page and try again."
+            );
 
-                /*
-                 * Interview status does not keep
-                 * the previous Submitted sub-status.
-                 */
-                subStatusId: null,
-            })
-        ).unwrap();
+            return;
+        }
+
+        const requestData = {
+            submissionId,
+
+            candidateId:
+                currentCandidateId,
+
+            jobId,
+
+            interviewDate:
+                formatInterviewDate(
+                    interviewData.date
+                ),
+
+            interviewTime:
+                formatInterviewTime(
+                    interviewData.time
+                ),
+
+            interviewType:
+                getInterviewTypeForApi(
+                    interviewData.type
+                ),
+
+            round:
+                getInterviewRoundForApi(
+                    interviewData.round
+                ),
+
+            interviewerName:
+                interviewData.interviewer.trim(),
+
+            status: "scheduled",
+        };
 
         console.log(
-            "Submission status updated to Interview successfully."
+            "Creating interview:",
+            requestData
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | STEP 3 — REFRESH APPLICATIONS
-        |--------------------------------------------------------------------------
-        */
+        try {
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 1 — CREATE INTERVIEW
+            |--------------------------------------------------------------------------
+            */
 
-        await dispatch(
-            getCandidateApplications(
-                candidateId
-            )
-        ).unwrap();
+            const interviewResponse =
+                await dispatch(
+                    createInterview(
+                        requestData
+                    )
+                ).unwrap();
 
-        /*
-        |--------------------------------------------------------------------------
-        | STEP 4 — CLOSE MODAL
-        |--------------------------------------------------------------------------
-        */
+            console.log(
+                "Interview created successfully:",
+                interviewResponse
+            );
 
-        handleCloseInterview();
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 2 — CHANGE SUBMISSION STATUS TO INTERVIEW
+            |--------------------------------------------------------------------------
+            */
 
-    } catch (error) {
-        console.error(
-            "Failed to schedule interview / update submission:",
-            error
-        );
-    }
-};
+            console.log(
+                "Updating submission status to Interview:",
+                {
+                    submissionId,
+                    statusId: interviewStatus.id,
+                    statusName:
+                        interviewStatus.name ||
+                        interviewStatus.statusName ||
+                        interviewStatus.label,
+                }
+            );
 
-    const handleRemove = (id) => {
-        setApplications((prev) =>
-            prev.filter((application) => application.id !== id)
-        );
+            await dispatch(
+                updateSubmission({
+                    submissionId,
+
+                    statusId:
+                        interviewStatus.id,
+
+                    /*
+                     * Interview status does not keep
+                     * the previous Submitted sub-status.
+                     */
+                    subStatusId: null,
+                })
+            ).unwrap();
+
+            console.log(
+                "Submission status updated to Interview successfully."
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 3 — REFRESH APPLICATIONS
+            |--------------------------------------------------------------------------
+            */
+
+            await dispatch(
+                getCandidateApplications(
+                    candidateId
+                )
+            ).unwrap();
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 4 — CLOSE MODAL
+            |--------------------------------------------------------------------------
+            */
+
+            handleCloseInterview();
+
+        } catch (error) {
+            console.error(
+                "Failed to schedule interview / update submission:",
+                error
+            );
+        }
     };
-const handleOpenHistory = (application) => {
-    const submissionId =
-        application.id ||
-        application.submissionId;
 
-    if (!submissionId) {
-        console.error("Submission ID not found", application);
-        return;
-    }
+    const handleOpenDeleteModal = (submissionId) => {
+        if (!submissionId) {
+            console.error("Submission ID missing");
+            return;
+        }
 
-    setSelectedHistoryApplication(application);
-    setShowHistoryModal(true);
+        setSelectedSubmissionId(submissionId);
+        setShowDeleteModal(true);
+    };
 
-    dispatch(getSubmissionActivities(submissionId));
-};
+    const handleCloseDeleteModal = () => {
+        if (deletingSubmission) {
+            return;
+        }
 
-const handleCloseHistory = () => {
-    setShowHistoryModal(false);
-    setSelectedHistoryApplication(null);
+        setShowDeleteModal(false);
+        setSelectedSubmissionId(null);
+    };
 
-    dispatch(clearSubmissionActivities());
-};
+    const handleConfirmDelete = async () => {
+        if (!selectedSubmissionId) {
+            console.error("Submission ID missing");
+            return;
+        }
 
-const formatHistoryDate = (dateString) => {
-    if (!dateString) {
-        return "-";
-    }
+        try {
+            setDeletingSubmissionId(selectedSubmissionId);
 
-    const date = new Date(dateString);
+            console.log(
+                "Deleting submission:",
+                selectedSubmissionId
+            );
 
-    if (Number.isNaN(date.getTime())) {
-        return dateString;
-    }
+            await dispatch(
+                deleteSubmission(selectedSubmissionId)
+            ).unwrap();
 
-    return date.toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
+            console.log(
+                "Submission deleted successfully:",
+                selectedSubmissionId
+            );
 
-const handleSubStatusChange = (
-    submissionId,
-    subStatusId
-) => {
-    const application =
-        applications.find(
-            (item) =>
+            /*
+             * Refresh applications from backend
+             */
+            await dispatch(
+                getCandidateApplications(candidateId)
+            ).unwrap();
+
+            /*
+             * Close modal after successful deletion
+             */
+            setShowDeleteModal(false);
+            setSelectedSubmissionId(null);
+
+        } catch (error) {
+            console.error(
+                "Failed to delete submission:",
+                error
+            );
+
+            alert(
+                typeof error === "string"
+                    ? error
+                    : "Failed to remove application. Please try again."
+            );
+        } finally {
+            setDeletingSubmissionId(null);
+        }
+    };
+    const handleOpenHistory = (application) => {
+        const submissionId =
+            application.id ||
+            application.submissionId;
+
+        if (!submissionId) {
+            console.error("Submission ID not found", application);
+            return;
+        }
+
+        setSelectedHistoryApplication(application);
+        setShowHistoryModal(true);
+
+        dispatch(getSubmissionActivities(submissionId));
+    };
+
+    const handleCloseHistory = () => {
+        setShowHistoryModal(false);
+        setSelectedHistoryApplication(null);
+
+        dispatch(clearSubmissionActivities());
+    };
+
+    const formatHistoryDate = (dateString) => {
+        if (!dateString) {
+            return "-";
+        }
+
+        const date = new Date(dateString);
+
+        if (Number.isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const handleSubStatusChange = (
+        submissionId,
+        subStatusId
+    ) => {
+        const application =
+            applications.find(
+                (item) =>
+                    (
+                        item.id ||
+                        item.submissionId
+                    ) === submissionId
+            );
+
+        if (!application) {
+            return;
+        }
+
+        const statusId =
+            application.statusId;
+
+        const subStatuses =
+            submissionSubStatuses[statusId] ||
+            [];
+
+        const selectedSubStatus =
+            subStatuses.find(
+                (subStatus) =>
+                    String(subStatus.id) ===
+                    String(subStatusId)
+            );
+
+        setApplications((prev) =>
+            prev.map((item) =>
                 (
                     item.id ||
                     item.submissionId
                 ) === submissionId
+                    ? {
+                        ...item,
+
+                        subStatusId:
+                            subStatusId,
+
+                        subStatus:
+                            selectedSubStatus?.name ||
+                            "",
+                    }
+                    : item
+            )
         );
 
-    if (!application) {
-        return;
-    }
+        setApplicationChanges((prev) => ({
+            ...prev,
 
-    const statusId =
-        application.statusId;
-
-    const subStatuses =
-        submissionSubStatuses[statusId] ||
-        [];
-
-    const selectedSubStatus =
-        subStatuses.find(
-            (subStatus) =>
-                String(subStatus.id) ===
-                String(subStatusId)
-        );
-
-    setApplications((prev) =>
-        prev.map((item) =>
-            (
-                item.id ||
-                item.submissionId
-            ) === submissionId
-                ? {
-                    ...item,
-
-                    subStatusId:
-                        subStatusId,
-
-                    subStatus:
-                        selectedSubStatus?.name ||
-                        "",
-                }
-                : item
-        )
-    );
-
-    setApplicationChanges((prev) => ({
-        ...prev,
-
-        [submissionId]: {
-            ...(prev[submissionId] || {}),
-
-            statusId:
-                application.statusId,
-
-            subStatusId:
-                subStatusId || null,
-        },
-    }));
-};
-
-const handleSaveStatus = async (
-    application
-) => {
-    const submissionId =
-        application.id ||
-        application.submissionId;
-
-    if (!submissionId) {
-        console.error(
-            "Submission ID missing",
-            application
-        );
-
-        return;
-    }
-
-    const changes =
-        applicationChanges[
-            submissionId
-        ];
-
-    if (!changes) {
-        return;
-    }
-
-    try {
-        await dispatch(
-            updateSubmission({
-                submissionId,
+            [submissionId]: {
+                ...(prev[submissionId] || {}),
 
                 statusId:
-                    changes.statusId ||
                     application.statusId,
 
                 subStatusId:
-                    changes.subStatusId ||
-                    null,
-            })
-        ).unwrap();
-
-        /*
-         * Refresh from backend
-         */
-        await dispatch(
-            getCandidateApplications(
-                candidateId
-            )
-        ).unwrap();
-
-    } catch (error) {
-        console.error(
-            "UPDATE SUBMISSION ERROR:",
-            error
-        );
-    }
-};
-
-const hasApplicationChanges = (
-    application
-) => {
-    const submissionId =
-        application.id ||
-        application.submissionId;
-
-    return Boolean(
-        applicationChanges[
-            submissionId
-        ]
-    );
-};
-
-const handleOpenRatesModal = (application) => {
-    setSelectedRatesApplication(application);
-    setShowRatesModal(true);
-};
-
-const handleCloseRatesModal = () => {
-    setShowRatesModal(false);
-    setSelectedRatesApplication(null);
-};
-
-const handleSaveRates = async (rateData) => {
-    if (!rateData?.submissionId) {
-        console.error(
-            "Submission ID is missing"
-        );
-        return;
-    }
-
-    try {
-        await dispatch(
-            updateSubmissionRates({
-                submissionId:
-                    rateData.submissionId,
-
-                candidateExpectedAmount:
-                    rateData.candidateExpectedAmount,
-
-                candidateExpectedCurrency:
-                    rateData.candidateExpectedCurrency,
-
-                candidateExpectedPeriod:
-                    rateData.candidateExpectedPeriod,
-
-                submissionAmount:
-                    rateData.submissionAmount,
-
-                submissionCurrency:
-                    rateData.submissionCurrency,
-
-                submissionPeriod:
-                    rateData.submissionPeriod,
-
-                ...(rateData.offerAmount !== undefined
-                    ? {
-                          offerAmount:
-                              rateData.offerAmount,
-
-                          offerCurrency:
-                              rateData.offerCurrency,
-
-                          offerPeriod:
-                              rateData.offerPeriod,
-                      }
-                    : {}),
-            })
-        ).unwrap();
-
-        handleCloseRatesModal();
-
-    } catch (error) {
-        console.error(
-            "Failed to save rates:",
-            error
-        );
-    }
-};
-
-useEffect(() => {
-    if (!candidateApplications.length) {
-        setHistoryCounts({});
-        return;
-    }
-
-    const loadHistoryCounts = async () => {
-        const counts = {};
-
-        await Promise.all(
-            candidateApplications.map(async (application) => {
-                const submissionId =
-                    application.id ||
-                    application.submissionId;
-
-                if (!submissionId) {
-                    return;
-                }
-
-                try {
-                    const result = await dispatch(
-                        getSubmissionActivities(submissionId)
-                    ).unwrap();
-
-                    counts[submissionId] = Array.isArray(result)
-                        ? result.length
-                        : 0;
-                } catch (error) {
-                    console.error(
-                        "Failed to load history count:",
-                        submissionId,
-                        error
-                    );
-
-                    counts[submissionId] = 0;
-                }
-            })
-        );
-
-        setHistoryCounts(counts);
+                    subStatusId || null,
+            },
+        }));
     };
 
-    loadHistoryCounts();
-}, [candidateApplications, dispatch]);
+    const handleSaveStatus = async (
+        application
+    ) => {
+        const submissionId =
+            application.id ||
+            application.submissionId;
+
+        if (!submissionId) {
+            console.error(
+                "Submission ID missing",
+                application
+            );
+
+            return;
+        }
+
+        /*
+         * Selected / Offer Released are handled
+         * through the RatesModal.
+         */
+        const currentStatus =
+            application.status ||
+            application.statusName ||
+            "";
+
+        const normalizedStatus =
+            currentStatus
+                .toString()
+                .trim()
+                .toLowerCase();
+
+        if (
+            normalizedStatus === "selected" ||
+            normalizedStatus === "offer released"
+        ) {
+            /*
+             * If the rate modal is already open,
+             * don't save again from the normal Save button.
+             */
+            if (
+                pendingRateStatus &&
+                String(
+                    pendingRateStatus.submissionId
+                ) === String(submissionId)
+            ) {
+                return;
+            }
+        }
+
+        const changes =
+            applicationChanges[
+            submissionId
+            ];
+
+        if (!changes) {
+            return;
+        }
+
+        try {
+            await dispatch(
+                updateSubmission({
+                    submissionId,
+
+                    statusId:
+                        changes.statusId ||
+                        application.statusId,
+
+                    subStatusId:
+                        changes.subStatusId ||
+                        null,
+                })
+            ).unwrap();
+
+            /*
+             * Refresh from backend.
+             */
+            await dispatch(
+                getCandidateApplications(
+                    candidateId
+                )
+            ).unwrap();
+
+            /*
+             * Clear local changes after successful save.
+             */
+            setApplicationChanges((prev) => {
+                const updated = {
+                    ...prev,
+                };
+
+                delete updated[submissionId];
+
+                return updated;
+            });
+
+        } catch (error) {
+            console.error(
+                "UPDATE SUBMISSION ERROR:",
+                error
+            );
+        }
+    };
+
+    const hasApplicationChanges = (
+        application
+    ) => {
+        const submissionId =
+            application.id ||
+            application.submissionId;
+
+        return Boolean(
+            applicationChanges[
+            submissionId
+            ]
+        );
+    };
+
+    const handleOpenRatesModal = (application) => {
+        setSelectedRatesApplication(application);
+        setShowRatesModal(true);
+    };
+
+    const handleCloseRatesModal = () => {
+        setShowRatesModal(false);
+
+        setSelectedRatesApplication(null);
+
+        setPendingRateStatus(null);
+        if (candidateId) {
+            dispatch(
+                getCandidateApplications(candidateId)
+            );
+        }
+    };
 
 
-useEffect(() => {
-    if (!candidateApplications.length) {
-        return;
-    }
+    const handleSaveRates = async (rateData) => {
+        if (!rateData?.submissionId) {
+            console.error("Submission ID is missing");
+            return;
+        }
 
-    const statusIds = [
-        ...new Set(
-            candidateApplications
-                .map((application) => application.statusId)
-                .filter(Boolean)
-        ),
-    ];
+        try {
+            /*
+             * rateData already contains:
+             *
+             * - changed field value
+             * - unchanged fields = null
+             *
+             * So DON'T add existing application values here.
+             */
 
-    statusIds.forEach((statusId) => {
-        dispatch(getSubmissionSubStatuses(statusId));
-    });
-}, [candidateApplications, dispatch]);
+            const ratePayload = {
+                submissionId: rateData.submissionId,
+
+                candidateExpectedAmount:
+                    rateData.candidateExpectedAmount ?? null,
+
+                candidateExpectedCurrency:
+                    rateData.candidateExpectedCurrency ?? null,
+
+                candidateExpectedPeriod:
+                    rateData.candidateExpectedPeriod ?? null,
+
+                submissionAmount:
+                    rateData.submissionAmount ?? null,
+
+                submissionCurrency:
+                    rateData.submissionCurrency ?? null,
+
+                submissionPeriod:
+                    rateData.submissionPeriod ?? null,
+
+                offerAmount:
+                    rateData.offerAmount ?? null,
+
+                offerCurrency:
+                    rateData.offerCurrency ?? null,
+
+                offerPeriod:
+                    rateData.offerPeriod ?? null,
+            };
+
+            console.log(
+                "FINAL RATE UPDATE PAYLOAD:",
+                ratePayload
+            );
+
+            await dispatch(
+                updateSubmissionRates(ratePayload)
+            ).unwrap();
+
+            console.log(
+                "Rates saved successfully."
+            );
+
+            /*
+             * ---------------------------------------------------------
+             * STEP 2 — IF SELECTED / OFFER RELEASED,
+             * SAVE THE PENDING STATUS
+             * ---------------------------------------------------------
+             */
+
+            if (
+                pendingRateStatus &&
+                String(
+                    pendingRateStatus.submissionId
+                ) ===
+                String(rateData.submissionId)
+            ) {
+                console.log(
+                    "Saving pending status after rates:",
+                    pendingRateStatus
+                );
+
+                await dispatch(
+                    updateSubmission({
+                        submissionId:
+                            pendingRateStatus.submissionId,
+
+                        statusId:
+                            pendingRateStatus.statusId,
+
+                        subStatusId: null,
+                    })
+                ).unwrap();
+
+                console.log(
+                    "Submission status updated successfully:",
+                    pendingRateStatus.statusName
+                );
+            }
+
+            /*
+             * ---------------------------------------------------------
+             * STEP 3 — REFRESH APPLICATIONS
+             * ---------------------------------------------------------
+             */
+
+            await dispatch(
+                getCandidateApplications(
+                    candidateId
+                )
+            ).unwrap();
+
+            /*
+             * ---------------------------------------------------------
+             * STEP 4 — CLOSE MODAL
+             * ---------------------------------------------------------
+             */
+
+            setShowRatesModal(false);
+
+            setSelectedRatesApplication(null);
+
+            setPendingRateStatus(null);
+
+        } catch (error) {
+            console.error(
+                "Failed to save rates / update status:",
+                error
+            );
+        }
+    };
+
+
+
+    useEffect(() => {
+        if (!candidateApplications.length) {
+            setHistoryCounts({});
+            return;
+        }
+
+        const loadHistoryCounts = async () => {
+            const counts = {};
+
+            await Promise.all(
+                candidateApplications.map(async (application) => {
+                    const submissionId =
+                        application.id ||
+                        application.submissionId;
+
+                    if (!submissionId) {
+                        return;
+                    }
+
+                    try {
+                        const result = await dispatch(
+                            getSubmissionActivities(submissionId)
+                        ).unwrap();
+
+                        counts[submissionId] = Array.isArray(result)
+                            ? result.length
+                            : 0;
+                    } catch (error) {
+                        console.error(
+                            "Failed to load history count:",
+                            submissionId,
+                            error
+                        );
+
+                        counts[submissionId] = 0;
+                    }
+                })
+            );
+
+            setHistoryCounts(counts);
+        };
+
+        loadHistoryCounts();
+    }, [candidateApplications, dispatch]);
+
+
+    useEffect(() => {
+        if (!candidateApplications.length) {
+            return;
+        }
+
+        const statusIds = [
+            ...new Set(
+                candidateApplications
+                    .map((application) => application.statusId)
+                    .filter(Boolean)
+            ),
+        ];
+
+        statusIds.forEach((statusId) => {
+            dispatch(getSubmissionSubStatuses(statusId));
+        });
+    }, [candidateApplications, dispatch]);
 
 
     return (
@@ -1308,15 +1654,15 @@ useEffect(() => {
                                 const offerRate =
                                     getOfferRate(app);
                                 const submissionId =
-                                        app.id ||
-                                        app.submissionId;
+                                    app.id ||
+                                    app.submissionId;
                                 const interview =
-                                     getLatestInterview(submissionId);
-                                     
-    
-                                    const historyCount =
-                                        historyCounts[submissionId] ??
-                                        getHistoryCount(app);
+                                    getLatestInterview(submissionId);
+
+
+                                const historyCount =
+                                    historyCounts[submissionId] ??
+                                    getHistoryCount(app);
 
                                 return (
                                     <div
@@ -1452,57 +1798,57 @@ useEffect(() => {
                                                         })
                                                     )}
                                                 </select>
-                                               {(() => {
-    const submissionId =
-        app.id || app.submissionId;
+                                                {(() => {
+                                                    const submissionId =
+                                                        app.id || app.submissionId;
 
-    const statusId = app.statusId;
+                                                    const statusId = app.statusId;
 
-    const subStatuses =
-        submissionSubStatuses[statusId] || [];
+                                                    const subStatuses =
+                                                        submissionSubStatuses[statusId] || [];
 
-    const subStatusesLoading =
-        submissionSubStatusesLoading[statusId];
+                                                    const subStatusesLoading =
+                                                        submissionSubStatusesLoading[statusId];
 
-    return (
-        <select
-            className="cxandidate-sub-status-select"
-            value={app.subStatusId || ""}
-            onChange={(e) =>
-                handleSubStatusChange(
-                    submissionId,
-                    e.target.value
-                )
-            }
-            disabled={
-                !statusId ||
-                subStatusesLoading ||
-                updatingSubmission
-            }
-        >
-            {subStatusesLoading ? (
-                <option value="">
-                    Loading sub-statuses...
-                </option>
-            ) : (
-                <>
-                    <option value="">
-                        Select sub-status
-                    </option>
+                                                    return (
+                                                        <select
+                                                            className="cxandidate-sub-status-select"
+                                                            value={app.subStatusId || ""}
+                                                            onChange={(e) =>
+                                                                handleSubStatusChange(
+                                                                    submissionId,
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !statusId ||
+                                                                subStatusesLoading ||
+                                                                updatingSubmission
+                                                            }
+                                                        >
+                                                            {subStatusesLoading ? (
+                                                                <option value="">
+                                                                    Loading sub-statuses...
+                                                                </option>
+                                                            ) : (
+                                                                <>
+                                                                    <option value="">
+                                                                        Select sub-status
+                                                                    </option>
 
-                    {subStatuses.map((subStatus) => (
-                        <option
-                            key={subStatus.id}
-                            value={subStatus.id}
-                        >
-                            {subStatus.name}
-                        </option>
-                    ))}
-                </>
-            )}
-        </select>
-    );
-})()}
+                                                                    {subStatuses.map((subStatus) => (
+                                                                        <option
+                                                                            key={subStatus.id}
+                                                                            value={subStatus.id}
+                                                                        >
+                                                                            {subStatus.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </>
+                                                            )}
+                                                        </select>
+                                                    );
+                                                })()}
 
                                                 <button
                                                     type="button"
@@ -1545,30 +1891,38 @@ useEffect(() => {
                                                         Rates
                                                     </span>
                                                 </button>
-                                                    <button
-                                                        type="button"
-                                                        className="cxandidate-application-action"
-                                                        onClick={() => handleOpenHistory(app)}
-                                                    >
-                                                        <FiList />
-                                                        <span>
-                                                            History ({historyCount})
-                                                        </span>
-                                                    </button>
+                                                <button
+                                                    type="button"
+                                                    className="cxandidate-application-action"
+                                                    onClick={() => handleOpenHistory(app)}
+                                                >
+                                                    <FiList />
+                                                    <span>
+                                                        History ({historyCount})
+                                                    </span>
+                                                </button>
 
                                                 <button
                                                     type="button"
                                                     className="cxandidate-application-action cxandidate-remove-btn"
                                                     onClick={() =>
-                                                        handleRemove(
+                                                        handleOpenDeleteModal(
                                                             app.id ||
                                                             app.submissionId
                                                         )
                                                     }
+                                                    disabled={
+                                                        deletingSubmissionId ===
+                                                        (app.id || app.submissionId)
+                                                    }
                                                 >
                                                     <FiX />
+
                                                     <span>
-                                                        Remove
+                                                        {deletingSubmissionId ===
+                                                            (app.id || app.submissionId)
+                                                            ? "Removing..."
+                                                            : "Remove"}
                                                     </span>
                                                 </button>
                                             </div>
@@ -1617,56 +1971,56 @@ useEffect(() => {
                                                     </>
                                                 )}
                                             </div>
-{interview && (
-    <div className="cxandidate-application-interview-info">
+                                            {interview && (
+                                                <div className="cxandidate-application-interview-info">
 
-        <span>
-            🗓️{" "}
-            {interview.interviewDate ||
-                interview.date ||
-                "-"}
-        </span>
+                                                    <span>
+                                                        🗓️{" "}
+                                                        {interview.interviewDate ||
+                                                            interview.date ||
+                                                            "-"}
+                                                    </span>
 
-        <span>
-            {" "}
-            {interview.interviewTime ||
-                interview.time ||
-                ""}
-        </span>
+                                                    <span>
+                                                        {" "}
+                                                        {interview.interviewTime ||
+                                                            interview.time ||
+                                                            ""}
+                                                    </span>
 
-        <span> · </span>
+                                                    <span> · </span>
 
-        <span>
-            {interview.interviewType ||
-                interview.type ||
-                "-"}
-        </span>
+                                                    <span>
+                                                        {interview.interviewType ||
+                                                            interview.type ||
+                                                            "-"}
+                                                    </span>
 
-        <span> · </span>
+                                                    <span> · </span>
 
-        <span>
-            {interview.round === "Technical"
-                ? "Technical Round"
-                : interview.round === "HR"
-                ? "HR Round"
-                : interview.round === "Final"
-                ? "Final Round"
-                : interview.round ||
-                  "-"}
-        </span>
+                                                    <span>
+                                                        {interview.round === "Technical"
+                                                            ? "Technical Round"
+                                                            : interview.round === "HR"
+                                                                ? "HR Round"
+                                                                : interview.round === "Final"
+                                                                    ? "Final Round"
+                                                                    : interview.round ||
+                                                                    "-"}
+                                                    </span>
 
-        {interview.interviewerName && (
-            <>
-                <span> · </span>
+                                                    {interview.interviewerName && (
+                                                        <>
+                                                            <span> · </span>
 
-                <span>
-                    {interview.interviewerName}
-                </span>
-            </>
-        )}
+                                                            <span>
+                                                                {interview.interviewerName}
+                                                            </span>
+                                                        </>
+                                                    )}
 
-    </div>
-)}
+                                                </div>
+                                            )}
 
                                         </div>
                                     </div>
@@ -1732,7 +2086,7 @@ useEffect(() => {
                                                 }
                                             />
 
-                                            <FiCalendar />
+                                            {/* <FiCalendar /> */}
                                         </div>
                                     </div>
 
@@ -1756,7 +2110,7 @@ useEffect(() => {
                                                 }
                                             />
 
-                                            <FiClock />
+                                            {/* <FiClock /> */}
                                         </div>
                                     </div>
 
@@ -1813,16 +2167,16 @@ useEffect(() => {
                                             }
                                         >
                                             <option value="Technical">
-                                                    Technical Round
-                                                </option>
+                                                Technical Round
+                                            </option>
 
-                                                <option value="HR">
-                                                    HR Round
-                                                </option>
+                                            <option value="HR">
+                                                HR Round
+                                            </option>
 
-                                                <option value="Final">
-                                                    Final Round
-                                                </option>
+                                            <option value="Final">
+                                                Final Round
+                                            </option>
                                         </select>
                                     </div>
 
@@ -1848,7 +2202,11 @@ useEffect(() => {
                                     </div>
                                 </div>
                             </div>
-
+                            {createInterviewError && (
+                                <div className="cxandidate-interview-error">
+                                    {createInterviewError}
+                                </div>
+                            )}
                             <div className="cxandidate-interview-modal-footer">
                                 <button
                                     type="button"
@@ -1872,212 +2230,220 @@ useEffect(() => {
                                 </button>
                             </div>
                         </div>
-                        {createInterviewError && (
-    <div className="cxandidate-interview-error">
-        {createInterviewError}
-    </div>
-)}
+
                     </div>
                 )}
-                
 
-           {showApplyJobModal && (
-    <ApplyJobModal
-        candidateId={candidateId}
 
-        jobs={openJobs}
-        jobsLoading={isOpenJobsLoading}
+            {showApplyJobModal && (
+                <ApplyJobModal
+                    candidateId={candidateId}
 
-        statuses={submissionStatuses}
-        statusesLoading={submissionStatusesLoading}
+                    jobs={openJobs}
+                    jobsLoading={isOpenJobsLoading}
 
-        creatingSubmission={creatingSubmission}
+                    statuses={submissionStatuses}
+                    statusesLoading={submissionStatusesLoading}
 
-        onClose={() =>
-            setShowApplyJobModal(false)
-        }
+                    creatingSubmission={creatingSubmission}
 
-        onApply={onApplyJob}
-    />
-)}
+                    onClose={() =>
+                        setShowApplyJobModal(false)
+                    }
+
+                    onApply={onApplyJob}
+                />
+            )}
 
             {showHistoryModal && selectedHistoryApplication && (
-    <div
-        className="cxandidate-history-overlay"
-        onMouseDown={handleCloseHistory}
-    >
-        <div
-            className="cxandidate-history-modal"
-            onMouseDown={(e) => e.stopPropagation()}
-        >
-            {/* HEADER */}
-            <div className="cxandidate-history-header">
-                <div>
-                    <h3>Application History</h3>
-
-                    <p>
-                        {getJobTitle(selectedHistoryApplication)}
-                        {getCompany(selectedHistoryApplication) && (
-                            <>
-                                {" "}
-                                —{" "}
-                                {getCompany(
-                                    selectedHistoryApplication
-                                )}
-                            </>
-                        )}
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    className="cxandidate-history-close"
-                    onClick={handleCloseHistory}
+                <div
+                    className="cxandidate-history-overlay"
+                    onMouseDown={handleCloseHistory}
                 >
-                    ×
-                </button>
-            </div>
+                    <div
+                        className="cxandidate-history-modal"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        {/* HEADER */}
+                        <div className="cxandidate-history-header">
+                            <div>
+                                <h3>Application History</h3>
 
-            {/* BODY */}
-            <div className="cxandidate-history-body">
+                                <p>
+                                    {getJobTitle(selectedHistoryApplication)}
+                                    {getCompany(selectedHistoryApplication) && (
+                                        <>
+                                            {" "}
+                                            —{" "}
+                                            {getCompany(
+                                                selectedHistoryApplication
+                                            )}
+                                        </>
+                                    )}
+                                </p>
+                            </div>
 
-                {submissionActivitiesLoading && (
-                    <div className="cxandidate-history-loading">
-                        <div className="cxandidate-history-loading-bar"></div>
-                        <p>Loading application history...</p>
-                    </div>
-                )}
-
-                {!submissionActivitiesLoading &&
-                    submissionActivitiesError && (
-                        <div className="cxandidate-history-error">
-                            {submissionActivitiesError}
+                            <button
+                                type="button"
+                                className="cxandidate-history-close"
+                                onClick={handleCloseHistory}
+                            >
+                                ×
+                            </button>
                         </div>
-                    )}
 
-                {!submissionActivitiesLoading &&
-                    !submissionActivitiesError &&
-                    submissionActivities.length === 0 && (
-                        <div className="cxandidate-history-empty">
-                            No history available for this application.
-                        </div>
-                    )}
+                        {/* BODY */}
+                        <div className="cxandidate-history-body">
 
-                {!submissionActivitiesLoading &&
-                    !submissionActivitiesError &&
-                    submissionActivities.length > 0 && (
-                        <div className="cxandidate-history-list">
-                            {submissionActivities.map(
-                                (activity, index) => (
-                                    <div
-                                        className="cxandidate-history-item"
-                                        key={
-                                            activity.id ||
-                                            index
-                                        }
-                                    >
-                                        {/* LEFT COLOR LINE */}
-                                        <div
-                                            className={`cxandidate-history-line ${
-                                                activity.newValue
-                                                    ?.toLowerCase()
-                                                    .replace(
-                                                        /\s+/g,
-                                                        "-"
-                                                    )
-                                            }`}
-                                        ></div>
+                            {submissionActivitiesLoading && (
+                                <div className="cxandidate-history-loading">
+                                    <div className="cxandidate-history-loading-bar"></div>
+                                    <p>Loading application history...</p>
+                                </div>
+                            )}
 
-                                        {/* CONTENT */}
-                                        <div className="cxandidate-history-content">
+                            {!submissionActivitiesLoading &&
+                                submissionActivitiesError && (
+                                    <div className="cxandidate-history-error">
+                                        {submissionActivitiesError}
+                                    </div>
+                                )}
 
-                                            <div className="cxandidate-history-top">
-                                                <span className="cxandidate-history-action">
-                                                    {activity.action}
-                                                </span>
+                            {!submissionActivitiesLoading &&
+                                !submissionActivitiesError &&
+                                submissionActivities.length === 0 && (
+                                    <div className="cxandidate-history-empty">
+                                        No history available for this application.
+                                    </div>
+                                )}
 
-                                                <span className="cxandidate-history-date">
-                                                    {formatHistoryDate(
-                                                        activity.performedAt
-                                                    )}
-                                                </span>
-                                            </div>
-
-                                            <div className="cxandidate-history-status-change">
-
-                                                <span className="cxandidate-history-old-status">
-                                                    {activity.oldValue ||
-                                                        "—"}
-                                                </span>
-
-                                                <span className="cxandidate-history-arrow">
-                                                    →
-                                                </span>
-
-                                                <span
-                                                    className={`cxandidate-history-new-status ${
-                                                        activity.newValue
+                            {!submissionActivitiesLoading &&
+                                !submissionActivitiesError &&
+                                submissionActivities.length > 0 && (
+                                    <div className="cxandidate-history-list">
+                                        {submissionActivities.map(
+                                            (activity, index) => (
+                                                <div
+                                                    className="cxandidate-history-item"
+                                                    key={
+                                                        activity.id ||
+                                                        index
+                                                    }
+                                                >
+                                                    {/* LEFT COLOR LINE */}
+                                                    <div
+                                                        className={`cxandidate-history-line ${activity.newValue
                                                             ?.toLowerCase()
                                                             .replace(
                                                                 /\s+/g,
                                                                 "-"
                                                             )
-                                                    }`}
-                                                >
-                                                    {activity.newValue ||
-                                                        "—"}
-                                                </span>
+                                                            }`}
+                                                    ></div>
 
-                                            </div>
+                                                    {/* CONTENT */}
+                                                    <div className="cxandidate-history-content">
 
-                                            <p className="cxandidate-history-description">
-                                                {activity.description ||
-                                                    "No description available."}
-                                            </p>
+                                                        <div className="cxandidate-history-top">
+                                                            <span className="cxandidate-history-action">
+                                                                {activity.action}
+                                                            </span>
 
-                                            <div className="cxandidate-history-performed">
-                                                Performed by{" "}
-                                                <strong>
-                                                    {activity.performedBy ||
-                                                        "Unknown"}
-                                                </strong>
-                                            </div>
-                                        </div>
+                                                            <span className="cxandidate-history-date">
+                                                                {formatHistoryDate(
+                                                                    activity.performedAt
+                                                                )}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="cxandidate-history-status-change">
+
+                                                            <span className="cxandidate-history-old-status">
+                                                                {activity.oldValue ||
+                                                                    "—"}
+                                                            </span>
+
+                                                            <span className="cxandidate-history-arrow">
+                                                                →
+                                                            </span>
+
+                                                            <span
+                                                                className={`cxandidate-history-new-status ${activity.newValue
+                                                                    ?.toLowerCase()
+                                                                    .replace(
+                                                                        /\s+/g,
+                                                                        "-"
+                                                                    )
+                                                                    }`}
+                                                            >
+                                                                {activity.newValue ||
+                                                                    "—"}
+                                                            </span>
+
+                                                        </div>
+
+                                                        <p className="cxandidate-history-description">
+                                                            {activity.description ||
+                                                                "No description available."}
+                                                        </p>
+
+                                                        <div className="cxandidate-history-performed">
+                                                            Performed by{" "}
+                                                            <strong>
+                                                                {activity.performedBy ||
+                                                                    "Unknown"}
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        )}
                                     </div>
-                                )
-                            )}
+                                )}
                         </div>
-                    )}
-            </div>
 
-            {/* FOOTER */}
-            <div className="cxandidate-history-footer">
-                <span>
-                    {submissionActivities.length}{" "}
-                    {submissionActivities.length === 1
-                        ? "activity"
-                        : "activities"}
-                </span>
+                        {/* FOOTER */}
+                        <div className="cxandidate-history-footer">
+                            <span>
+                                {submissionActivities.length}{" "}
+                                {submissionActivities.length === 1
+                                    ? "activity"
+                                    : "activities"}
+                            </span>
 
-                <button
-                    type="button"
-                    onClick={handleCloseHistory}
-                >
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-)}
+                            <button
+                                type="button"
+                                onClick={handleCloseHistory}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-{showRatesModal && selectedRatesApplication && (
-    <RatesModal
-        application={selectedRatesApplication}
-        onClose={handleCloseRatesModal}
-        onSave={handleSaveRates}
-        saving={updatingSubmissionRates}
-    />
-)}
+            {showRatesModal && selectedRatesApplication && (
+                <RatesModal
+                    application={selectedRatesApplication}
+                    onClose={handleCloseRatesModal}
+                    onSave={handleSaveRates}
+                    saving={updatingSubmissionRates}
+                />
+            )}
+
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleCloseDeleteModal}
+                onConfirm={handleConfirmDelete}
+                title="Remove application"
+                message="Are you sure you want to remove this application?"
+                deleteText={
+                    deletingSubmissionId
+                        ? "Removing..."
+                        : "Remove"
+                }
+                cancelText="Cancel"
+            />
         </>
     );
 };
