@@ -365,6 +365,66 @@ export const updateEmployee = createAsyncThunk(
         }
     }
 );
+
+/*
+|--------------------------------------------------------------------------
+| DELETE EMPLOYEE
+|
+| DELETE /api/v1/employees/delete/{id}
+|--------------------------------------------------------------------------
+*/
+export const deleteEmployee = createAsyncThunk(
+    "employees/deleteEmployee",
+    async (id, { rejectWithValue }) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/employees/delete/${id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+            /*
+             * DELETE API may return an empty response body.
+             * So don't blindly call response.json().
+             */
+            const responseText = await response.text();
+
+            let data = null;
+
+            if (responseText) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    data = responseText;
+                }
+            }
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    (typeof data === "string" ? data : null) ||
+                    "Failed to delete employee."
+                );
+            }
+
+            return {
+                id,
+                data,
+            };
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to delete employee."
+            );
+        }
+    }
+);
 /*
 |--------------------------------------------------------------------------
 | GET ALL SUBMISSIONS
@@ -434,6 +494,7 @@ const employeeSlice =
             error: null,
 
             countriesError: null,
+            deleteLoading: false,
             submissions: [],
 
             submissionsPagination: {
@@ -826,6 +887,67 @@ const employeeSlice =
                             "Failed to update employee.";
                     }
                 )
+                /*
+ * -------------------------------------------------------
+ * DELETE EMPLOYEE
+ * -------------------------------------------------------
+ */
+
+builder
+
+    .addCase(
+        deleteEmployee.pending,
+        (state) => {
+
+            state.deleteLoading = true;
+
+            state.error = null;
+        }
+    )
+
+    .addCase(
+        deleteEmployee.fulfilled,
+        (
+            state,
+            action
+        ) => {
+
+            state.deleteLoading = false;
+
+            const deletedEmployeeId =
+                action.payload?.id;
+
+            state.employees =
+                state.employees.filter(
+                    (employee) =>
+                        employee.id !==
+                        deletedEmployeeId
+                );
+
+            if (
+                state.selectedEmployee?.id ===
+                deletedEmployeeId
+            ) {
+
+                state.selectedEmployee = null;
+            }
+        }
+    )
+
+    .addCase(
+        deleteEmployee.rejected,
+        (
+            state,
+            action
+        ) => {
+
+            state.deleteLoading = false;
+
+            state.error =
+                action.payload ||
+                "Failed to delete employee.";
+        }
+    )
             /*
              * -------------------------------------------------------
              * GET ALL SUBMISSIONS

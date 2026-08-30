@@ -274,7 +274,7 @@
   letter-spacing: 0.9px;
 }
 
-.candidate-name {
+.dashboard-candidate-name {
   flex-shrink: 0;
 
   color: #ffffff;
@@ -283,7 +283,7 @@
   font-weight: 750;
 }
 
-.candidate-details {
+.dashboard-candidate-details {
   min-width: 0;
 
   overflow: hidden;
@@ -749,7 +749,7 @@
     min-height: 140px;
   }
 
-  .candidate-details {
+  .dashboard-candidate-details {
     max-width: 360px;
   }
 }
@@ -776,7 +776,7 @@
     flex-wrap: wrap;
   }
 
-  .candidate-details {
+  .dashboard-candidate-details {
     width: 100%;
     max-width: none;
 
@@ -852,7 +852,7 @@
     font-size: 16px;
   }
 
-  .candidate-details {
+  .dashboard-candidate-details {
     font-size: 12px;
   }
 

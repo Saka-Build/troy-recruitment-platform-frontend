@@ -5,7 +5,7 @@ import EmployeeModal from "./EmployeeModal";
 import RoleAssignmentModal from "./RoleAssignmentModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import Pagination from "../../Components/Pagination";
-import { getAllEmployees, getCountries, createEmployee, updateEmployee, clearEmployeeError,} from "../../Redux/Slice/employeeSlice";
+import { getAllEmployees, getCountries, createEmployee, updateEmployee, clearEmployeeError, deleteEmployee,} from "../../Redux/Slice/employeeSlice";
 import { getAllRoles, getEmployeeRoles, assignRoleToEmployee, removeRoleFromEmployee,} from "../../Redux/Slice/roleSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ function generateEmployeeId() {
 function Employees() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { employees = [], countries = [], isLoading, isSaving, countriesLoading, error,} = useSelector((state) =>state.employees);
+    const { employees = [], countries = [], isLoading, isSaving, deleteLoading, countriesLoading, error,} = useSelector((state) =>state.employees);
     const {roles = [],} = useSelector((state) =>state.role || {});
 
     const [ search, setSearch,] = useState("");
@@ -28,6 +28,8 @@ function Employees() {
     const [ showRoleAssignmentModal, setShowRoleAssignmentModal,] = useState(false);
     const [ selectedEmployeeForRole, setSelectedEmployeeForRole,] = useState(null);
     const [ roleAssignmentLoading, setRoleAssignmentLoading,] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
     const employeesPerPage = 10;
 
@@ -404,7 +406,58 @@ function Employees() {
         };
 
 
-    const deleteEmployee = (employee) => {alert(`Delete API is not available yet for ${employee.fullName}.`);};
+const openDeleteModal = (employee) => {
+
+    setEmployeeToDelete(employee);
+
+    setShowDeleteModal(true);
+};
+
+
+const closeDeleteModal = () => {
+
+    if (deleteLoading) {
+        return;
+    }
+
+    setShowDeleteModal(false);
+
+    setEmployeeToDelete(null);
+};
+
+
+const handleDeleteEmployee = async () => {
+
+    if (!employeeToDelete?.id) {
+        return;
+    }
+
+    try {
+
+        await dispatch(
+            deleteEmployee(
+                employeeToDelete.id
+            )
+        ).unwrap();
+
+        closeDeleteModal();
+
+        /*
+         * Refresh employee list from API
+         * to keep frontend fully synced.
+         */
+        dispatch(
+            getAllEmployees()
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Employee delete failed:",
+            error
+        );
+    }
+};
 
     const openRoleAssignmentModal =
         (employee) => {
@@ -796,14 +849,14 @@ function Employees() {
                                                     >
                                                         Edit
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        className="employee-delete-action"
-                                                        onClick={() =>deleteEmployee(employee)
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
+<button
+    type="button"
+    className="employee-delete-action"
+    onClick={() => openDeleteModal(employee)}
+    disabled={deleteLoading}
+>
+    Delete
+</button>
                                                     <button
                                                         type="button"
                                                         className="employee-assign-role-action"
@@ -868,6 +921,23 @@ function Employees() {
                     isSubmitting={roleAssignmentLoading}
                 />
             )}
+
+            {showDeleteModal && (
+    <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteEmployee}
+        title="Delete employee"
+        itemName={employeeToDelete?.fullName}
+        message={`Are you sure you want to delete ${employeeToDelete?.fullName}?`}
+        deleteText={
+            deleteLoading
+                ? "Deleting..."
+                : "Delete"
+        }
+        cancelText="Cancel"
+    />
+)}
         </div>
     );
 }

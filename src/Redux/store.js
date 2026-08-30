@@ -6,6 +6,7 @@ import clientReducer from "./Slice/clientSlice";
 import jobReducer from './Slice/jobSlice';
 import candidateReducer from './Slice/candidateSlice';
 import recruitmentWorkflowReducer from "./Slice/recruitmentWorkflowSlice";
+import dashboardReducer from "./Slice/dashboardSlice";
 
 import roleReducer from "./Slice/roleSlice";
 const store = configureStore({
@@ -19,6 +20,7 @@ const store = configureStore({
         recruitmentWorkflow: recruitmentWorkflowReducer,
 
         role: roleReducer,
+        dashboard: dashboardReducer,
     },
 });
 

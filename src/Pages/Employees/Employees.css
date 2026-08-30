@@ -363,6 +363,9 @@
     flex-direction: column;
 }
 
+.employee-name-link{
+    cursor: pointer;
+}
 .employee-person-info strong {
     /* color: #173251; */
 
