@@ -21,6 +21,7 @@ import {
     createInterview,
     getInterviewsBySubmission,
     deleteSubmission,
+    updateInterview,
 } from "../../Redux/Slice/candidateSlice";
 import ApplyJobModal from "../Candidate/ApplyJobModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
@@ -66,11 +67,14 @@ const ApplicationsTab = ({
         interviewsBySubmissionError = {},
         deletingSubmission = false,
         deleteSubmissionError = null,
+        updatingInterview = false,
+updateInterviewError = null,
     } = useSelector((state) => state.candidate);
 
     const [applications, setApplications] = useState([]);
 
     const [showInterviewModal, setShowInterviewModal] = useState(false);
+    const [selectedInterview, setSelectedInterview] = useState(null);
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [showApplyJobModal, setShowApplyJobModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -846,6 +850,7 @@ const ApplicationsTab = ({
         });
 
         setSelectedApplication(application);
+        setSelectedInterview(interview);
 
         /*
          * If an interview already exists,
@@ -958,6 +963,7 @@ const ApplicationsTab = ({
     const handleCloseInterview = () => {
         setShowInterviewModal(false);
         setSelectedApplication(null);
+        setSelectedInterview(null);
     };
 
     const handleInterviewChange = (field, value) => {
@@ -1094,89 +1100,113 @@ const ApplicationsTab = ({
             "Creating interview:",
             requestData
         );
+try {
+    if (selectedInterview?.id) {
+        const updateRequestData = {
+            interviewId: selectedInterview.id,
 
-        try {
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 1 — CREATE INTERVIEW
-            |--------------------------------------------------------------------------
-            */
+            submissionId,
 
-            const interviewResponse =
-                await dispatch(
-                    createInterview(
-                        requestData
-                    )
-                ).unwrap();
+            candidateId:
+                currentCandidateId,
 
-            console.log(
-                "Interview created successfully:",
-                interviewResponse
-            );
+            jobId,
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 2 — CHANGE SUBMISSION STATUS TO INTERVIEW
-            |--------------------------------------------------------------------------
-            */
+            interviewDate:
+                formatInterviewDate(
+                    interviewData.date
+                ),
 
-            console.log(
-                "Updating submission status to Interview:",
-                {
-                    submissionId,
-                    statusId: interviewStatus.id,
-                    statusName:
-                        interviewStatus.name ||
-                        interviewStatus.statusName ||
-                        interviewStatus.label,
-                }
-            );
+            interviewTime:
+                formatInterviewTime(
+                    interviewData.time
+                ),
 
-            await dispatch(
-                updateSubmission({
-                    submissionId,
+            interviewType:
+                getInterviewTypeForApi(
+                    interviewData.type
+                ),
 
-                    statusId:
-                        interviewStatus.id,
+            round:
+                getInterviewRoundForApi(
+                    interviewData.round
+                ),
 
-                    /*
-                     * Interview status does not keep
-                     * the previous Submitted sub-status.
-                     */
-                    subStatusId: null,
-                })
-            ).unwrap();
+            interviewerName:
+                interviewData.interviewer.trim(),
 
-            console.log(
-                "Submission status updated to Interview successfully."
-            );
+            status: "Rescheduled",
+        };
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 3 — REFRESH APPLICATIONS
-            |--------------------------------------------------------------------------
-            */
+        console.log(
+            "Rescheduling interview:",
+            updateRequestData
+        );
 
-            await dispatch(
-                getCandidateApplications(
-                    candidateId
-                )
-            ).unwrap();
+        await dispatch(
+            updateInterview(
+                updateRequestData
+            )
+        ).unwrap();
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 4 — CLOSE MODAL
-            |--------------------------------------------------------------------------
-            */
+        console.log(
+            "Interview rescheduled successfully"
+        );
 
-            handleCloseInterview();
+        await dispatch(
+            getInterviewsBySubmission(
+                submissionId
+            )
+        ).unwrap();
 
-        } catch (error) {
-            console.error(
-                "Failed to schedule interview / update submission:",
-                error
-            );
-        }
+        await dispatch(
+            getCandidateApplications(
+                candidateId
+            )
+        ).unwrap();
+
+        handleCloseInterview();
+
+        return;
+    }
+
+    const interviewResponse =
+        await dispatch(
+            createInterview(
+                requestData
+            )
+        ).unwrap();
+
+    console.log(
+        "Interview created successfully:",
+        interviewResponse
+    );
+
+    await dispatch(
+        updateSubmission({
+            submissionId,
+
+            statusId:
+                interviewStatus.id,
+
+            subStatusId: null,
+        })
+    ).unwrap();
+
+    await dispatch(
+        getCandidateApplications(
+            candidateId
+        )
+    ).unwrap();
+
+    handleCloseInterview();
+
+} catch (error) {
+    console.error(
+        "Failed to save interview:",
+        error
+    );
+}
     };
 
     const handleOpenDeleteModal = (submissionId) => {

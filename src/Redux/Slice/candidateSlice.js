@@ -1277,6 +1277,111 @@ export const createInterview = createAsyncThunk(
     }
 );
 
+export const updateInterview = createAsyncThunk(
+    "candidates/updateInterview",
+    async (
+        {
+            interviewId,
+            submissionId,
+            candidateId,
+            jobId,
+            interviewDate,
+            interviewTime,
+            interviewType,
+            round,
+            interviewerName,
+            status = "Rescheduled",
+        },
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const requestBody = {
+                submissionId,
+                candidateId,
+                jobId,
+                interviewDate,
+                interviewTime,
+                interviewType,
+                round,
+                interviewerName,
+                status,
+            };
+
+            console.log(
+                "========== UPDATE INTERVIEW =========="
+            );
+
+            console.log(
+                "Interview ID:",
+                interviewId
+            );
+
+            console.log(
+                "Update Interview Request Body:",
+                requestBody
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/interviews/update/${interviewId}`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify(
+                        requestBody
+                    ),
+                }
+            );
+
+            const data =
+                await response.json();
+
+            console.log(
+                "Update Interview Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to reschedule interview"
+                );
+            }
+
+            return data;
+        } catch (error) {
+            console.error(
+                "UPDATE INTERVIEW ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while rescheduling interview"
+            );
+        }
+    }
+);
+
 export const getInterviewsBySubmission = createAsyncThunk(
     "candidates/getInterviewsBySubmission",
     async (submissionId, { rejectWithValue }) => {
@@ -1728,6 +1833,9 @@ const initialState = {
 
     creatingNote: false,
     createNoteError: null,
+
+    updatingInterview: false,
+updateInterviewError: null,
 };
 
 const candidateSlice = createSlice({
@@ -2474,7 +2582,33 @@ const candidateSlice = createSlice({
                         action.payload ||
                         "Failed to delete submission";
                 }
-            );
+            )
+
+            .addCase(
+    updateInterview.pending,
+    (state) => {
+        state.updatingInterview = true;
+        state.updateInterviewError = null;
+    }
+)
+
+.addCase(
+    updateInterview.fulfilled,
+    (state) => {
+        state.updatingInterview = false;
+        state.updateInterviewError = null;
+    }
+)
+
+.addCase(
+    updateInterview.rejected,
+    (state, action) => {
+        state.updatingInterview = false;
+        state.updateInterviewError =
+            action.payload ||
+            "Failed to reschedule interview";
+    }
+)
     },
 });
 
