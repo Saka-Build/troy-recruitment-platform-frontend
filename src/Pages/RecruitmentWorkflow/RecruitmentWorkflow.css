@@ -360,30 +360,17 @@
   top: 0;
 
   width: 2px;
-  height: 110px;
+  height: 112px;
 
   background: #E2A4A2;
 }
 
-
-/* Arrow at bottom of vertical line */
-.rejection-line-vertical::after {
-  content: "";
-
-  position: absolute;
-
-  left: 50%;
-  bottom: -1px;
-
-  width: 8px;
-  height: 8px;
-
-  border-right: 2px solid #D9534F;
-  border-bottom: 2px solid #D9534F;
-
-  transform:
-    translateX(-50%) rotate(45deg);
+.workflow-interview-date-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
+
 
 
 /* =========================================================
