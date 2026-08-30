@@ -25,7 +25,7 @@
 
 // function App() {
 //     return (
-//         <BrowserRouter>
+//         <BrowserRouter basename={import.meta.env.BASE_URL}>
 //             <Routes>
 
 //                 {/* Login Page */}
@@ -94,7 +94,7 @@ import CandidateMasterDB from "./Pages/CandidateMasterDB/CandidateMasterDB";
 import Client from "./Pages/Clients/Clients";
 import Employees from "./Pages/Employees/Employees";
 
-import "./app.css";
+import "./App.css";
 
 
 function ProtectedRoute({ children }) {
@@ -114,7 +114,7 @@ function ProtectedRoute({ children }) {
 function App() {
 
     return (
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
 
             <Routes>
 

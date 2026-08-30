@@ -1,0 +1,9 @@
+services:
+  saka-websites:
+    image: troy-ats-frontend:1.2
+    container_name: troy-ats-frontend
+    ports:
+      - "5050:5050"
+    env_file:
+      
+    restart: unless-stopped

@@ -1,6 +1,6 @@
 // job.jsx
 import React from "react";
-import "./job.css"; // external CSS for custom overrides
+import "./Job.css"; // external CSS for custom overrides
 
 const JobPage = () => {
   return (

@@ -60,7 +60,7 @@ function Sidebar() {
             {/* Logo */}
             <div className="sidebar-logo">
                 <img
-                    src="/Troylogo1.png"
+                    src={`${import.meta.env.BASE_URL}Troylogo1.png`}
                     alt="Troy Consultancy"
                     className="troy-logo-image"
                 />
