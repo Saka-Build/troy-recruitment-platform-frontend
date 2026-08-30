@@ -1853,3 +1853,218 @@
 
     box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
 }
+
+.cxandidate-interview-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.cxandidate-cancel-btn {
+    padding: 9px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+    background: #fff1f2;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cxandidate-cancel-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+/* =========================================================
+   INTERVIEW CANCELLED
+========================================================= */
+
+.cxandidate-interview-cancelled-box {
+    margin-top: 18px;
+    padding: 16px 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    border-radius: 10px;
+
+    background: linear-gradient(
+        135deg,
+        #fff7f7 0%,
+        #fff1f2 100%
+    );
+
+    border: 1px solid #fecdd3;
+
+    color: #881337;
+
+    box-shadow: 0 2px 6px rgba(190, 24, 93, 0.06);
+}
+
+.cxandidate-interview-cancelled-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.cxandidate-interview-cancelled-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cxandidate-interview-cancelled-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 11px;
+
+    border-radius: 7px;
+
+    background: #ffe4e6;
+    border: 1px solid #fda4af;
+
+    color: #be123c;
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.cxandidate-interview-cancelled-icon {
+    width: 19px;
+    height: 19px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e11d48;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.cxandidate-interview-cancelled-message {
+    font-size: 13px;
+    color: #9f1239;
+    font-weight: 500;
+}
+
+.cxandidate-interview-cancelled-details {
+    margin-top: 10px;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    font-size: 13px;
+    color: #be123c;
+}
+
+.cxandidate-interview-cancelled-details strong {
+    color: #881337;
+    font-weight: 700;
+}
+
+.cxandidate-interview-cancelled-details .cxandidate-interview-dot {
+    color: #fda4af;
+}
+
+.cxandidate-interview-cancelled-action {
+    flex-shrink: 0;
+
+    padding: 8px 13px;
+
+    border-radius: 7px;
+
+    background: #ffe4e6;
+    border: 1px solid #fecdd3;
+
+    color: #be123c;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+.cxandidate-interview-cancelled-box:hover {
+    border-color: #fda4af;
+
+    box-shadow:
+        0 4px 10px rgba(190, 24, 93, 0.08);
+}
+
+.cxandidate-interview-cancelled-action {
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .cxandidate-interview-cancelled-box {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .cxandidate-interview-cancelled-action {
+        align-self: flex-start;
+    }
+}
+
+.cxandidate-rates-save-message {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 11px 16px;
+
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #c2410c;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    z-index: 1001;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cxandidate-rates-save-message span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+
+    border-radius: 50%;
+
+    background: #f97316;
+    color: white;
+
+    font-size: 12px;
+    font-weight: 700;
+}

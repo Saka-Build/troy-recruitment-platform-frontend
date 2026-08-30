@@ -107,6 +107,21 @@ updateInterviewError = null,
         setApplicationChanges,
     ] = useState({});
 
+    const [
+    showCancelInterviewModal,
+    setShowCancelInterviewModal
+] = useState(false);
+
+const [
+    selectedCancelInterview,
+    setSelectedCancelInterview
+] = useState(null);
+
+const [
+    cancellingInterview,
+    setCancellingInterview
+] = useState(false);
+
     useEffect(() => {
         if (!candidateId) {
             return;
@@ -167,162 +182,187 @@ updateInterviewError = null,
         });
     }, [candidateApplications, dispatch]);
 
-    const getLatestInterview = (submissionId) => {
-        if (!submissionId) {
-            return null;
-        }
+    const getInterviewTimestamp = (item) => {
+    const date =
+        item?.interviewDate ||
+        item?.date;
 
-        const key = String(submissionId);
+    const time =
+        item?.interviewTime ||
+        item?.time;
 
-        const rawInterviews =
-            interviewsBySubmission[key] ||
-            interviewsBySubmission[submissionId];
+    if (!date) {
+        return 0;
+    }
 
-        if (!rawInterviews) {
-            return null;
-        }
+    // DD-MM-YYYY
+    if (/^\d{2}-\d{2}-\d{4}$/.test(String(date))) {
+        const [day, month, year] =
+            String(date).split("-");
 
-        let interviews = [];
+        let hours = 0;
+        let minutes = 0;
 
-        /*
-         * Support all common response shapes
-         */
-        if (Array.isArray(rawInterviews)) {
-            interviews = rawInterviews;
-        } else if (Array.isArray(rawInterviews.content)) {
-            interviews = rawInterviews.content;
-        } else if (Array.isArray(rawInterviews.data)) {
-            interviews = rawInterviews.data;
-        } else if (
-            Array.isArray(rawInterviews.data?.content)
-        ) {
-            interviews = rawInterviews.data.content;
-        } else {
-            /*
-             * API may return a single interview object
-             */
-            if (
-                rawInterviews.interviewDate ||
-                rawInterviews.date
-            ) {
-                interviews = [rawInterviews];
-            }
-        }
+        if (time) {
+            const match = String(time).match(
+                /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
+            );
 
-        if (!interviews.length) {
-            return null;
-        }
+            if (match) {
+                hours = Number(match[1]);
+                minutes = Number(match[2]);
 
-        const scheduledInterviews =
-            interviews.filter((item) => {
-                const status = String(
-                    item?.status ||
-                    item?.interviewStatus ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
+                const period =
+                    match[3]?.toUpperCase();
 
-                return (
-                    !status ||
-                    status === "scheduled" ||
-                    status === "schedule"
-                );
-            });
-
-        const validInterviews =
-            scheduledInterviews.length
-                ? scheduledInterviews
-                : interviews;
-
-        /*
-         * Sort newest interview first
-         */
-        const getTimestamp = (item) => {
-            const date =
-                item?.interviewDate ||
-                item?.date;
-
-            const time =
-                item?.interviewTime ||
-                item?.time;
-
-            if (!date) {
-                return 0;
-            }
-
-            /*
-             * DD-MM-YYYY
-             */
-            if (
-                /^\d{2}-\d{2}-\d{4}$/.test(
-                    String(date)
-                )
-            ) {
-                const [
-                    day,
-                    month,
-                    year,
-                ] = String(date).split("-");
-
-                let hours = 0;
-                let minutes = 0;
-
-                if (time) {
-                    const match =
-                        String(time).match(
-                            /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
-                        );
-
-                    if (match) {
-                        hours = Number(match[1]);
-                        minutes = Number(match[2]);
-
-                        const period =
-                            match[3]?.toUpperCase();
-
-                        if (
-                            period === "PM" &&
-                            hours !== 12
-                        ) {
-                            hours += 12;
-                        }
-
-                        if (
-                            period === "AM" &&
-                            hours === 12
-                        ) {
-                            hours = 0;
-                        }
-                    }
+                if (
+                    period === "PM" &&
+                    hours !== 12
+                ) {
+                    hours += 12;
                 }
 
-                return new Date(
-                    Number(year),
-                    Number(month) - 1,
-                    Number(day),
-                    hours,
-                    minutes
-                ).getTime();
+                if (
+                    period === "AM" &&
+                    hours === 12
+                ) {
+                    hours = 0;
+                }
             }
+        }
 
-            /*
-             * YYYY-MM-DD / ISO
-             */
-            const timestamp =
-                new Date(date).getTime();
+        return new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            hours,
+            minutes
+        ).getTime();
+    }
 
-            return Number.isNaN(timestamp)
-                ? 0
-                : timestamp;
-        };
+    const timestamp =
+        new Date(date).getTime();
 
-        return [...validInterviews].sort(
-            (a, b) =>
-                getTimestamp(b) -
-                getTimestamp(a)
-        )[0];
-    };
+    return Number.isNaN(timestamp)
+        ? 0
+        : timestamp;
+};
+
+
+const getInterviewList = (submissionId) => {
+    if (!submissionId) {
+        return [];
+    }
+
+    const key = String(submissionId);
+
+    const rawInterviews =
+        interviewsBySubmission[key] ||
+        interviewsBySubmission[submissionId];
+
+    if (!rawInterviews) {
+        return [];
+    }
+
+    if (Array.isArray(rawInterviews)) {
+        return rawInterviews;
+    }
+
+    if (Array.isArray(rawInterviews.content)) {
+        return rawInterviews.content;
+    }
+
+    if (Array.isArray(rawInterviews.data)) {
+        return rawInterviews.data;
+    }
+
+    if (Array.isArray(rawInterviews.data?.content)) {
+        return rawInterviews.data.content;
+    }
+
+    if (
+        rawInterviews.interviewDate ||
+        rawInterviews.date
+    ) {
+        return [rawInterviews];
+    }
+
+    return [];
+};
+
+
+const getLatestInterview = (submissionId) => {
+    const interviews =
+        getInterviewList(submissionId);
+
+    if (!interviews.length) {
+        return null;
+    }
+
+    /*
+     * Only active interviews are considered
+     * for Reschedule / Cancel UI.
+     */
+    const activeInterviews = interviews.filter((item) => {
+        const status = String(
+            item?.status ||
+            item?.interviewStatus ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+        return (
+            status === "" ||
+            status === "scheduled" ||
+            status === "schedule" ||
+            status === "rescheduled"
+        );
+    });
+
+    if (!activeInterviews.length) {
+        return null;
+    }
+
+    return [...activeInterviews].sort(
+        (a, b) =>
+            getInterviewTimestamp(b) -
+            getInterviewTimestamp(a)
+    )[0];
+};
+
+
+const getLatestCancelledInterview = (submissionId) => {
+    const interviews =
+        getInterviewList(submissionId);
+
+    if (!interviews.length) {
+        return null;
+    }
+
+    const cancelledInterviews =
+        interviews.filter((item) => {
+            const status = String(
+                item?.status ||
+                item?.interviewStatus ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+            return status === "cancelled";
+        });
+
+    if (!cancelledInterviews.length) {
+        return null;
+    }
+
+    return [...cancelledInterviews].sort(
+        (a, b) =>
+            getInterviewTimestamp(b) -
+            getInterviewTimestamp(a)
+    )[0];
+};
 
     const loadSubStatuses = (statusId) => {
         if (!statusId) {
@@ -1321,7 +1361,158 @@ try {
             minute: "2-digit",
         });
     };
+    const handleOpenCancelInterview = (
+    application,
+    interview
+) => {
+    if (!interview?.id) {
+        console.error(
+            "Interview ID missing:",
+            interview
+        );
 
+        return;
+    }
+
+    setSelectedCancelInterview({
+        application,
+        interview,
+    });
+
+    setShowCancelInterviewModal(true);
+};
+
+const handleCloseCancelInterview = () => {
+    if (cancellingInterview) {
+        return;
+    }
+
+    setShowCancelInterviewModal(false);
+    setSelectedCancelInterview(null);
+};
+
+const handleConfirmCancelInterview = async () => {
+    const interview =
+        selectedCancelInterview?.interview;
+
+    const application =
+        selectedCancelInterview?.application;
+
+    if (!interview?.id) {
+        console.error("Interview ID missing");
+        return;
+    }
+
+    const submissionId =
+        application?.submissionId ||
+        application?.id;
+
+    const currentCandidateId =
+        application?.candidateId ||
+        candidateId;
+
+    const jobId =
+        application?.jobId ||
+        application?.job?.id;
+
+    if (!submissionId) {
+        console.error(
+            "Submission ID missing",
+            application
+        );
+        return;
+    }
+
+    if (!currentCandidateId) {
+        console.error(
+            "Candidate ID missing",
+            application
+        );
+        return;
+    }
+
+    if (!jobId) {
+        console.error(
+            "Job ID missing",
+            application
+        );
+        return;
+    }
+
+    try {
+        setCancellingInterview(true);
+
+        const cancelRequestData = {
+            interviewId: interview.id,
+
+            submissionId,
+
+            candidateId:
+                currentCandidateId,
+
+            jobId,
+
+            status: "Cancelled",
+        };
+
+        console.log(
+            "========== CANCEL INTERVIEW =========="
+        );
+
+        console.log(
+            "Cancel Interview Request:",
+            cancelRequestData
+        );
+
+        await dispatch(
+            updateInterview(
+                cancelRequestData
+            )
+        ).unwrap();
+
+        console.log(
+            "Interview cancelled successfully"
+        );
+
+        /*
+         * Refresh interviews
+         */
+        await dispatch(
+            getInterviewsBySubmission(
+                submissionId
+            )
+        ).unwrap();
+
+        /*
+         * Refresh applications
+         */
+        await dispatch(
+            getCandidateApplications(
+                candidateId
+            )
+        ).unwrap();
+
+        /*
+         * Close confirmation modal
+         */
+        setShowCancelInterviewModal(false);
+        setSelectedCancelInterview(null);
+
+    } catch (error) {
+        console.error(
+            "Failed to cancel interview:",
+            error
+        );
+
+        alert(
+            typeof error === "string"
+                ? error
+                : "Failed to cancel interview. Please try again."
+        );
+    } finally {
+        setCancellingInterview(false);
+    }
+};
     const handleSubStatusChange = (
         submissionId,
         subStatusId
@@ -1531,14 +1722,6 @@ try {
         }
 
         try {
-            /*
-             * rateData already contains:
-             *
-             * - changed field value
-             * - unchanged fields = null
-             *
-             * So DON'T add existing application values here.
-             */
 
             const ratePayload = {
                 submissionId: rateData.submissionId,
@@ -1818,6 +2001,9 @@ try {
                                     app.submissionId;
                                 const interview =
                                     getLatestInterview(submissionId);
+
+                                const cancelledInterview =
+                                    getLatestCancelledInterview(submissionId);
 
 
                                 const historyCount =
@@ -2131,83 +2317,190 @@ try {
                                                     </>
                                                 )}
                                             </div>
-                                            {interview && isInterviewStatus(app) && (
-                                                <div className="cxandidate-interview-scheduled-box">
+                                            {/* =====================================================
+    ACTIVE INTERVIEW
+===================================================== */}
+{interview && isInterviewStatus(app) && (
+    <div className="cxandidate-interview-scheduled-box">
 
-                                                    <div className="cxandidate-interview-scheduled-left">
+        <div className="cxandidate-interview-scheduled-left">
 
-                                                        <div className="cxandidate-interview-scheduled-badge">
-                                                            <span className="cxandidate-interview-badge-icon">
-                                                                🎤
-                                                            </span>
+            <div className="cxandidate-interview-scheduled-badge">
+                <span className="cxandidate-interview-badge-icon">
+                    🎤
+                </span>
 
-                                                            INTERVIEW SCHEDULED
-                                                        </div>
+                INTERVIEW SCHEDULED
+            </div>
 
-                                                        <div className="cxandidate-interview-scheduled-details">
+            <div className="cxandidate-interview-scheduled-details">
 
-                                                            <strong>
-                                                                {interview.interviewDate ||
-                                                                    interview.date ||
-                                                                    "-"}
-                                                            </strong>
+                <strong>
+                    {interview.interviewDate ||
+                        interview.date ||
+                        "-"}
+                </strong>
 
-                                                            <strong>
-                                                                {interview.interviewTime ||
-                                                                    interview.time ||
-                                                                    ""}
-                                                            </strong>
+                <strong>
+                    {interview.interviewTime ||
+                        interview.time ||
+                        ""}
+                </strong>
 
-                                                            <span className="cxandidate-interview-dot">
-                                                                ·
-                                                            </span>
+                <span className="cxandidate-interview-dot">
+                    ·
+                </span>
 
-                                                            <span>
-                                                                {interview.interviewType ||
-                                                                    interview.type ||
-                                                                    "-"}
-                                                            </span>
+                <span>
+                    {interview.interviewType ||
+                        interview.type ||
+                        "-"}
+                </span>
 
-                                                            <span className="cxandidate-interview-dot">
-                                                                ·
-                                                            </span>
+                <span className="cxandidate-interview-dot">
+                    ·
+                </span>
 
-                                                            <span>
-                                                                {getInterviewRoundLabel(
-                                                                    interview
-                                                                )}
-                                                            </span>
+                <span>
+                    {getInterviewRoundLabel(interview)}
+                </span>
 
-                                                            {interview.interviewerName && (
-                                                                <>
-                                                                    <span className="cxandidate-interview-dot">
-                                                                        ·
-                                                                    </span>
+                {interview.interviewerName && (
+                    <>
+                        <span className="cxandidate-interview-dot">
+                            ·
+                        </span>
 
-                                                                    <span>
-                                                                        {interview.interviewerName}
-                                                                    </span>
-                                                                </>
-                                                            )}
+                        <span>
+                            {interview.interviewerName}
+                        </span>
+                    </>
+                )}
 
-                                                        </div>
-                                                    </div>
+            </div>
+        </div>
 
-                                                    <button
-                                                        type="button"
-                                                        className="cxandidate-reschedule-btn"
-                                                        onClick={() =>
-                                                            handleOpenInterview(
-                                                                app,
-                                                                interview
-                                                            )
-                                                        }
-                                                    >
-                                                        Reschedule
-                                                    </button>
+        <div className="cxandidate-interview-actions">
 
-                                                </div>
-                                            )}
+            <button
+                type="button"
+                className="cxandidate-reschedule-btn"
+                onClick={() =>
+                    handleOpenInterview(
+                        app,
+                        interview
+                    )
+                }
+            >
+                Reschedule
+            </button>
+
+            <button
+                type="button"
+                className="cxandidate-cancel-btn"
+                onClick={() =>
+                    handleOpenCancelInterview(
+                        app,
+                        interview
+                    )
+                }
+            >
+                Cancel
+            </button>
+
+        </div>
+    </div>
+)}
+
+
+{/* =====================================================
+    CANCELLED INTERVIEW
+===================================================== */}
+{!interview &&
+    cancelledInterview &&
+    isInterviewStatus(app) && (
+        <div className="cxandidate-interview-cancelled-box">
+
+            <div className="cxandidate-interview-cancelled-content">
+
+                <div className="cxandidate-interview-cancelled-header">
+
+                    <div className="cxandidate-interview-cancelled-badge">
+
+                        <span className="cxandidate-interview-cancelled-icon">
+                            ×
+                        </span>
+
+                        INTERVIEW CANCELLED
+
+                    </div>
+
+                    <span className="cxandidate-interview-cancelled-message">
+                        This interview has been cancelled.
+                    </span>
+
+                </div>
+
+                <div className="cxandidate-interview-cancelled-details">
+
+                    <strong>
+                        {cancelledInterview.interviewDate ||
+                            cancelledInterview.date ||
+                            "-"}
+                    </strong>
+
+                    <span className="cxandidate-interview-dot">
+                        ·
+                    </span>
+
+                    <span>
+                        {cancelledInterview.interviewTime ||
+                            cancelledInterview.time ||
+                            "-"}
+                    </span>
+
+                    <span className="cxandidate-interview-dot">
+                        ·
+                    </span>
+
+                    <span>
+                        {cancelledInterview.interviewType ||
+                            cancelledInterview.type ||
+                            "-"}
+                    </span>
+
+                    <span className="cxandidate-interview-dot">
+                        ·
+                    </span>
+
+                    <span>
+                        {getInterviewRoundLabel(
+                            cancelledInterview
+                        )}
+                    </span>
+
+                    {cancelledInterview.interviewerName && (
+                        <>
+                            <span className="cxandidate-interview-dot">
+                                ·
+                            </span>
+
+                            <span>
+                                {cancelledInterview.interviewerName}
+                            </span>
+                        </>
+                    )}
+
+                </div>
+
+            </div>
+
+            <div className="cxandidate-interview-cancelled-action">
+                No active interview
+            </div>
+
+        </div>
+    )}
 
                                         </div>
                                     </div>
@@ -2631,6 +2924,20 @@ try {
                 }
                 cancelText="Cancel"
             />
+
+            <DeleteConfirmationModal
+    isOpen={showCancelInterviewModal}
+    onClose={handleCloseCancelInterview}
+    onConfirm={handleConfirmCancelInterview}
+    title="Cancel interview"
+    message="Are you sure you want to cancel this interview?"
+    deleteText={
+        cancellingInterview
+            ? "Cancelling..."
+            : "Yes, Cancel"
+    }
+    cancelText="No, Keep Interview"
+/>
         </>
     );
 };
