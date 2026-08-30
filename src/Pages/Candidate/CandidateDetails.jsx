@@ -1310,18 +1310,7 @@ function CandidateDetails() {
 
           </div>
 
-          <button
-            type="button"
-            className="cxandidate-reschedule-btn"
-            onClick={() => {
-              console.log(
-                "RESCHEDULE INTERVIEW:",
-                latestInterview
-              );
-            }}
-          >
-            Reschedule
-          </button>
+
 
         </div>
       )}
