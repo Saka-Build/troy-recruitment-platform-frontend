@@ -38,6 +38,7 @@ import {
   getCandidateApplications,
   createNote,
   getCandidateNotes,
+  getInterviewsBySubmission,
 } from "../../Redux/Slice/candidateSlice";
 import {
   getSubmissionStatuses,
@@ -77,6 +78,9 @@ function CandidateDetails() {
     notesError = null,
     creatingNote = false,
     createNoteError = null,
+    candidateApplications = [],
+    candidateApplicationsLoading = false,
+    interviewsBySubmission = {},
   } = useSelector(
     (state) => state.candidate
   );
@@ -147,6 +151,35 @@ function CandidateDetails() {
 
   useEffect(() => {
 
+    if (!candidateApplications.length) {
+      return;
+    }
+
+    candidateApplications.forEach((application) => {
+
+      const submissionId =
+        application.id ||
+        application.submissionId;
+
+      if (!submissionId) {
+        return;
+      }
+
+      dispatch(
+        getInterviewsBySubmission(
+          submissionId
+        )
+      );
+
+    });
+
+  }, [
+    candidateApplications,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+
     if (!id) {
       return;
     }
@@ -166,6 +199,9 @@ function CandidateDetails() {
     );
     dispatch(
       getCandidateNotes(id)
+    );
+    dispatch(
+      getCandidateApplications(id)
     );
 
     return () => {
@@ -770,9 +806,226 @@ function CandidateDetails() {
     );
   }
 
-
   const candidate =
     selectedCandidate;
+
+  const getLatestCandidateInterview = () => {
+
+    if (!candidateApplications.length) {
+      return null;
+    }
+
+    const allInterviews = [];
+
+    candidateApplications.forEach((application) => {
+
+      /*
+       * IMPORTANT:
+       * Only show interview details when the
+       * application status is "Interview".
+       */
+      const applicationStatus =
+        application?.status ||
+        application?.statusName ||
+        "";
+
+      const isInterviewStatus =
+        String(applicationStatus)
+          .trim()
+          .toLowerCase() === "interview";
+
+      if (!isInterviewStatus) {
+        return;
+      }
+
+      const submissionId =
+        application.id ||
+        application.submissionId;
+
+      if (!submissionId) {
+        return;
+      }
+
+      const key = String(submissionId);
+
+      const rawInterviews =
+        interviewsBySubmission[key] ||
+        interviewsBySubmission[submissionId];
+
+      if (!rawInterviews) {
+        return;
+      }
+
+      let interviews = [];
+
+      if (Array.isArray(rawInterviews)) {
+
+        interviews = rawInterviews;
+
+      } else if (Array.isArray(rawInterviews.content)) {
+
+        interviews = rawInterviews.content;
+
+      } else if (Array.isArray(rawInterviews.data)) {
+
+        interviews = rawInterviews.data;
+
+      } else if (
+        Array.isArray(rawInterviews.data?.content)
+      ) {
+
+        interviews =
+          rawInterviews.data.content;
+
+      } else if (
+        rawInterviews.interviewDate ||
+        rawInterviews.date
+      ) {
+
+        interviews = [rawInterviews];
+
+      }
+
+      interviews.forEach((interview) => {
+
+        const status = String(
+          interview?.status ||
+          interview?.interviewStatus ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+        /*
+         * Only consider scheduled interviews.
+         */
+        if (
+          !status ||
+          status === "scheduled" ||
+          status === "schedule"
+        ) {
+
+          allInterviews.push({
+            ...interview,
+            submissionId,
+          });
+
+        }
+
+      });
+
+    });
+
+    if (!allInterviews.length) {
+      return null;
+    }
+
+    const getTimestamp = (interview) => {
+
+      const date =
+        interview?.interviewDate ||
+        interview?.date;
+
+      const time =
+        interview?.interviewTime ||
+        interview?.time;
+
+      if (!date) {
+        return 0;
+      }
+
+      /*
+       * DD-MM-YYYY
+       */
+      if (
+        /^\d{2}-\d{2}-\d{4}$/.test(
+          String(date)
+        )
+      ) {
+
+        const [
+          day,
+          month,
+          year,
+        ] = String(date).split("-");
+
+        let hours = 0;
+        let minutes = 0;
+
+        if (time) {
+
+          const match =
+            String(time).match(
+              /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i
+            );
+
+          if (match) {
+
+            hours =
+              Number(match[1]);
+
+            minutes =
+              Number(match[2]);
+
+            const period =
+              match[3]?.toUpperCase();
+
+            if (
+              period === "PM" &&
+              hours !== 12
+            ) {
+              hours += 12;
+            }
+
+            if (
+              period === "AM" &&
+              hours === 12
+            ) {
+              hours = 0;
+            }
+
+          }
+
+        }
+
+        return new Date(
+          Number(year),
+          Number(month) - 1,
+          Number(day),
+          hours,
+          minutes
+        ).getTime();
+
+      }
+
+      /*
+       * YYYY-MM-DD / ISO
+       */
+      const timestamp =
+        new Date(date).getTime();
+
+      return Number.isNaN(timestamp)
+        ? 0
+        : timestamp;
+
+    };
+
+    return [...allInterviews].sort(
+      (a, b) =>
+        getTimestamp(b) -
+        getTimestamp(a)
+    )[0];
+
+  };
+
+
+  /*
+   * NOW call the function only AFTER
+   * it has been declared.
+   */
+  const latestInterview =
+    getLatestCandidateInterview();
+
 
   const initials =
     candidate.fullName
@@ -785,6 +1038,126 @@ function CandidateDetails() {
       .substring(0, 2)
       .toUpperCase();
 
+  const formatCandidateInterviewDate = (date) => {
+
+    if (!date) {
+      return "-";
+    }
+
+    if (
+      /^\d{2}-\d{2}-\d{4}$/.test(
+        String(date)
+      )
+    ) {
+      return date;
+    }
+
+    if (
+      /^\d{4}-\d{2}-\d{2}$/.test(
+        String(date)
+      )
+    ) {
+
+      const [
+        year,
+        month,
+        day,
+      ] = String(date).split("-");
+
+      return `${day}-${month}-${year}`;
+
+    }
+
+    return date;
+  };
+
+
+  const formatCandidateInterviewTime = (time) => {
+
+    if (!time) {
+      return "";
+    }
+
+    if (
+      /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(
+        String(time)
+      )
+    ) {
+
+      const [
+        timePart,
+        period,
+      ] = String(time).split(/\s+/);
+
+      const [
+        hours,
+        minutes,
+      ] = timePart.split(":");
+
+      return `${hours.padStart(
+        2,
+        "0"
+      )}:${minutes} ${period.toUpperCase()}`;
+
+    }
+
+    if (
+      /^\d{1,2}:\d{2}$/.test(
+        String(time)
+      )
+    ) {
+
+      const [
+        hoursString,
+        minutes,
+      ] = String(time).split(":");
+
+      let hours =
+        Number(hoursString);
+
+      const period =
+        hours >= 12
+          ? "PM"
+          : "AM";
+
+      hours =
+        hours % 12 || 12;
+
+      return `${String(hours).padStart(
+        2,
+        "0"
+      )}:${minutes} ${period}`;
+
+    }
+
+    return time;
+  };
+
+
+  const getCandidateInterviewRound = (interview) => {
+
+    const round =
+      interview?.round || "";
+
+    const normalizedRound =
+      String(round)
+        .trim()
+        .toLowerCase();
+
+    if (normalizedRound === "technical") {
+      return "Technical Round";
+    }
+
+    if (normalizedRound === "hr") {
+      return "HR Round";
+    }
+
+    if (normalizedRound === "final") {
+      return "Final Round";
+    }
+
+    return round || "-";
+  };
 
   return (
 
@@ -808,11 +1181,8 @@ function CandidateDetails() {
         <div className="candidate-profile-left">
 
           <div className="candidate-profile-avatar">
-
             {initials || "NA"}
-
           </div>
-
 
           <div className="candidate-profile-info">
 
@@ -823,36 +1193,29 @@ function CandidateDetails() {
               </h1>
 
               <span className="candidate-status-badge">
-
                 ✉ {candidate.status}
-
               </span>
 
             </div>
 
-
             <p>
-
               {candidate.currentDesignation || "-"}
-
               {" · "}
-
               {candidate.location || "-"}
-
             </p>
 
           </div>
 
         </div>
+
         <div className="page-header-actions">
 
           <button
             className="primary-btn"
             onClick={handleApplyToJob}
           >
-            Apply to job
+            + Apply to job
           </button>
-
 
           <button
             type="button"
@@ -862,22 +1225,16 @@ function CandidateDetails() {
             ✉ Message
           </button>
 
-
           <button
             className="outline-btn"
-            onClick={
-              handleEditClick
-            }
+            onClick={handleEditClick}
           >
             Edit
           </button>
 
-
           <button
             className="outline-btn detail-delete-btn"
-            onClick={
-              handleDeleteClick
-            }
+            onClick={handleDeleteClick}
           >
             Delete
           </button>
@@ -885,6 +1242,89 @@ function CandidateDetails() {
         </div>
 
       </div>
+
+      {latestInterview && (
+        <div className="cxandidate-interview-scheduled-box">
+
+          <div className="cxandidate-interview-scheduled-left">
+
+            <div className="cxandidate-interview-scheduled-badge">
+              <span className="cxandidate-interview-badge-icon">
+                🎤
+              </span>
+
+              INTERVIEW SCHEDULED
+            </div>
+
+            <div className="cxandidate-interview-scheduled-details">
+
+              <strong>
+                {formatCandidateInterviewDate(
+                  latestInterview.interviewDate ||
+                  latestInterview.date
+                )}
+              </strong>
+
+              <span className="cxandidate-interview-dot">
+                ·
+              </span>
+
+              <strong>
+                {formatCandidateInterviewTime(
+                  latestInterview.interviewTime ||
+                  latestInterview.time
+                )}
+              </strong>
+
+              <span className="cxandidate-interview-dot">
+                ·
+              </span>
+
+              <span>
+                {latestInterview.interviewType ||
+                  latestInterview.type ||
+                  "-"}
+              </span>
+
+              <span className="cxandidate-interview-dot">
+                ·
+              </span>
+
+              <span>
+                {getCandidateInterviewRound(latestInterview)}
+              </span>
+
+              {latestInterview.interviewerName && (
+                <>
+                  <span className="cxandidate-interview-dot">
+                    ·
+                  </span>
+
+                  <span>
+                    {latestInterview.interviewerName}
+                  </span>
+                </>
+              )}
+
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            className="cxandidate-reschedule-btn"
+            onClick={() => {
+              console.log(
+                "RESCHEDULE INTERVIEW:",
+                latestInterview
+              );
+            }}
+          >
+            Reschedule
+          </button>
+
+        </div>
+      )}
       <div className="candidate-detail-tabs">
 
         {[
