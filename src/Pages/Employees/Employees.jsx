@@ -8,6 +8,7 @@ import Pagination from "../../Components/Pagination";
 import { getAllEmployees, getCountries, createEmployee, updateEmployee, clearEmployeeError, deleteEmployee,} from "../../Redux/Slice/employeeSlice";
 import { getAllRoles, getEmployeeRoles, assignRoleToEmployee, removeRoleFromEmployee,} from "../../Redux/Slice/roleSlice";
 import { useNavigate } from "react-router-dom";
+import Toast from "../../Components/Toast";
 
 function generateEmployeeId() {
     return `EMP${Math.floor(100 + Math.random() * 900)}`;
@@ -30,6 +31,18 @@ function Employees() {
     const [ roleAssignmentLoading, setRoleAssignmentLoading,] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [employeeToDelete, setEmployeeToDelete] = useState(null);
+const [toast, setToast] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
+const showToast = (message, type = "success") => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
 
     const employeesPerPage = 10;
 
@@ -315,22 +328,20 @@ const [employeeToDelete, setEmployeeToDelete] = useState(null);
                         updateData
                     );
 
+await dispatch(
+    updateEmployee({
+        id: editingEmployee.id,
+        employeeData: updateData,
+    })
+).unwrap();
 
-                    await dispatch(
-                        updateEmployee({
+closeModal();
 
-                            id:
-                                editingEmployee.id,
+showToast(
+    `${employeeData.fullName.trim()} updated successfully.`
+);
 
-                            employeeData:
-                                updateData,
-
-                        })
-                    ).unwrap();
-
-                    closeModal();
-
-                    return;
+return;
                 }
 
 
@@ -377,32 +388,36 @@ const [employeeToDelete, setEmployeeToDelete] = useState(null);
                 );
 
 
-                await dispatch(
-                    createEmployee({
+await dispatch(
+    createEmployee({
+        employeeData: apiEmployeeData,
+        photoFile: employeeData.photo,
+    })
+).unwrap();
 
-                        employeeData:
-                            apiEmployeeData,
+closeModal();
 
-                        photoFile:
-                            employeeData.photo,
+showToast(
+    `${employeeData.fullName} added successfully.`
+);
 
-                    })
-                ).unwrap();
+dispatch(
+    getAllEmployees()
+);
+} catch (error) {
 
+    console.error(
+        "Employee save failed:",
+        error
+    );
 
-                closeModal();
-
-                dispatch(
-                    getAllEmployees()
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Employee save failed:",
-                    error
-                );
-            }
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to save employee.",
+        "error"
+    );
+}
         };
 
 
@@ -433,30 +448,39 @@ const handleDeleteEmployee = async () => {
     }
 
     try {
+await dispatch(
+    deleteEmployee(
+        employeeToDelete.id
+    )
+).unwrap();
 
-        await dispatch(
-            deleteEmployee(
-                employeeToDelete.id
-            )
-        ).unwrap();
+const deletedEmployeeName =
+    employeeToDelete.fullName;
 
-        closeDeleteModal();
+closeDeleteModal();
 
-        /*
-         * Refresh employee list from API
-         * to keep frontend fully synced.
-         */
-        dispatch(
-            getAllEmployees()
-        );
+showToast(
+    `${deletedEmployeeName} deleted successfully.`
+);
 
-    } catch (error) {
+dispatch(
+    getAllEmployees()
+);
 
-        console.error(
-            "Employee delete failed:",
-            error
-        );
-    }
+} catch (error) {
+
+    console.error(
+        "Employee delete failed:",
+        error
+    );
+
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to delete employee.",
+        "error"
+    );
+}
 };
 
     const openRoleAssignmentModal =
@@ -540,28 +564,40 @@ const handleDeleteEmployee = async () => {
                                 : [];
 
 
-                setEmployeeRoleMap(
-                    (previous) => ({
-                        ...previous,
+setEmployeeRoleMap(
+    (previous) => ({
+        ...previous,
 
-                        [
-                            selectedEmployeeForRole.id
-                        ]:
-                            updatedRoles,
-                    })
-                );
+        [
+            selectedEmployeeForRole.id
+        ]:
+            updatedRoles,
+    })
+);
 
+const employeeName =
+    selectedEmployeeForRole.fullName;
 
-                closeRoleAssignmentModal();
+closeRoleAssignmentModal();
 
-            } catch (error) {
+showToast(
+    `Role assigned to ${employeeName} successfully.`
+);
+} catch (error) {
 
-                console.error(
-                    "Role assignment failed:",
-                    error
-                );
+    console.error(
+        "Role assignment failed:",
+        error
+    );
 
-            } finally {
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to assign role.",
+        "error"
+    );
+
+} finally {
 
                 setRoleAssignmentLoading(
                     false
@@ -938,6 +974,17 @@ const handleDeleteEmployee = async () => {
         cancelText="Cancel"
     />
 )}
+<Toast
+    show={toast.show}
+    type={toast.type}
+    message={toast.message}
+    onClose={() =>
+        setToast((current) => ({
+            ...current,
+            show: false,
+        }))
+    }
+/>
         </div>
     );
 }

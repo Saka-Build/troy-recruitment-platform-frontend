@@ -467,38 +467,30 @@ const RoleModal = ({
 
 
         try {
+if (role?.id) {
 
-            if (role?.id) {
+    await dispatch(
+        updateRole({
+            roleId: role.id,
+            roleData: payload,
+        })
+    ).unwrap();
 
-                /*
-                 * UPDATE
-                 */
-                await dispatch(
-                    updateRole({
-                        roleId: role.id,
-                        roleData: payload,
-                    })
-                ).unwrap();
+    if (onSaved) {
+        await onSaved("update");
+    }
 
-            } else {
+} else {
 
-                /*
-                 * CREATE
-                 */
-                await dispatch(
-                    createRole(payload)
-                ).unwrap();
+    await dispatch(
+        createRole(payload)
+    ).unwrap();
 
-            }
+    if (onSaved) {
+        await onSaved("create");
+    }
 
-
-            /*
-             * Tell parent to refresh
-             * and close modal.
-             */
-            if (onSaved) {
-                await onSaved();
-            }
+}
 
         } catch (error) {
 
