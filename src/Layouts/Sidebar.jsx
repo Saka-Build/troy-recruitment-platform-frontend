@@ -101,7 +101,12 @@ function Sidebar() {
     return (
 
         <aside className="sidebar">
-            <div className="sidebar-logo">
+
+            <div
+                className="sidebar-logo"
+                onClick={() => navigate("/dashboard")}
+                style={{ cursor: "pointer" }}
+            >
                 <img
                     src="/Troylogo1.png"
                     alt="Troy Consultancy"
