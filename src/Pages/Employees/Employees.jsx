@@ -9,6 +9,7 @@ import { getAllEmployees, getCountries, createEmployee, updateEmployee, clearEmp
 import { getAllRoles, getEmployeeRoles, assignRoleToEmployee, removeRoleFromEmployee,} from "../../Redux/Slice/roleSlice";
 import { useNavigate } from "react-router-dom";
 import Toast from "../../Components/Toast";
+import ExcelJS from "exceljs";
 
 function generateEmployeeId() {
     return `EMP${Math.floor(100 + Math.random() * 900)}`;
@@ -31,6 +32,7 @@ function Employees() {
     const [ roleAssignmentLoading, setRoleAssignmentLoading,] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 const [employeeToDelete, setEmployeeToDelete] = useState(null);
+
 const [toast, setToast] = useState({
     show: false,
     type: "success",
@@ -605,53 +607,213 @@ showToast(
             }
         };
 
-    const exportCsv = () => {
+const handleExport = async () => {
+    if (filteredEmployees.length === 0) {
+        alert("There are no employees to export.");
+        return;
+    }
 
-        if ( employees.length === 0) {
-            alert("There are no employees to export.");
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Employees");
+
+    worksheet.columns = [
+        {
+            header: "Employee ID",
+            key: "employeeId",
+            width: 18,
+        },
+        {
+            header: "Full Name",
+            key: "fullName",
+            width: 28,
+        },
+        {
+            header: "Designation",
+            key: "designation",
+            width: 25,
+        },
+        {
+            header: "Contact Number",
+            key: "contactNumber",
+            width: 20,
+        },
+        {
+            header: "WhatsApp Number",
+            key: "whatsappNumber",
+            width: 20,
+        },
+        {
+            header: "Official Email",
+            key: "officialEmail",
+            width: 32,
+        },
+        {
+            header: "Personal Email",
+            key: "personalEmail",
+            width: 32,
+        },
+        {
+            header: "Country",
+            key: "country",
+            width: 20,
+        },
+        {
+            header: "Status",
+            key: "status",
+            width: 15,
+        },
+    ];
+
+    filteredEmployees.forEach((employee) => {
+        worksheet.addRow({
+            employeeId: employee.employeeCode || "",
+            fullName: employee.fullName || "",
+            designation: employee.designation || "",
+            contactNumber: employee.phone || "",
+            whatsappNumber: employee.whatsapp || "",
+            officialEmail: employee.officialEmail || "",
+            personalEmail: employee.personalEmail || "",
+            country: employee.country?.name || "",
+            status: employee.active ? "Active" : "Inactive",
+        });
+    });
+
+    const headerRow = worksheet.getRow(1);
+
+    headerRow.height = 25;
+
+    headerRow.eachCell((cell) => {
+        cell.font = {
+            name: "Calibri",
+            size: 11,
+            bold: true,
+            color: {
+                argb: "FF263B57",
+            },
+        };
+
+        cell.fill = {
+            type: "pattern",
+            pattern: "none",
+        };
+
+        cell.alignment = {
+            horizontal: "center",
+            vertical: "middle",
+        };
+
+        cell.border = {
+            top: {
+                style: "thin",
+                color: {
+                    argb: "FFD9E1EB",
+                },
+            },
+            bottom: {
+                style: "thin",
+                color: {
+                    argb: "FFD9E1EB",
+                },
+            },
+            left: {
+                style: "thin",
+                color: {
+                    argb: "FFD9E1EB",
+                },
+            },
+            right: {
+                style: "thin",
+                color: {
+                    argb: "FFD9E1EB",
+                },
+            },
+        };
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) {
             return;
         }
 
-        const headers = [
-            "Employee ID",
-            "Full Name",
-            "Designation",
-            "Contact Number",
-            "WhatsApp Number",
-            "Official Email",
-            "Personal Email",
-            "Role",
-            "Country",
-            "Status",
-        ];
+        row.height = 22;
 
-        const rows = employees.map( (employee) => [
-                    employee.employeeCode,
-                    employee.fullName,
-                    employee.designation,
-                    employee.phone,
-                    employee.whatsapp,
-                    employee.officialEmail,
-                    employee.personalEmail,
-                    employee.role,
-                    employee.country?.name,
-                    employee.active? "Active": "Inactive",
-                ]
-            );
+        row.eachCell((cell, columnNumber) => {
+            cell.font = {
+                name: "Calibri",
+                size: 11,
+                color: {
+                    argb: "FF263B57",
+                },
+            };
 
+            cell.alignment = {
+                vertical: "middle",
+                horizontal:
+                    columnNumber === 1 ||
+                    columnNumber === 10
+                        ? "center"
+                        : "left",
+            };
 
-        const csvContent = [headers,...rows,].map((row) => row .map( (value) =>`"${String(value || "").replace(/"/g,'""')}"` ).join(",")).join("\n");
-        const blob = new Blob( [csvContent],{type:"text/csv;charset=utf-8;",} );
+            cell.border = {
+                top: {
+                    style: "thin",
+                    color: {
+                        argb: "FFE2E6ED",
+                    },
+                },
+                bottom: {
+                    style: "thin",
+                    color: {
+                        argb: "FFE2E6ED",
+                    },
+                },
+                left: {
+                    style: "thin",
+                    color: {
+                        argb: "FFE2E6ED",
+                    },
+                },
+                right: {
+                    style: "thin",
+                    color: {
+                        argb: "FFE2E6ED",
+                    },
+                },
+            };
+        });
+    });
 
-        const url = URL.createObjectURL( blob );
-        const link = document.createElement("a" );
-        link.href = url;
-        link.download = "troy-employees.csv";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-    };
+    worksheet.views = [
+        {
+            state: "frozen",
+            ySplit: 1,
+        },
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob(
+        [buffer],
+        {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "troy-employees.xlsx";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+};
 
 
     const initials = (name) => {
@@ -680,9 +842,9 @@ showToast(
                     <button
                         type="button"
                         className="employee-export-btn"
-                        onClick={exportCsv}
+                        onClick={handleExport}
                     >
-                        <i className="bi bi-download"></i> Export CSV
+                        <i className="bi bi-download"></i> Export Employees
                     </button>
                     <button
                         type="button"

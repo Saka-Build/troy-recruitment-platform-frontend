@@ -371,7 +371,7 @@ const handleEditJob = async (job) => {
             disabled={isFetching}
           >
             <i className="bi bi-download"></i>
-            Export CSV
+            Export Jobs
           </button>
 
           <button

@@ -907,7 +907,7 @@ if (
 
                             {exporting
                                 ? "Exporting..."
-                                : "↓ Export CSV"}
+                                : "↓ Export Clients"}
 
                         </button>
 
@@ -1776,7 +1776,7 @@ if (
 
                                 {exporting
                                     ? "Exporting..."
-                                    : "Export Excel"}
+                                    : "Export"}
 
                             </button>
 
