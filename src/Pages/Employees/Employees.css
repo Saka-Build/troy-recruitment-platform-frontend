@@ -962,7 +962,6 @@
 .employee-details-page {
     position: relative;
     min-height: 100%;
-    padding: 22px 28px 40px;
     background:
         radial-gradient(
             circle at 92% 4%,
