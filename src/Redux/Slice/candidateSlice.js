@@ -111,16 +111,6 @@ export const getAllEmployees = createAsyncThunk(
                 );
 
             }
-
-
-            /*
-             * API can return:
-             *
-             * 1. Array
-             * 2. Pageable object -> content
-             * 3. data array
-             */
-
             if (Array.isArray(data)) {
                 return data;
             }
@@ -159,9 +149,6 @@ export const addCandidate = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            /*
-             * Get access token
-             */
             let accessToken =
                 localStorage.getItem("accessToken");
 
@@ -170,13 +157,6 @@ export const addCandidate = createAsyncThunk(
                     "Authentication token not found. Please login again."
                 );
             }
-
-            /*
-             * Safety:
-             * If localStorage accidentally contains
-             * "Bearer eyJ..." instead of "eyJ...",
-             * don't send "Bearer Bearer..."
-             */
             accessToken = accessToken
                 .replace(/^Bearer\s+/i, "")
                 .trim();
@@ -200,14 +180,7 @@ export const addCandidate = createAsyncThunk(
                 accessToken.substring(0, 20)
             );
 
-            /*
-             * Create multipart FormData
-             */
             const formData = new FormData();
-
-            /*
-             * candidate JSON
-             */
             formData.append(
                 "candidate",
                 new Blob(
@@ -221,30 +194,18 @@ export const addCandidate = createAsyncThunk(
                     }
                 )
             );
-
-            /*
-             * Original CV
-             */
             if (originalCV) {
                 formData.append(
                     "original_cv_file",
                     originalCV
                 );
             }
-
-            /*
-             * Troy CV
-             */
             if (troyCV) {
                 formData.append(
                     "troy_cv_file",
                     troyCV
                 );
             }
-
-            /*
-             * POST
-             */
             const response = await fetch(
                 `/api/v1/candidates/create`,
                 {
@@ -263,10 +224,6 @@ export const addCandidate = createAsyncThunk(
                 "Candidate create status:",
                 response.status
             );
-
-            /*
-             * Read response safely
-             */
             const contentType =
                 response.headers.get(
                     "content-type"
@@ -289,10 +246,6 @@ export const addCandidate = createAsyncThunk(
                 "Candidate create response:",
                 data
             );
-
-            /*
-             * Handle unauthorized
-             */
             if (response.status === 401) {
                 console.error(
                     "401 UNAUTHORIZED - Backend rejected access token"
@@ -305,10 +258,6 @@ export const addCandidate = createAsyncThunk(
                         : "User is not authenticated. Please login again."
                 );
             }
-
-            /*
-             * Handle other errors
-             */
             if (!response.ok) {
                 return rejectWithValue(
                     typeof data === "object"
@@ -318,10 +267,6 @@ export const addCandidate = createAsyncThunk(
                         : `Failed to add candidate (${response.status})`
                 );
             }
-
-            /*
-             * Success
-             */
             return data;
 
         } catch (error) {
@@ -351,9 +296,6 @@ export const updateCandidate = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            /*
-             * Get access token
-             */
             let accessToken =
                 localStorage.getItem("accessToken");
 
@@ -362,13 +304,6 @@ export const updateCandidate = createAsyncThunk(
                     "Authentication token not found. Please login again."
                 );
             }
-
-            /*
-             * Safety:
-             * If localStorage contains
-             * "Bearer eyJ...",
-             * remove Bearer before adding it again.
-             */
             accessToken = accessToken
                 .replace(/^Bearer\s+/i, "")
                 .trim();
@@ -391,20 +326,7 @@ export const updateCandidate = createAsyncThunk(
                 "Token length:",
                 accessToken.length
             );
-
-            /*
-             * Create multipart FormData
-             */
             const formData = new FormData();
-
-            /*
-             * Candidate JSON
-             *
-             * Example:
-             * {
-             *     email: "biswaranjan.sahu17@gmail.com"
-             * }
-             */
             formData.append(
                 "candidate",
                 new Blob(
@@ -418,36 +340,18 @@ export const updateCandidate = createAsyncThunk(
                     }
                 )
             );
-
-            /*
-             * Original CV
-             *
-             * Only append if user selected
-             * a new file.
-             */
             if (originalCV) {
                 formData.append(
                     "original_cv_file",
                     originalCV
                 );
             }
-
-            /*
-             * Troy CV
-             *
-             * Only append if user selected
-             * a new file.
-             */
             if (troyCV) {
                 formData.append(
                     "troy_cv_file",
                     troyCV
                 );
             }
-
-            /*
-             * PUT UPDATE
-             */
             const response = await fetch(
                 `/api/v1/candidates/update/${id}`,
                 {
@@ -466,10 +370,6 @@ export const updateCandidate = createAsyncThunk(
                 "Candidate update status:",
                 response.status
             );
-
-            /*
-             * Read response safely
-             */
             const contentType =
                 response.headers.get(
                     "content-type"
@@ -492,10 +392,6 @@ export const updateCandidate = createAsyncThunk(
                 "Candidate update response:",
                 data
             );
-
-            /*
-             * Handle unauthorized
-             */
             if (response.status === 401) {
                 console.error(
                     "401 UNAUTHORIZED - Backend rejected access token"
@@ -508,10 +404,6 @@ export const updateCandidate = createAsyncThunk(
                         : "User is not authenticated. Please login again."
                 );
             }
-
-            /*
-             * Handle other errors
-             */
             if (!response.ok) {
                 return rejectWithValue(
                     typeof data === "object"
@@ -521,10 +413,6 @@ export const updateCandidate = createAsyncThunk(
                         : `Failed to update candidate (${response.status})`
                 );
             }
-
-            /*
-             * Success
-             */
             return data;
 
         } catch (error) {
@@ -576,6 +464,154 @@ export const deleteCandidate = createAsyncThunk(
     }
 );
 
+export const exportCandidates = createAsyncThunk(
+    "candidates/exportCandidates",
+    async (
+        {
+            fromDate = null,
+            toDate = null,
+            status = null,
+        } = {},
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+            const requestBody = {};
+
+            if (fromDate) {
+                requestBody.fromDate = fromDate;
+            }
+
+            if (toDate) {
+                requestBody.toDate = toDate;
+            }
+
+            if (status) {
+                requestBody.status = status;
+            }
+
+            console.log(
+                "========== EXPORT CANDIDATES =========="
+            );
+
+            console.log(
+                "Export Request Body:",
+                requestBody
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/candidates/export`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify(requestBody),
+                }
+            );
+
+            console.log(
+                "Export Candidates Status:",
+                response.status
+            );
+            if (!response.ok) {
+                const contentType =
+                    response.headers.get("content-type");
+
+                let errorMessage =
+                    "Failed to export candidates";
+
+                if (
+                    contentType &&
+                    contentType.includes(
+                        "application/json"
+                    )
+                ) {
+                    const data =
+                        await response.json().catch(
+                            () => null
+                        );
+
+                    errorMessage =
+                        data?.message ||
+                        data?.error ||
+                        errorMessage;
+                } else {
+                    const text =
+                        await response.text().catch(
+                            () => ""
+                        );
+
+                    if (text) {
+                        errorMessage = text;
+                    }
+                }
+
+                if (response.status === 401) {
+                    errorMessage =
+                        "User is not authenticated. Please login again.";
+                }
+
+                return rejectWithValue(
+                    errorMessage
+                );
+            }
+            const blob =
+                await response.blob();
+            const contentDisposition =
+                response.headers.get(
+                    "Content-Disposition"
+                );
+
+            let fileName =
+                "candidates.xlsx";
+
+            if (contentDisposition) {
+                const fileNameMatch =
+                    contentDisposition.match(
+                        /filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i
+                    );
+
+                if (fileNameMatch?.[1]) {
+                    fileName =
+                        decodeURIComponent(
+                            fileNameMatch[1]
+                        );
+                }
+            }
+            return {
+                blob,
+                fileName,
+            };
+
+        } catch (error) {
+            console.error(
+                "EXPORT CANDIDATES ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while exporting candidates"
+            );
+        }
+    }
+);
 
 export const getCandidateActivity = createAsyncThunk(
     "candidates/getCandidateActivity",
@@ -1309,23 +1345,6 @@ export const updateInterview = createAsyncThunk(
                 .trim();
 
             let requestBody;
-
-            /*
-             * CANCEL
-             * --------------------------------------------------
-             * Backend requires:
-             * submissionId
-             * candidateId
-             * jobId
-             * status
-             *
-             * Do NOT send:
-             * interviewDate
-             * interviewTime
-             * interviewType
-             * round
-             * interviewerName
-             */
             if (
                 String(status)
                     .trim()
@@ -1339,9 +1358,6 @@ export const updateInterview = createAsyncThunk(
                     status: "Cancelled",
                 };
             } else {
-                /*
-                 * RESCHEDULE
-                 */
                 requestBody = {
                     submissionId,
                     candidateId,
@@ -1873,7 +1889,10 @@ const initialState = {
     createNoteError: null,
 
     updatingInterview: false,
-updateInterviewError: null,
+    updateInterviewError: null,
+
+    exportingCandidates: false,
+    exportCandidatesError: null,
 };
 
 const candidateSlice = createSlice({
@@ -1913,12 +1932,6 @@ const candidateSlice = createSlice({
     extraReducers: (builder) => {
 
         builder
-
-            /*
-            |--------------------------------------------------------------------------
-            | GET ALL CANDIDATES
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 getAllCandidates.pending,
                 (state) => {
@@ -1944,11 +1957,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch candidates";
                 }
             )
-            /*
-|--------------------------------------------------------------------------
-| GET CANDIDATE BY ID
-|--------------------------------------------------------------------------
-*/
             .addCase(
                 getCandidateById.pending,
                 (state) => {
@@ -1975,12 +1983,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch candidate";
                 }
             )
-
-            /*
-            |--------------------------------------------------------------------------
-            | GET ALL EMPLOYEES
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 getAllEmployees.pending,
                 (state) => {
@@ -2006,13 +2008,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch employees";
                 }
             )
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | ADD CANDIDATE
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 addCandidate.pending,
                 (state) => {
@@ -2025,11 +2020,6 @@ const candidateSlice = createSlice({
                 addCandidate.fulfilled,
                 (state, action) => {
                     state.adding = false;
-
-                    /*
-                     * Backend returns the complete candidate,
-                     * including generated cvId.
-                     */
                     state.candidates.unshift(
                         action.payload
                     );
@@ -2045,13 +2035,6 @@ const candidateSlice = createSlice({
                         "Failed to add candidate";
                 }
             )
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE CANDIDATE
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 updateCandidate.pending,
                 (state) => {
@@ -2089,12 +2072,6 @@ const candidateSlice = createSlice({
                 }
             )
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE CANDIDATE
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 deleteCandidate.pending,
                 (state) => {
@@ -2126,11 +2103,6 @@ const candidateSlice = createSlice({
                         "Failed to delete candidate";
                 }
             )
-            /*
-|--------------------------------------------------------------------------
-| GET CANDIDATE ACTIVITY
-|--------------------------------------------------------------------------
-*/
             .addCase(
                 getCandidateActivity.pending,
                 (state) => {
@@ -2183,11 +2155,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch candidate applications";
                 }
             )
-            /*
-            |--------------------------------------------------------------------------
-            | GET SUBMISSION ACTIVITIES
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 getSubmissionActivities.pending,
                 (state) => {
@@ -2214,11 +2181,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch submission activities";
                 }
             )
-            /*
-|--------------------------------------------------------------------------
-| GET SUBMISSION STATUSES
-|--------------------------------------------------------------------------
-*/
             .addCase(
                 getSubmissionStatuses.pending,
                 (state) => {
@@ -2244,12 +2206,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch submission statuses";
                 }
             )
-
-            /*
-            |--------------------------------------------------------------------------
-            | CREATE SUBMISSION
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 createSubmission.pending,
                 (state) => {
@@ -2275,11 +2231,6 @@ const candidateSlice = createSlice({
                         "Failed to create submission";
                 }
             )
-            /*
-            |--------------------------------------------------------------------------
-            | GET SUBMISSION SUB-STATUSES
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 getSubmissionSubStatuses.pending,
                 (state, action) => {
@@ -2315,12 +2266,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch submission sub-statuses";
                 }
             )
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE SUBMISSION
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 updateSubmission.pending,
                 (state) => {
@@ -2363,11 +2308,6 @@ const candidateSlice = createSlice({
                         "Failed to update submission";
                 }
             )
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE SUBMISSION RATES
-            |--------------------------------------------------------------------------
-            */
             .addCase(
                 updateSubmissionRates.pending,
                 (state) => {
@@ -2410,12 +2350,6 @@ const candidateSlice = createSlice({
                         "Failed to update submission rates";
                 }
             )
-            /*
-            |--------------------------------------------------------------------------
-            | CREATE INTERVIEW
-            |--------------------------------------------------------------------------
-            */
-
             .addCase(
                 createInterview.pending,
                 (state) => {
@@ -2499,12 +2433,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch interviews";
                 }
             )
-            /*
-            |--------------------------------------------------------------------------
-            | GET CANDIDATE NOTES
-            |--------------------------------------------------------------------------
-            */
-
             .addCase(
                 getCandidateNotes.pending,
                 (state) => {
@@ -2532,13 +2460,6 @@ const candidateSlice = createSlice({
                         "Failed to fetch candidate notes";
                 }
             )
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CREATE NOTE
-            |--------------------------------------------------------------------------
-            */
 
             .addCase(
                 createNote.pending,
@@ -2576,11 +2497,6 @@ const candidateSlice = createSlice({
                         "Failed to create note";
                 }
             )
-            /*
-|--------------------------------------------------------------------------
-| DELETE SUBMISSION
-|--------------------------------------------------------------------------
-*/
             .addCase(
                 deleteSubmission.pending,
                 (state) => {
@@ -2623,30 +2539,56 @@ const candidateSlice = createSlice({
             )
 
             .addCase(
-    updateInterview.pending,
-    (state) => {
-        state.updatingInterview = true;
-        state.updateInterviewError = null;
-    }
-)
+                updateInterview.pending,
+                (state) => {
+                    state.updatingInterview = true;
+                    state.updateInterviewError = null;
+                }
+            )
 
-.addCase(
-    updateInterview.fulfilled,
-    (state) => {
-        state.updatingInterview = false;
-        state.updateInterviewError = null;
-    }
-)
+            .addCase(
+                updateInterview.fulfilled,
+                (state) => {
+                    state.updatingInterview = false;
+                    state.updateInterviewError = null;
+                }
+            )
 
-.addCase(
-    updateInterview.rejected,
-    (state, action) => {
-        state.updatingInterview = false;
-        state.updateInterviewError =
-            action.payload ||
-            "Failed to reschedule interview";
-    }
-)
+            .addCase(
+                updateInterview.rejected,
+                (state, action) => {
+                    state.updatingInterview = false;
+                    state.updateInterviewError =
+                        action.payload ||
+                        "Failed to reschedule interview";
+                }
+            )
+
+            .addCase(
+                exportCandidates.pending,
+                (state) => {
+                    state.exportingCandidates = true;
+                    state.exportCandidatesError = null;
+                }
+            )
+
+            .addCase(
+                exportCandidates.fulfilled,
+                (state) => {
+                    state.exportingCandidates = false;
+                    state.exportCandidatesError = null;
+                }
+            )
+
+            .addCase(
+                exportCandidates.rejected,
+                (state, action) => {
+                    state.exportingCandidates = false;
+                    state.exportCandidatesError =
+                        action.payload ||
+                        "Failed to export candidates";
+                }
+            )
     },
 });
 

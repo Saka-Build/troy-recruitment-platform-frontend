@@ -19,20 +19,16 @@ import {
     addCandidate,
     updateCandidate,
     deleteCandidate,
+    exportCandidates,
 } from "../../Redux/Slice/candidateSlice";
+import * as XLSX from "xlsx";
+
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import { useNavigate } from "react-router-dom";
 const Candidates = () => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REDUX
-    |--------------------------------------------------------------------------
-    */
     const {
         candidates = [],
         employees = [],
@@ -41,16 +37,10 @@ const Candidates = () => {
         adding,
         error,
         employeeError,
+        exportingCandidates,
     } = useSelector(
         (state) => state.candidate
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOCAL STATE
-    |--------------------------------------------------------------------------
-    */
     const [searchTerm, setSearchTerm] =
         useState("");
 
@@ -82,11 +72,21 @@ const Candidates = () => {
         message: "",
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | FETCH CANDIDATES + EMPLOYEES
-    |--------------------------------------------------------------------------
-    */
+    const [exportFromDate, setExportFromDate] =
+        useState("");
+
+    const [exportToDate, setExportToDate] =
+        useState("");
+
+    const [exportStatus, setExportStatus] =
+        useState("");
+    const [showFilterModal, setShowFilterModal] = useState(false);
+
+    const [tempStatusFilter, setTempStatusFilter] =
+        useState(statusFilter);
+
+    const [showExportModal, setShowExportModal] = useState(false);
+
     useEffect(() => {
 
         dispatch(getAllCandidates());
@@ -110,11 +110,6 @@ const Candidates = () => {
             });
         }, 3000);
     };
-    /*
-    |--------------------------------------------------------------------------
-    | STATUS COLORS
-    |--------------------------------------------------------------------------
-    */
     const getStatusColor = (status) => {
 
         switch (status) {
@@ -152,12 +147,6 @@ const Candidates = () => {
         }
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET CURRENT STATUS
-    |--------------------------------------------------------------------------
-    */
     const getCandidateStatus = (candidate) => {
 
         return (
@@ -176,24 +165,9 @@ const Candidates = () => {
         const previousStatus =
             getCandidateStatus(candidate);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Don't call API if status hasn't changed
-        |--------------------------------------------------------------------------
-        */
-
         if (previousStatus === newStatus) {
             return;
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Optimistic UI update
-        |--------------------------------------------------------------------------
-        | Change dropdown immediately while API is processing.
-        */
-
         setLocalStatuses((previous) => ({
             ...previous,
             [candidate.id]: newStatus,
@@ -210,14 +184,6 @@ const Candidates = () => {
                 }
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE API
-            |--------------------------------------------------------------------------
-            | Only send status.
-            */
-
             await dispatch(
                 updateCandidate({
                     id: candidate.id,
@@ -233,15 +199,6 @@ const Candidates = () => {
                 "Candidate status updated successfully:",
                 newStatus
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Refresh candidates
-            |--------------------------------------------------------------------------
-            | This makes sure Redux contains the backend value.
-            */
-
             dispatch(
                 getAllCandidates()
             );
@@ -253,14 +210,6 @@ const Candidates = () => {
                 "STATUS UPDATE ERROR:",
                 error
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | API failed
-            |--------------------------------------------------------------------------
-            | Restore previous status in UI.
-            */
 
             setLocalStatuses((previous) => ({
                 ...previous,
@@ -297,13 +246,6 @@ const Candidates = () => {
         setShowDeleteModal(true);
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CONFIRM DELETE CANDIDATE
-    |--------------------------------------------------------------------------
-    */
-
     const handleConfirmDelete = async () => {
 
         if (!candidateToDelete?.id) {
@@ -325,14 +267,6 @@ const Candidates = () => {
                     candidateToDelete.id
                 )
             ).unwrap();
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Remove local status
-            |--------------------------------------------------------------------------
-            */
-
             setLocalStatuses((previous) => {
 
                 const updated = {
@@ -345,25 +279,8 @@ const Candidates = () => {
 
                 return updated;
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Close delete modal
-            |--------------------------------------------------------------------------
-            */
-
             setShowDeleteModal(false);
-
             setCandidateToDelete(null);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Refresh candidates
-            |--------------------------------------------------------------------------
-            */
-
             await dispatch(
                 getAllCandidates()
             ).unwrap();
@@ -385,13 +302,6 @@ const Candidates = () => {
             setDeleting(false);
         }
     };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADD
-    |--------------------------------------------------------------------------
-    */
     const handleAddClick = () => {
 
         setModalMode("add");
@@ -401,12 +311,6 @@ const Candidates = () => {
         setShowModal(true);
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | EDIT
-    |--------------------------------------------------------------------------
-    */
     const handleEditClick = (candidate) => {
 
         setModalMode("edit");
@@ -416,12 +320,6 @@ const Candidates = () => {
         setShowModal(true);
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | APPLICATIONS
-    |--------------------------------------------------------------------------
-    */
     const handleApplications = (id) => {
 
         if (!id) {
@@ -439,27 +337,16 @@ const Candidates = () => {
 
         const candidateData = {
             fullName: data.fullName,
-
             currentDesignation: data.designation,
-
             cvOwnerId: data.cvOwnerId,
-
             referredBy: data.referredBy,
-
             referenceNote: data.referenceNote,
-
             email: data.email,
-
             phone: data.phone,
-
             whatsapp: data.whatsapp,
-
             nationality: data.nationality,
-
             location: data.currentLocation,
-
             currentEmployer: data.currentCompany,
-
             experienceYears: isNull(data.experience)
                 ? null
                 : data.experience === ""
@@ -580,11 +467,22 @@ const Candidates = () => {
         }
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | FILTER + SEARCH
-    |--------------------------------------------------------------------------
-    */
+    const handleOpenFilterModal = () => {
+        setTempStatusFilter(statusFilter);
+        setShowFilterModal(true);
+    };
+
+    const handleApplyFilter = () => {
+        setStatusFilter(tempStatusFilter);
+        setShowFilterModal(false);
+    };
+
+    const handleClearFilter = () => {
+        setTempStatusFilter("All statuses");
+        setStatusFilter("All statuses");
+        setShowFilterModal(false);
+    };
+
     const filteredCandidates = useMemo(() => {
 
         const search =
@@ -655,13 +553,6 @@ const Candidates = () => {
         statusFilter,
         localStatuses,
     ]);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATS
-    |--------------------------------------------------------------------------
-    */
     const total =
         candidates.length;
 
@@ -688,13 +579,6 @@ const Candidates = () => {
                 getCandidateStatus(candidate) ===
                 "Blacklisted"
         ).length;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOADING
-    |--------------------------------------------------------------------------
-    */
     if (loading) {
 
         return (
@@ -719,13 +603,6 @@ const Candidates = () => {
             </div>
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ERROR
-    |--------------------------------------------------------------------------
-    */
     if (error && candidates.length === 0) {
 
         return (
@@ -778,7 +655,239 @@ const Candidates = () => {
         );
     }
 
+    const handleExportCandidates = () => {
+        try {
+            let exportData = [...candidates];
 
+            // -----------------------------------------
+            // STATUS FILTER
+            // -----------------------------------------
+            if (exportStatus) {
+                exportData = exportData.filter((candidate) => {
+                    const status = getCandidateStatus(candidate);
+
+                    return status === exportStatus;
+                });
+            }
+
+            // -----------------------------------------
+            // DATE FILTER
+            // -----------------------------------------
+            if (exportFromDate || exportToDate) {
+                exportData = exportData.filter((candidate) => {
+                    /*
+                     * Change this field if your candidate API
+                     * uses another date field.
+                     */
+                    const candidateDate =
+                        candidate.createdAt ||
+                        candidate.createdDate ||
+                        candidate.createdOn;
+
+                    if (!candidateDate) {
+                        return false;
+                    }
+
+                    const date = new Date(candidateDate);
+
+                    if (Number.isNaN(date.getTime())) {
+                        return false;
+                    }
+
+                    // From date
+                    if (exportFromDate) {
+                        const fromDate = new Date(
+                            `${exportFromDate}T00:00:00`
+                        );
+
+                        if (date < fromDate) {
+                            return false;
+                        }
+                    }
+
+                    // To date
+                    if (exportToDate) {
+                        const toDate = new Date(
+                            `${exportToDate}T23:59:59`
+                        );
+
+                        if (date > toDate) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
+            }
+
+            // -----------------------------------------
+            // CHECK EMPTY RESULT
+            // -----------------------------------------
+            if (exportData.length === 0) {
+                showNotification(
+                    "error",
+                    "No candidates found for the selected filters"
+                );
+
+                return;
+            }
+
+            // -----------------------------------------
+            // FORMAT EXCEL DATA
+            // -----------------------------------------
+            const excelData = exportData.map((candidate) => ({
+                "CV ID":
+                    candidate.cvId || "-",
+
+                "Candidate Name":
+                    candidate.fullName || "-",
+
+                "Designation":
+                    candidate.currentDesignation || "-",
+
+                "Status":
+                    getCandidateStatus(candidate),
+
+                "Owner / Recruiter":
+                    candidate.cvOwnerName || "-",
+
+                "Email":
+                    candidate.email || "-",
+
+                "Phone":
+                    candidate.phone || "-",
+
+                "WhatsApp":
+                    candidate.whatsapp || "-",
+
+                "Location":
+                    candidate.location || "-",
+
+                "Nationality":
+                    candidate.nationality || "-",
+
+                "Current Employer":
+                    candidate.currentEmployer || "-",
+
+                "Experience (Years)":
+                    candidate.experienceYears ?? "-",
+
+                "Skills":
+                    Array.isArray(candidate.skills)
+                        ? candidate.skills.join(", ")
+                        : "-",
+
+                "Notice Period (Days)":
+                    candidate.noticePeriodDays ?? "-",
+
+                "Visa Status":
+                    candidate.visaStatus || "-",
+
+                "Source":
+                    candidate.source || "-",
+
+                "LinkedIn":
+                    candidate.linkedinUrl || "-",
+
+                "Education":
+                    candidate.education || "-",
+
+                "Current Salary":
+                    candidate.currentSalaryAmount ?? "-",
+
+                "Current Salary Currency":
+                    candidate.currentSalaryCurrency || "-",
+
+                "Current Salary Period":
+                    candidate.currentSalaryPeriod || "-",
+
+                "Expected Salary":
+                    candidate.expectedSalaryAmount ?? "-",
+
+                "Expected Salary Currency":
+                    candidate.expectedSalaryCurrency || "-",
+
+                "Expected Salary Period":
+                    candidate.expectedSalaryPeriod || "-",
+
+                "Created Date":
+                    candidate.createdAt
+                        ? new Date(candidate.createdAt).toLocaleDateString()
+                        : "-",
+            }));
+
+            // -----------------------------------------
+            // CREATE WORKSHEET
+            // -----------------------------------------
+            const worksheet =
+                XLSX.utils.json_to_sheet(excelData);
+
+            // -----------------------------------------
+            // AUTO COLUMN WIDTH
+            // -----------------------------------------
+            const columnWidths = Object.keys(excelData[0]).map(
+                (key) => ({
+                    wch: Math.max(
+                        key.length,
+                        ...excelData.map((row) =>
+                            String(row[key] ?? "").length
+                        )
+                    ) + 2,
+                })
+            );
+
+            worksheet["!cols"] = columnWidths;
+
+            // -----------------------------------------
+            // CREATE WORKBOOK
+            // -----------------------------------------
+            const workbook =
+                XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Candidates"
+            );
+
+            // -----------------------------------------
+            // FILE NAME
+            // -----------------------------------------
+            const today =
+                new Date()
+                    .toISOString()
+                    .split("T")[0];
+
+            const fileName =
+                `Candidates_${today}.xlsx`;
+
+            // -----------------------------------------
+            // DOWNLOAD
+            // -----------------------------------------
+            XLSX.writeFile(
+                workbook,
+                fileName
+            );
+
+            showNotification(
+                "success",
+                `${exportData.length} candidate${exportData.length !== 1 ? "s" : ""} exported successfully`
+            );
+
+            setShowExportModal(false);
+
+        } catch (error) {
+            console.error(
+                "FRONTEND EXPORT ERROR:",
+                error
+            );
+
+            showNotification(
+                "error",
+                "Failed to export candidates"
+            );
+        }
+    };
     return (
 
         <div className="page">
@@ -801,12 +910,13 @@ const Candidates = () => {
 
 
                 <div className="candidates-header-actions">
-
                     <button
+                        type="button"
                         className="candidates-export-btn"
+                        onClick={() => setShowExportModal(true)}
                     >
                         <i className="fas fa-download"></i>
-                        {" "}Export CSV
+                        Export Excel
                     </button>
 
 
@@ -880,9 +990,6 @@ const Candidates = () => {
 
             </div>
 
-
-            {/* SEARCH */}
-
             <div className="candidates-search-filter">
 
                 <div className="candidates-search-wrapper">
@@ -939,9 +1046,6 @@ const Candidates = () => {
                 </div>
 
             </div>
-
-
-            {/* TABLE */}
 
             <div className="candidates-table-wrapper">
 
@@ -1234,6 +1338,169 @@ const Candidates = () => {
                     onSave={handleSave}
                 />
 
+            )}
+
+            {/* EXPORT EXCEL MODAL */}
+
+            {showExportModal && (
+                <div
+                    className="candidate-filter-modal-overlay"
+                    onClick={() => setShowExportModal(false)}
+                >
+                    <div
+                        className="candidate-filter-modal candidate-export-modal"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+
+                        {/* HEADER */}
+
+                        <div className="candidate-filter-modal-header">
+
+                            <div>
+                                <h3>
+                                    Export Candidates
+                                </h3>
+
+                                <p>
+                                    Select the filters you want to use for the Excel export.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="candidate-filter-close-btn"
+                                onClick={() => setShowExportModal(false)}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+
+                        </div>
+
+
+                        {/* BODY */}
+
+                        <div className="candidate-filter-modal-body">
+
+                            {/* FROM DATE */}
+
+                            <div className="candidate-filter-field">
+
+                                <label>
+                                    From Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    value={exportFromDate}
+                                    onChange={(e) =>
+                                        setExportFromDate(e.target.value)
+                                    }
+                                />
+
+                            </div>
+
+
+                            {/* TO DATE */}
+
+                            <div
+                                className="candidate-filter-field"
+                                style={{ marginTop: "18px" }}
+                            >
+
+                                <label>
+                                    To Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    value={exportToDate}
+                                    onChange={(e) =>
+                                        setExportToDate(e.target.value)
+                                    }
+                                />
+
+                            </div>
+
+
+                            {/* STATUS */}
+
+                            <div
+                                className="candidate-filter-field"
+                                style={{ marginTop: "18px" }}
+                            >
+
+                                <label>
+                                    Candidate Status
+                                </label>
+
+                                <select
+                                    value={exportStatus}
+                                    onChange={(e) =>
+                                        setExportStatus(e.target.value)
+                                    }
+                                >
+
+                                    <option value="">
+                                        All statuses
+                                    </option>
+
+                                    <option value="Active">
+                                        Active
+                                    </option>
+
+                                    <option value="Inactive">
+                                        Inactive
+                                    </option>
+
+                                    <option value="Blacklisted">
+                                        Blacklisted
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        {/* FOOTER */}
+
+                        <div className="candidate-filter-modal-footer">
+
+                            <button
+                                type="button"
+                                className="candidate-filter-clear-btn"
+                                onClick={() => {
+                                    setExportFromDate("");
+                                    setExportToDate("");
+                                    setExportStatus("");
+                                }}
+                            >
+                                Clear
+                            </button>
+
+
+                            <button
+                                type="button"
+                                className="candidate-filter-cancel-btn"
+                                onClick={() => setShowExportModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="candidate-filter-apply-btn"
+                                onClick={handleExportCandidates}
+                            >
+                                <i className="fas fa-download"></i>
+                                Export Excel
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
             )}
             {/* DELETE CONFIRMATION MODAL */}
 

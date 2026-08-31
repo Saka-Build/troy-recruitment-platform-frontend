@@ -1895,11 +1895,9 @@
 
     border-radius: 10px;
 
-    background: linear-gradient(
-        135deg,
-        #fff7f7 0%,
-        #fff1f2 100%
-    );
+    background: linear-gradient(135deg,
+            #fff7f7 0%,
+            #fff1f2 100%);
 
     border: 1px solid #fecdd3;
 
@@ -2067,4 +2065,114 @@
 
     font-size: 12px;
     font-weight: 700;
+}
+
+/* =========================================================
+   CANDIDATE SUB STATUS
+========================================================= */
+
+.cxandidate-sub-status-select {
+    width: 180px;
+    height: 38px;
+
+    padding: 0 34px 0 12px;
+
+    border: 1px solid #d9dee7;
+    border-radius: 7px;
+
+    background-color: #ffffff;
+    color: #343a40;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    outline: none;
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+
+    box-sizing: border-box;
+
+    /* dropdown arrow */
+    appearance: auto;
+}
+
+.cxandidate-sub-status-select:hover:not(:disabled) {
+    border-color: #b9c1cd;
+    background-color: #fafbfc;
+}
+
+.cxandidate-sub-status-select:focus {
+    border-color: #138f67;
+
+    box-shadow:
+        0 0 0 3px rgba(19, 143, 103, 0.10);
+}
+
+.cxandidate-sub-status-select:disabled {
+    background-color: #f4f5f7;
+    color: #9ca3af;
+    border-color: #e1e4e8;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SAVE STATUS BUTTON
+========================================================= */
+
+.cxandidate-save-status-btn {
+    height: 38px;
+    min-width: 70px;
+
+    padding: 0 16px;
+
+    margin-left: 8px;
+
+    border: 1px solid #2f6df6;
+    border-radius: 7px;
+
+    background: #2f6df6;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.1s ease;
+}
+
+.cxandidate-save-status-btn:hover:not(:disabled) {
+    background: #2f6df6;
+    border-color: #2f6df6;
+
+    box-shadow:
+        0 3px 8px rgba(19, 143, 103, 0.18);
+}
+
+.cxandidate-save-status-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.cxandidate-save-status-btn:disabled {
+    background: #f3f4f6;
+    border-color: #d9dee7;
+    color: #a1a7b0;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
 }
