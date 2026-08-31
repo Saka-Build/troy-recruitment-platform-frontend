@@ -44,13 +44,38 @@ import {
     faGoogle,
     faWhatsapp,
 } from "@fortawesome/free-brands-svg-icons";
+import Toast from "../../Components/Toast";
 
 
 function Clients() {
 
     const dispatch =
         useDispatch();
+const [
+    toast,
+    setToast,
+] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
+const showToast = (
+    type,
+    message
+) => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
 
+const hideToast = () => {
+    setToast((prev) => ({
+        ...prev,
+        show: false,
+    }));
+};
 
     /* =========================================================
        CLIENT REDUX STATE
@@ -97,11 +122,11 @@ function Clients() {
     // );
 
     const {
-    activeItems: activeEndClients = [],
-    activeLoading: activeEndClientsLoading,
-} = useSelector(
-    (state) => state.endClients
-);
+        activeItems: activeEndClients = [],
+        activeLoading: activeEndClientsLoading,
+    } = useSelector(
+        (state) => state.endClients
+    );
 
 
     /* =========================================================
@@ -200,19 +225,19 @@ function Clients() {
 
     useEffect(() => {
 
-    dispatch(
-        fetchClients()
-    );
+        dispatch(
+            fetchClients()
+        );
 
-    dispatch(
-        fetchCountries()
-    );
+        dispatch(
+            fetchCountries()
+        );
 
-    dispatch(
-        fetchActiveEndClients()
-    );
+        dispatch(
+            fetchActiveEndClients()
+        );
 
-}, [dispatch]);
+    }, [dispatch]);
 
 
     /* =========================================================
@@ -259,59 +284,121 @@ function Clients() {
     /* =========================================================
        SAVE CLIENT
     ========================================================= */
+const getFriendlyErrorMessage = (
+    error
+) => {
 
-    const handleSaveClient = async (
-        clientData
-    ) => {
+    if (!error) {
+        return "Something went wrong. Please try again.";
+    }
+
+    if (typeof error === "string") {
 
         try {
 
-            if (editingClient) {
+            const parsed =
+                JSON.parse(error);
 
-                await dispatch(
-
-                    updateClient({
-
-                        id:
-                            editingClient.id,
-
-                        ...clientData,
-
-                    })
-
-                ).unwrap();
-
-            } else {
-
-                await dispatch(
-
-                    createClient(
-                        clientData
-                    )
-
-                ).unwrap();
-
-            }
-
-
-            /*
-                Close modal only after
-                successful API response.
-            */
-
-            handleCloseModal();
-
-
-        } catch (error) {
-
-            console.error(
-                "Client save error:",
+            return (
+                parsed?.message ||
                 error
             );
 
+        } catch {
+
+            return error;
+
+        }
+    }
+
+    if (
+        typeof error === "object"
+    ) {
+
+        if (error.message) {
+
+            const message =
+                error.message;
+
+            if (
+                message.includes(
+                    "Client with email already exists"
+                )
+            ) {
+
+                return "This email is already registered. Please use a different email address.";
+
+            }
+
+            if (
+                message
+                    .toLowerCase()
+                    .includes("duplicate")
+            ) {
+
+                return "This record already exists. Please check your data.";
+
+            }
+
+            return message;
         }
 
-    };
+        if (error.error) {
+            return error.error;
+        }
+    }
+
+    return "Something went wrong. Please try again.";
+};
+const handleSaveClient = async (
+    clientData
+) => {
+
+    try {
+
+        if (editingClient) {
+
+            await dispatch(
+                updateClient({
+                    id: editingClient.id,
+                    ...clientData,
+                })
+            ).unwrap();
+
+            showToast(
+                "success",
+                "Client updated successfully."
+            );
+
+        } else {
+
+            await dispatch(
+                createClient(
+                    clientData
+                )
+            ).unwrap();
+
+            showToast(
+                "success",
+                "Client added successfully."
+            );
+        }
+
+        handleCloseModal();
+
+    } catch (error) {
+
+        console.error(
+            "Client save error:",
+            error
+        );
+
+        showToast(
+            "error",
+            getFriendlyErrorMessage(error)
+        );
+    }
+};
 
 
     /* =========================================================
@@ -333,48 +420,47 @@ function Clients() {
        CONFIRM DELETE
     ========================================================= */
 
-    const handleConfirmDelete =
-        async () => {
+const handleConfirmDelete =
+    async () => {
 
-            if (!clientToDelete) {
+        if (!clientToDelete) {
+            return;
+        }
 
-                return;
+        try {
 
-            }
+            await dispatch(
+                deleteClient(
+                    clientToDelete.id
+                )
+            ).unwrap();
 
+            setShowDeleteModal(
+                false
+            );
 
-            try {
+            setClientToDelete(
+                null
+            );
 
-                await dispatch(
+            showToast(
+                "success",
+                "Client deleted successfully."
+            );
 
-                    deleteClient(
-                        clientToDelete.id
-                    )
+        } catch (error) {
 
-                ).unwrap();
+            console.error(
+                "Client delete error:",
+                error
+            );
 
-
-                setShowDeleteModal(
-                    false
-                );
-
-
-                setClientToDelete(
-                    null
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    "Client delete error:",
-                    error
-                );
-
-            }
-
-        };
-
+            showToast(
+                "error",
+                getFriendlyErrorMessage(error)
+            );
+        }
+    };
 
     /* =========================================================
        CANCEL DELETE
@@ -468,84 +554,84 @@ function Clients() {
    NEWEST CLIENTS SHOULD ALWAYS STAY AT THE BOTTOM
 ========================================================= */
 
-const filteredClients =
-    useMemo(() => {
+    const filteredClients =
+        useMemo(() => {
 
-        return clients
-            .filter((client) => {
+            return clients
+                .filter((client) => {
 
-                const search =
-                    searchTerm
-                        .toLowerCase()
-                        .trim();
-
-
-                const matchesSearch =
-
-                    !search ||
-
-                    client.name
-                        ?.toLowerCase()
-                        .includes(search) ||
-
-                    client.contactPerson
-                        ?.toLowerCase()
-                        .includes(search) ||
-
-                    client.countryName
-                        ?.toLowerCase()
-                        .includes(search) ||
-
-                    client.email
-                        ?.toLowerCase()
-                        .includes(search);
+                    const search =
+                        searchTerm
+                            .toLowerCase()
+                            .trim();
 
 
-                const matchesStatus =
+                    const matchesSearch =
 
-                    statusFilter ===
+                        !search ||
+
+                        client.name
+                            ?.toLowerCase()
+                            .includes(search) ||
+
+                        client.contactPerson
+                            ?.toLowerCase()
+                            .includes(search) ||
+
+                        client.countryName
+                            ?.toLowerCase()
+                            .includes(search) ||
+
+                        client.email
+                            ?.toLowerCase()
+                            .includes(search);
+
+
+                    const matchesStatus =
+
+                        statusFilter ===
                         "All statuses" ||
 
-                    client.status ===
+                        client.status ===
                         statusFilter;
 
 
-                return (
-                    matchesSearch &&
-                    matchesStatus
-                );
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
 
-            })
+                })
 
-            .sort((a, b) => {
+                .sort((a, b) => {
 
-                /*
-                 * Sort by Created At ASCENDING.
-                 *
-                 * Oldest client  -> TOP
-                 * Newest client  -> BOTTOM
-                 */
+                    /*
+                     * Sort by Created At ASCENDING.
+                     *
+                     * Oldest client  -> TOP
+                     * Newest client  -> BOTTOM
+                     */
 
-                const dateA =
-                    a.createdAt
-                        ? new Date(a.createdAt).getTime()
-                        : 0;
+                    const dateA =
+                        a.createdAt
+                            ? new Date(a.createdAt).getTime()
+                            : 0;
 
-                const dateB =
-                    b.createdAt
-                        ? new Date(b.createdAt).getTime()
-                        : 0;
+                    const dateB =
+                        b.createdAt
+                            ? new Date(b.createdAt).getTime()
+                            : 0;
 
 
-                return dateA - dateB;
+                    return dateA - dateB;
 
-            });
+                });
 
-    }, [
-        clients,
-        searchTerm,
-        statusFilter,
-    ]);
+        }, [
+            clients,
+            searchTerm,
+            statusFilter,
+        ]);
 
 
     /* =========================================================
@@ -572,171 +658,174 @@ const filteredClients =
        EXPORT CSV
     ========================================================= */
 
-/* =========================================================
-   OPEN EXPORT MODAL
-========================================================= */
+    /* =========================================================
+       OPEN EXPORT MODAL
+    ========================================================= */
 
-const handleExportCSV = () => {
+    const handleExportCSV = () => {
 
-    setExportFromDate("");
+        setExportFromDate("");
 
-    setExportToDate("");
+        setExportToDate("");
 
-    setExportStatus("");
+        setExportStatus("");
 
-    setShowExportModal(true);
+        setShowExportModal(true);
 
-};
-
-
-/* =========================================================
-   CLOSE EXPORT MODAL
-========================================================= */
-
-const handleCloseExportModal = () => {
-
-    if (exporting) {
-        return;
-    }
-
-    setShowExportModal(false);
-
-};
+    };
 
 
-/* =========================================================
-   EXPORT CLIENTS
-========================================================= */
+    /* =========================================================
+       CLOSE EXPORT MODAL
+    ========================================================= */
 
-const handleConfirmExport = async () => {
+    const handleCloseExportModal = () => {
 
-    try {
-
-        /* =====================================================
-           DATE VALIDATION
-        ===================================================== */
-
-        if (
-            exportFromDate &&
-            exportToDate &&
-            exportFromDate >
-                exportToDate
-        ) {
-
-            alert(
-                "From date cannot be later than To date."
-            );
-
+        if (exporting) {
             return;
-
         }
-
-
-        /* =====================================================
-           CALL EXPORT API
-        ===================================================== */
-
-        const result =
-            await dispatch(
-
-                exportClients({
-
-                    fromDate:
-                        exportFromDate,
-
-                    toDate:
-                        exportToDate,
-
-                    status:
-                        exportStatus,
-
-                })
-
-            ).unwrap();
-
-
-        /* =====================================================
-           DOWNLOAD EXCEL FILE
-        ===================================================== */
-
-        const blob =
-            result.blob;
-
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-
-        const link =
-            document.createElement(
-                "a"
-            );
-
-
-        link.href =
-            url;
-
-
-        /*
-            API response is Excel binary,
-            so use .xls instead of .csv.
-        */
-
-        const datePart =
-            new Date()
-                .toISOString()
-                .slice(
-                    0,
-                    10
-                );
-
-
-        link.download =
-            `clients_${datePart}.xls`;
-
-
-        document.body.appendChild(
-            link
-        );
-
-
-        link.click();
-
-
-        document.body.removeChild(
-            link
-        );
-
-
-        URL.revokeObjectURL(
-            url
-        );
-
-
-        /* =====================================================
-           CLOSE MODAL
-        ===================================================== */
 
         setShowExportModal(false);
 
+    };
 
-    } catch (error) {
 
-        console.error(
-            "Client export error:",
-            error
-        );
+    /* =========================================================
+       EXPORT CLIENTS
+    ========================================================= */
 
-        alert(
-            error ||
-            "Failed to export clients."
-        );
+    const handleConfirmExport = async () => {
 
-    }
+        try {
 
-};
+            /* =====================================================
+               DATE VALIDATION
+            ===================================================== */
+
+if (
+    exportFromDate &&
+    exportToDate &&
+    exportFromDate >
+    exportToDate
+) {
+
+    showToast(
+        "warning",
+        "From date cannot be later than To date."
+    );
+
+    return;
+}
+
+
+            /* =====================================================
+               CALL EXPORT API
+            ===================================================== */
+
+            const result =
+                await dispatch(
+
+                    exportClients({
+
+                        fromDate:
+                            exportFromDate,
+
+                        toDate:
+                            exportToDate,
+
+                        status:
+                            exportStatus,
+
+                    })
+
+                ).unwrap();
+
+
+            /* =====================================================
+               DOWNLOAD EXCEL FILE
+            ===================================================== */
+
+            const blob =
+                result.blob;
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                url;
+
+
+            /*
+                API response is Excel binary,
+                so use .xls instead of .csv.
+            */
+
+            const datePart =
+                new Date()
+                    .toISOString()
+                    .slice(
+                        0,
+                        10
+                    );
+
+
+            link.download =
+                `clients_${datePart}.xls`;
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            document.body.removeChild(
+                link
+            );
+
+
+            URL.revokeObjectURL(
+                url
+            );
+
+
+            /* =====================================================
+               CLOSE MODAL
+            ===================================================== */
+
+            setShowExportModal(false);
+            showToast(
+    "success",
+    "Clients exported successfully."
+);
+
+} catch (error) {
+
+    console.error(
+        "Client export error:",
+        error
+    );
+
+    showToast(
+        "error",
+        getFriendlyErrorMessage(error)
+    );
+
+}
+
+    };
 
 
     /* =========================================================
@@ -768,7 +857,13 @@ const handleConfirmExport = async () => {
 
     return (
 
-        <div className="clients-page">
+        <div className="clients-page page">
+                    <Toast
+            show={toast.show}
+            type={toast.type}
+            message={toast.message}
+            onClose={hideToast}
+        />
 
             <div className="clients-content">
 
@@ -777,15 +872,15 @@ const handleConfirmExport = async () => {
                     HEADER
                 ================================================= */}
 
-                <div className="clients-header">
+                <div className=" page-header">
 
                     <div>
 
-                        <h1>
+                        <h1 className="page-title">
                             Clients
                         </h1>
 
-                        <p>
+                        <p className="page-subtitle">
 
                             {clients.length} client{" "}
 
@@ -798,28 +893,28 @@ const handleConfirmExport = async () => {
                     </div>
 
 
-                    <div className="clients-header-actions">
+                    <div className="page-header-actions">
 
                         <button
-    type="button"
-    className="export-btn"
-    onClick={handleExportCSV}
-    disabled={
-        !clients.length ||
-        exporting
-    }
->
+                            // type="button"
+                            className="outline-btn"
+                            onClick={handleExportCSV}
+                            disabled={
+                                !clients.length ||
+                                exporting
+                            }
+                        >
 
-    {exporting
-        ? "Exporting..."
-        : "↓ Export CSV"}
+                            {exporting
+                                ? "Exporting..."
+                                : "↓ Export CSV"}
 
-</button>
+                        </button>
 
 
                         <button
                             type="button"
-                            className="view-end-client-btn"
+                            className="primary-btn"
                             onClick={() =>
                                 setShowEndClients(
                                     true
@@ -834,7 +929,7 @@ const handleConfirmExport = async () => {
 
                         <button
                             type="button"
-                            className="add-client-btn"
+                            className="primary-btn"
                             onClick={
                                 handleAddClient
                             }
@@ -905,7 +1000,7 @@ const handleConfirmExport = async () => {
                 <div className="clients-filter-bar">
 
 
-                    <div className="client-search-wrapper">
+                    <div className="common-search">
 
                         <input
                             type="text"
@@ -1233,7 +1328,7 @@ const handleConfirmExport = async () => {
 
                                             </td>
 
-                                           {/* =================================
+                                            {/* =================================
                                                 END CLIENT
                                             ================================= */}
 
@@ -1378,48 +1473,48 @@ const handleConfirmExport = async () => {
 
                 <Add_Edit_clients
 
-    client={
-        editingClient
-    }
+                    client={
+                        editingClient
+                    }
 
-    endClients={
-        activeEndClients
-    }
+                    endClients={
+                        activeEndClients
+                    }
 
-    countries={
-        countries
-    }
+                    countries={
+                        countries
+                    }
 
-    countriesLoading={
-        countriesLoading
-    }
+                    countriesLoading={
+                        countriesLoading
+                    }
 
-    endClientsLoading={
-        activeEndClientsLoading
-    }
+                    endClientsLoading={
+                        activeEndClientsLoading
+                    }
 
-    onClose={
-        handleCloseModal
-    }
+                    onClose={
+                        handleCloseModal
+                    }
 
-    onSave={
-        handleSaveClient
-    }
+                    onSave={
+                        handleSaveClient
+                    }
 
-    isSubmitting={
-        creating ||
-        updating
-    }
+                    isSubmitting={
+                        creating ||
+                        updating
+                    }
 
-    error={
-        error
-    }
+                    error={
+                        error
+                    }
 
-    countriesError={
-        countriesError
-    }
+                    countriesError={
+                        countriesError
+                    }
 
-/>
+                />
             )}
 
 
@@ -1452,248 +1547,248 @@ const handleConfirmExport = async () => {
     EXPORT CLIENTS MODAL
 ===================================================== */}
 
-{showExportModal && (
+            {showExportModal && (
 
-    <div
-        className="export-modal-overlay"
-        onMouseDown={(e) => {
+                <div
+                    className="export-modal-overlay"
+                    onMouseDown={(e) => {
 
-            if (
-                e.target ===
-                    e.currentTarget &&
-                !exporting
-            ) {
+                        if (
+                            e.target ===
+                            e.currentTarget &&
+                            !exporting
+                        ) {
 
-                handleCloseExportModal();
+                            handleCloseExportModal();
 
-            }
+                        }
 
-        }}
-    >
-
-        <div
-            className="export-modal"
-            onMouseDown={(e) =>
-                e.stopPropagation()
-            }
-        >
-
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
-            <div className="export-modal-header">
-
-                <div>
-
-                    <h2>
-                        Export Clients
-                    </h2>
-
-                    <p>
-                        Choose optional filters
-                        for your export
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    className="export-modal-close"
-                    onClick={
-                        handleCloseExportModal
-                    }
-                    disabled={exporting}
+                    }}
                 >
 
-                    ×
-
-                </button>
-
-            </div>
-
-
-            {/* =================================================
-                BODY
-            ================================================= */}
-
-            <div className="export-modal-body">
-
-
-                {/* =================================================
-                    DATE RANGE
-                ================================================= */}
-
-                <div className="export-date-row">
-
-
-                    {/* FROM DATE */}
-
-                    <div className="export-form-group">
-
-                        <label>
-                            From date
-                        </label>
-
-                        <input
-                            type="date"
-                            value={
-                                exportFromDate
-                            }
-                            onChange={(e) =>
-                                setExportFromDate(
-                                    e.target.value
-                                )
-                            }
-                            disabled={
-                                exporting
-                            }
-                        />
-
-                    </div>
-
-
-                    {/* TO DATE */}
-
-                    <div className="export-form-group">
-
-                        <label>
-                            To date
-                        </label>
-
-                        <input
-                            type="date"
-                            value={
-                                exportToDate
-                            }
-                            onChange={(e) =>
-                                setExportToDate(
-                                    e.target.value
-                                )
-                            }
-                            disabled={
-                                exporting
-                            }
-                        />
-
-                    </div>
-
-                </div>
-
-
-                {/* =================================================
-                    STATUS
-                ================================================= */}
-
-                <div className="export-form-group">
-
-                    <label>
-                        Status
-                    </label>
-
-
-                    <select
-                        value={
-                            exportStatus
-                        }
-                        onChange={(e) =>
-                            setExportStatus(
-                                e.target.value
-                            )
-                        }
-                        disabled={
-                            exporting
+                    <div
+                        className="export-modal"
+                        onMouseDown={(e) =>
+                            e.stopPropagation()
                         }
                     >
 
-                        <option value="">
-                            All statuses
-                        </option>
 
-                        <option value="Active">
-                            Active
-                        </option>
+                        {/* =================================================
+                HEADER
+            ================================================= */}
 
-                        <option value="Inactive">
-                            Inactive
-                        </option>
+                        <div className="export-modal-header">
 
-                    </select>
+                            <div>
 
-                </div>
+                                <h2>
+                                    Export Clients
+                                </h2>
+
+                                <p>
+                                    Choose optional filters
+                                    for your export
+                                </p>
+
+                            </div>
 
 
-                {/* =================================================
+                            <button
+                                type="button"
+                                className="export-modal-close"
+                                onClick={
+                                    handleCloseExportModal
+                                }
+                                disabled={exporting}
+                            >
+
+                                ×
+
+                            </button>
+
+                        </div>
+
+
+                        {/* =================================================
+                BODY
+            ================================================= */}
+
+                        <div className="export-modal-body">
+
+
+                            {/* =================================================
+                    DATE RANGE
+                ================================================= */}
+
+                            <div className="export-date-row">
+
+
+                                {/* FROM DATE */}
+
+                                <div className="export-form-group">
+
+                                    <label>
+                                        From date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        value={
+                                            exportFromDate
+                                        }
+                                        onChange={(e) =>
+                                            setExportFromDate(
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={
+                                            exporting
+                                        }
+                                    />
+
+                                </div>
+
+
+                                {/* TO DATE */}
+
+                                <div className="export-form-group">
+
+                                    <label>
+                                        To date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        value={
+                                            exportToDate
+                                        }
+                                        onChange={(e) =>
+                                            setExportToDate(
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={
+                                            exporting
+                                        }
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            {/* =================================================
+                    STATUS
+                ================================================= */}
+
+                            <div className="export-form-group">
+
+                                <label>
+                                    Status
+                                </label>
+
+
+                                <select
+                                    value={
+                                        exportStatus
+                                    }
+                                    onChange={(e) =>
+                                        setExportStatus(
+                                            e.target.value
+                                        )
+                                    }
+                                    disabled={
+                                        exporting
+                                    }
+                                >
+
+                                    <option value="">
+                                        All statuses
+                                    </option>
+
+                                    <option value="Active">
+                                        Active
+                                    </option>
+
+                                    <option value="Inactive">
+                                        Inactive
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            {/* =================================================
                     FILTER INFO
                 ================================================= */}
 
-                <div className="export-info">
+                            <div className="export-info">
 
-                    <span className="export-info-icon">
-                        i
-                    </span>
+                                <span className="export-info-icon">
+                                    i
+                                </span>
 
-                    <span>
-                        Leave all filters empty
-                        to export all clients.
-                    </span>
+                                <span>
+                                    Leave all filters empty
+                                    to export all clients.
+                                </span>
 
-                </div>
+                            </div>
 
-            </div>
+                        </div>
 
 
-            {/* =================================================
+                        {/* =================================================
                 FOOTER
             ================================================= */}
 
-            <div className="export-modal-footer">
+                        <div className="export-modal-footer">
 
 
-                <button
-                    type="button"
-                    className="export-cancel-btn"
-                    onClick={
-                        handleCloseExportModal
-                    }
-                    disabled={
-                        exporting
-                    }
-                >
+                            <button
+                                type="button"
+                                className="export-cancel-btn"
+                                onClick={
+                                    handleCloseExportModal
+                                }
+                                disabled={
+                                    exporting
+                                }
+                            >
 
-                    Cancel
+                                Cancel
 
-                </button>
-
-
-                <button
-                    type="button"
-                    className="export-submit-btn"
-                    onClick={
-                        handleConfirmExport
-                    }
-                    disabled={
-                        exporting
-                    }
-                >
-
-                    {exporting
-                        ? "Exporting..."
-                        : "Export Excel"}
-
-                </button>
+                            </button>
 
 
-            </div>
+                            <button
+                                type="button"
+                                className="export-submit-btn"
+                                onClick={
+                                    handleConfirmExport
+                                }
+                                disabled={
+                                    exporting
+                                }
+                            >
+
+                                {exporting
+                                    ? "Exporting..."
+                                    : "Export Excel"}
+
+                            </button>
 
 
-        </div>
+                        </div>
 
-    </div>
 
-)}
+                    </div>
+
+                </div>
+
+            )}
 
 
         </div>

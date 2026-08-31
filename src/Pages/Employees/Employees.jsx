@@ -1,2079 +1,872 @@
-// import {
-//     useMemo,
-//     useRef,
-//     useState,
-// } from "react";
-
-// import {
-//     useDispatch,
-//     useSelector,
-// } from "react-redux";
-
-// import "./Employees.css";
-
-// import EmployeeModal from "./EmployeeModal";
-
-// import {
-//     createEmployee,
-//     clearEmployeeError,
-// } from "../../Redux/Slice/employeeSlice";
-
-
-// const INITIAL_EMPLOYEES = [];
-
-
-// function generateEmployeeId() {
-
-//     return `EMP${Math.floor(
-//         100 + Math.random() * 900
-//     )}`;
-// }
-
-
-// function Employees() {
-
-//     const dispatch = useDispatch();
-
-
-//     /*
-//      * Redux employee state
-//      */
-//     const {
-//         isLoading,
-//         error,
-//     } = useSelector(
-//         (state) => state.employees
-//     );
-
-
-//     /*
-//      * Local employee list
-//      *
-//      * We keep this for the current UI.
-//      */
-//     const [
-//         employees,
-//         setEmployees,
-//     ] = useState(INITIAL_EMPLOYEES);
-
-
-//     const [search, setSearch] =
-//         useState("");
-
-
-//     const [showModal, setShowModal] =
-//         useState(false);
-
-
-//     const [
-//         editingEmployee,
-//         setEditingEmployee,
-//     ] = useState(null);
-
-
-//     const fileInputRef =
-//         useRef(null);
-
-
-//     /*
-//      * SEARCH
-//      */
-//     const filteredEmployees =
-//         useMemo(() => {
-
-//             const query =
-//                 search
-//                     .trim()
-//                     .toLowerCase();
-
-
-//             if (!query) {
-//                 return employees;
-//             }
-
-
-//             return employees.filter(
-//                 (employee) => [
-
-//                     employee.fullName,
-
-//                     employee.employeeId,
-
-//                     employee.employeeCode,
-
-//                     employee.designation,
-
-//                     employee.contactNumber,
-
-//                     employee.phone,
-
-//                     employee.whatsappNumber,
-
-//                     employee.whatsapp,
-
-//                     employee.officialEmail,
-
-//                     employee.personalEmail,
-
-//                 ].some((value) =>
-//                     String(value || "")
-//                         .toLowerCase()
-//                         .includes(query)
-//                 )
-//             );
-
-//         }, [
-//             employees,
-//             search,
-//         ]);
-
-
-//     /*
-//      * DESIGNATIONS
-//      */
-//     const designations =
-//         useMemo(() => {
-
-//             return [
-//                 ...new Set(
-//                     employees.map(
-//                         (employee) =>
-//                             employee.designation
-//                     )
-//                 ),
-//             ]
-//                 .filter(Boolean)
-//                 .sort();
-
-//         }, [employees]);
-
-
-//     /*
-//      * OPEN ADD
-//      */
-//     const openAddModal = () => {
-
-//         dispatch(
-//             clearEmployeeError()
-//         );
-
-//         setEditingEmployee(null);
-
-//         setShowModal(true);
-//     };
-
-
-//     /*
-//      * OPEN EDIT
-//      */
-//     const openEditModal =
-//         (employee) => {
-
-//             dispatch(
-//                 clearEmployeeError()
-//             );
-
-//             setEditingEmployee(
-//                 employee
-//             );
-
-//             setShowModal(true);
-//         };
-
-
-//     /*
-//      * CLOSE
-//      */
-//     const closeModal = () => {
-
-//         if (isLoading) {
-//             return;
-//         }
-
-//         setShowModal(false);
-
-//         setEditingEmployee(null);
-//     };
-
-
-//     /*
-//      * SAVE EMPLOYEE
-//      */
-//     const handleSaveEmployee =
-//         async (employeeData) => {
-
-//             /*
-//              * EDIT MODE
-//              *
-//              * Currently keep your
-//              * existing local edit behavior.
-//              */
-//             if (editingEmployee) {
-
-//                 setEmployees(
-//                     (current) =>
-//                         current.map(
-//                             (employee) =>
-//                                 employee.id ===
-//                                     editingEmployee.id
-//                                     ? {
-//                                         ...employee,
-//                                         ...employeeData,
-//                                     }
-//                                     : employee
-//                         )
-//                 );
-
-//                 closeModal();
-
-//                 return;
-//             }
-
-
-//             /*
-//              * CREATE MODE
-//              */
-
-
-//             /*
-//              * Convert frontend names
-//              * to backend names.
-//              */
-//             const apiEmployeeData = {
-
-//                 employeeCode:
-//                     employeeData.employeeId,
-
-//                 fullName:
-//                     employeeData.fullName,
-
-//                 designation:
-//                     employeeData.designation,
-
-//                 officialEmail:
-//                     employeeData.officialEmail,
-
-//                 personalEmail:
-//                     employeeData.personalEmail,
-
-//                 phone:
-//                     employeeData.contactNumber,
-
-//                 whatsapp:
-//                     employeeData.whatsappNumber,
-
-//                 role:
-//                     employeeData.role,
-
-//                 password:
-//                     employeeData.password,
-
-//                 isActive:
-//                     employeeData.isActive,
-
-//                 countryCode:
-//                     employeeData.countryCode,
-//             };
-
-
-//             console.log(
-//                 "Employee API Data:",
-//                 apiEmployeeData
-//             );
-
-
-//             try {
-
-//                 /*
-//                  * CALL CREATE EMPLOYEE API
-//                  */
-//                 const response =
-//                     await dispatch(
-//                         createEmployee({
-
-//                             employeeData:
-//                                 apiEmployeeData,
-
-//                             photoFile:
-//                                 employeeData.photo,
-//                         })
-//                     ).unwrap();
-
-
-//                 console.log(
-//                     "Employee created successfully:",
-//                     response
-//                 );
-
-
-//                 /*
-//                  * Add API response
-//                  * to local table.
-//                  *
-//                  * Merge submitted values because
-//                  * API response doesn't return
-//                  * personalEmail etc.
-//                  */
-//                 const newEmployee = {
-
-//                     ...employeeData,
-
-//                     ...response,
-
-//                     /*
-//                      * Keep frontend field names
-//                      */
-//                     employeeId:
-//                         response.employeeCode ||
-//                         employeeData.employeeId,
-
-//                     contactNumber:
-//                         response.phone ||
-//                         employeeData.contactNumber,
-
-//                     whatsappNumber:
-//                         response.whatsapp ||
-//                         employeeData.whatsappNumber,
-
-//                     photo:
-//                         employeeData.photoPreview,
-
-//                     id:
-//                         response.id ||
-//                         Date.now(),
-//                 };
-
-
-//                 setEmployees(
-//                     (current) => [
-//                         ...current,
-//                         newEmployee,
-//                     ]
-//                 );
-
-
-//                 /*
-//                  * Close modal
-//                  */
-//                 closeModal();
-
-
-//                 /*
-//                  * Optional success message
-//                  */
-//                 alert(
-//                     "Employee created successfully."
-//                 );
-
-
-//             } catch (error) {
-
-//                 /*
-//                  * Redux error is already
-//                  * stored in state.
-//                  */
-//                 console.error(
-//                     "Create employee failed:",
-//                     error
-//                 );
-//             }
-//         };
-
-
-//     /*
-//      * DELETE
-//      *
-//      * This is still local because
-//      * you haven't provided DELETE API yet.
-//      */
-//     const deleteEmployee =
-//         (id) => {
-
-//             const employee =
-//                 employees.find(
-//                     (currentEmployee) =>
-//                         currentEmployee.id === id
-//                 );
-
-
-//             if (!employee) {
-//                 return;
-//             }
-
-
-//             const confirmed =
-//                 window.confirm(
-//                     `Delete ${employee.fullName} from the employee directory?`
-//                 );
-
-
-//             if (!confirmed) {
-//                 return;
-//             }
-
-
-//             setEmployees(
-//                 (current) =>
-//                     current.filter(
-//                         (employee) =>
-//                             employee.id !== id
-//                     )
-//             );
-//         };
-
-
-//     /*
-//      * EXPORT CSV
-//      */
-//     const exportCsv = () => {
-
-//         if (employees.length === 0) {
-
-//             alert(
-//                 "There are no employees to export."
-//             );
-
-//             return;
-//         }
-
-
-//         const headers = [
-
-//             "Full Name",
-
-//             "Employee ID",
-
-//             "Designation",
-
-//             "Contact Number",
-
-//             "WhatsApp Number",
-
-//             "Official Email",
-
-//             "Personal Email",
-
-//         ];
-
-
-//         const rows =
-//             employees.map(
-//                 (employee) => [
-
-//                     employee.fullName,
-
-//                     employee.employeeId,
-
-//                     employee.designation,
-
-//                     employee.contactNumber,
-
-//                     employee.whatsappNumber,
-
-//                     employee.officialEmail,
-
-//                     employee.personalEmail,
-
-//                 ]
-//             );
-
-
-//         const csvContent = [
-
-//             headers,
-
-//             ...rows,
-
-//         ]
-
-//             .map((row) =>
-//                 row
-//                     .map(
-//                         (value) =>
-//                             `"${String(
-//                                 value || ""
-//                             ).replace(
-//                                 /"/g,
-//                                 '""'
-//                             )}"`
-//                     )
-//                     .join(",")
-//             )
-
-//             .join("\n");
-
-
-//         const blob =
-//             new Blob(
-//                 [csvContent],
-//                 {
-//                     type:
-//                         "text/csv;charset=utf-8;",
-//                 }
-//             );
-
-
-//         const url =
-//             URL.createObjectURL(
-//                 blob
-//             );
-
-
-//         const link =
-//             document.createElement(
-//                 "a"
-//             );
-
-
-//         link.href = url;
-
-//         link.download =
-//             "troy-employees.csv";
-
-
-//         document.body.appendChild(
-//             link
-//         );
-
-//         link.click();
-
-//         link.remove();
-
-
-//         URL.revokeObjectURL(
-//             url
-//         );
-//     };
-
-
-//     /*
-//      * INITIALS
-//      */
-//     const initials = (name) => {
-
-//         if (!name) {
-//             return "T";
-//         }
-
-
-//         return name
-//             .split(" ")
-//             .filter(Boolean)
-//             .slice(0, 2)
-//             .map(
-//                 (part) =>
-//                     part[0]
-//             )
-//             .join("")
-//             .toUpperCase();
-//     };
-
-
-//     return (
-
-//         <div className="employees-page">
-
-//             <div className="employees-content">
-
-
-//                 {/* HEADER */}
-
-//                 <div className="employees-header">
-
-//                     <div>
-
-//                         <h1>
-//                             Troy Employees
-//                         </h1>
-
-//                         <p>
-
-//                             {employees.length}{" "}
-
-//                             {employees.length === 1
-//                                 ? "team member"
-//                                 : "team members"}
-
-//                         </p>
-
-//                     </div>
-
-
-//                     <div className="employees-header-actions">
-
-//                         <button
-//                             type="button"
-//                             className="employee-export-btn"
-//                             onClick={
-//                                 exportCsv
-//                             }
-//                         >
-
-//                             <i className="bi bi-download"></i>
-
-//                             Export CSV
-
-//                         </button>
-
-
-//                         <button
-//                             type="button"
-//                             className="employee-add-btn"
-//                             onClick={
-//                                 openAddModal
-//                             }
-//                         >
-
-//                             <i className="bi bi-plus-lg"></i>
-
-//                             Add employee
-
-//                         </button>
-
-//                     </div>
-
-//                 </div>
-
-
-//                 {/* ERROR FROM API */}
-
-//                 {error && (
-
-//                     <div className="employee-api-error">
-
-//                         {error}
-
-//                     </div>
-//                 )}
-
-
-//                 {/* STATS */}
-
-//                 <div className="employee-stats">
-
-//                     <div className="employee-stat-card">
-
-//                         <div className="employee-stat-value">
-
-//                             {employees.length}
-
-//                         </div>
-
-//                         <div className="employee-stat-label">
-
-//                             Total
-
-//                         </div>
-
-//                     </div>
-
-
-//                     <div className="employee-stat-card">
-
-//                         <div className="employee-stat-value">
-
-//                             {designations.length}
-
-//                         </div>
-
-//                         <div className="employee-stat-label">
-
-//                             Designations
-
-//                         </div>
-
-//                     </div>
-
-//                 </div>
-
-
-//                 {/* SEARCH */}
-
-//                 <div className="employee-search-wrapper">
-
-//                     <i className="bi bi-search"></i>
-
-//                     <input
-//                         type="text"
-//                         value={search}
-//                         onChange={(event) =>
-//                             setSearch(
-//                                 event.target.value
-//                             )
-//                         }
-//                         placeholder="Search name, ID, designation, email..."
-//                     />
-
-//                 </div>
-
-
-//                 {/* TABLE */}
-
-//                 {filteredEmployees.length > 0 ? (
-
-//                     <div className="employees-table-wrapper">
-
-//                         <table className="employees-table">
-
-//                             <thead>
-
-//                                 <tr>
-
-//                                     <th>
-//                                         EMPLOYEE
-//                                     </th>
-
-//                                     <th>
-//                                         EMP ID
-//                                     </th>
-
-//                                     <th>
-//                                         DESIGNATION
-//                                     </th>
-
-//                                     <th>
-//                                         CONTACT
-//                                     </th>
-
-//                                     <th>
-//                                         OFFICIAL EMAIL
-//                                     </th>
-
-//                                     <th>
-//                                         ACTIONS
-//                                     </th>
-
-//                                 </tr>
-
-//                             </thead>
-
-
-//                             <tbody>
-
-//                                 {filteredEmployees.map(
-//                                     (employee) => (
-
-//                                         <tr
-//                                             key={
-//                                                 employee.id
-//                                             }
-//                                         >
-
-//                                             {/* EMPLOYEE */}
-
-//                                             <td>
-
-//                                                 <div className="employee-person">
-
-//                                                     {employee.photo ? (
-
-//                                                         <img
-//                                                             src={
-//                                                                 employee.photo
-//                                                             }
-//                                                             alt={
-//                                                                 employee.fullName
-//                                                             }
-//                                                             className="employee-avatar employee-avatar-image"
-//                                                         />
-
-//                                                     ) : (
-
-//                                                         <div className="employee-avatar">
-
-//                                                             {initials(
-//                                                                 employee.fullName
-//                                                             )}
-
-//                                                         </div>
-//                                                     )}
-
-
-//                                                     <div className="employee-person-info">
-
-//                                                         <strong>
-
-//                                                             {
-//                                                                 employee.fullName
-//                                                             }
-
-//                                                         </strong>
-
-
-//                                                         <span>
-
-//                                                             {
-//                                                                 employee.personalEmail ||
-//                                                                 "—"
-//                                                             }
-
-//                                                         </span>
-
-//                                                     </div>
-
-//                                                 </div>
-
-//                                             </td>
-
-
-//                                             {/* EMPLOYEE ID */}
-
-//                                             <td>
-
-//                                                 <span className="employee-id">
-
-//                                                     {
-//                                                         employee.employeeId ||
-//                                                         employee.employeeCode
-//                                                     }
-
-//                                                 </span>
-
-//                                             </td>
-
-
-//                                             {/* DESIGNATION */}
-
-//                                             <td>
-
-//                                                 <span className="designation-text">
-
-//                                                     {
-//                                                         employee.designation
-//                                                     }
-
-//                                                 </span>
-
-//                                             </td>
-
-
-//                                             {/* CONTACT */}
-
-//                                             <td>
-
-//                                                 <div className="employee-contact">
-
-//                                                     <span>
-
-//                                                         {
-//                                                             employee.contactNumber ||
-//                                                             employee.phone
-//                                                         }
-
-//                                                     </span>
-
-
-//                                                     <div className="employee-comms">
-
-//                                                         <a
-//                                                             href={`tel:${
-//                                                                 employee.contactNumber ||
-//                                                                 employee.phone
-//                                                             }`}
-//                                                             title="Call"
-//                                                         >
-
-//                                                             <i className="bi bi-telephone"></i>
-
-//                                                         </a>
-
-
-//                                                         <a
-//                                                             href={`https://wa.me/${(
-//                                                                 employee.whatsappNumber ||
-//                                                                 employee.whatsapp ||
-//                                                                 ""
-//                                                             ).replace(
-//                                                                 /[^0-9]/g,
-//                                                                 ""
-//                                                             )}`}
-//                                                             target="_blank"
-//                                                             rel="noreferrer"
-//                                                             title="WhatsApp"
-//                                                         >
-
-//                                                             <i className="bi bi-whatsapp"></i>
-
-//                                                         </a>
-
-
-//                                                         <a
-//                                                             href={`mailto:${employee.officialEmail}`}
-//                                                             title="Email"
-//                                                         >
-
-//                                                             <i className="bi bi-envelope"></i>
-
-//                                                         </a>
-
-//                                                     </div>
-
-//                                                 </div>
-
-//                                             </td>
-
-
-//                                             {/* EMAIL */}
-
-//                                             <td>
-
-//                                                 <a
-//                                                     href={`mailto:${employee.officialEmail}`}
-//                                                     className="employee-email"
-//                                                 >
-
-//                                                     {
-//                                                         employee.officialEmail
-//                                                     }
-
-//                                                 </a>
-
-//                                             </td>
-
-
-//                                             {/* ACTIONS */}
-
-//                                             <td>
-
-//                                                 <div className="employee-actions">
-
-//                                                     <button
-//                                                         type="button"
-//                                                         onClick={() =>
-//                                                             openEditModal(
-//                                                                 employee
-//                                                             )
-//                                                         }
-//                                                     >
-//                                                         Edit
-//                                                     </button>
-
-
-//                                                     <button
-//                                                         type="button"
-//                                                         className="employee-delete-action"
-//                                                         onClick={() =>
-//                                                             deleteEmployee(
-//                                                                 employee.id
-//                                                             )
-//                                                         }
-//                                                     >
-//                                                         Delete
-//                                                     </button>
-
-//                                                 </div>
-
-//                                             </td>
-
-//                                         </tr>
-
-//                                     )
-//                                 )}
-
-//                             </tbody>
-
-//                         </table>
-
-//                     </div>
-
-//                 ) : (
-
-//                     <div className="employees-empty-state">
-
-//                         <div className="empty-employee-icon">
-
-//                             <i className="bi bi-person-fill"></i>
-
-//                         </div>
-
-
-//                         <p>
-
-//                             {search
-//                                 ? "No employees found matching your search."
-//                                 : 'No employees yet. Click "+ Add employee" to add your team.'}
-
-//                         </p>
-
-//                     </div>
-//                 )}
-
-//             </div>
-
-
-//             {/* MODAL */}
-
-//             {showModal && (
-
-//                 <EmployeeModal
-//                     employee={
-//                         editingEmployee
-//                     }
-
-//                     onClose={
-//                         closeModal
-//                     }
-
-//                     onSave={
-//                         handleSaveEmployee
-//                     }
-
-//                     generateEmployeeId={
-//                         generateEmployeeId
-//                     }
-
-//                     isSubmitting={
-//                         isLoading
-//                     }
-//                 />
-//             )}
-
-//         </div>
-//     );
-// }
-
-
-// export default Employees;
-
-
-import {
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-
-import {
-    useDispatch,
-    useSelector,
-} from "react-redux";
-
+import { useEffect, useMemo, useState,} from "react";
+import { useDispatch, useSelector,} from "react-redux";
 import "./Employees.css";
-
 import EmployeeModal from "./EmployeeModal";
-
-import {
-    createEmployee,
-    getAllEmployees,
-    getEmployeeById,
-    deleteEmployee as deleteEmployeeApi,
-    clearEmployeeError,
-} from "../../Redux/Slice/employeeSlice";
-
+import RoleAssignmentModal from "./RoleAssignmentModal";
+import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import Pagination from "../../Components/Pagination";
+import { getAllEmployees, getCountries, createEmployee, updateEmployee, clearEmployeeError, deleteEmployee,} from "../../Redux/Slice/employeeSlice";
+import { getAllRoles, getEmployeeRoles, assignRoleToEmployee, removeRoleFromEmployee,} from "../../Redux/Slice/roleSlice";
+import { useNavigate } from "react-router-dom";
+import Toast from "../../Components/Toast";
 
 function generateEmployeeId() {
-
-    return `EMP${Math.floor(
-        100 + Math.random() * 900
-    )}`;
+    return `EMP${Math.floor(100 + Math.random() * 900)}`;
 }
 
-
 function Employees() {
-
+    const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { employees = [], countries = [], isLoading, isSaving, deleteLoading, countriesLoading, error,} = useSelector((state) =>state.employees);
+    const {roles = [],} = useSelector((state) =>state.role || {});
 
+    const [ search, setSearch,] = useState("");
+    const [ statusFilter, setStatusFilter] = useState("all");
+    const [ currentPage, setCurrentPage,] = useState(1);
+    const [ showModal, setShowModal,] = useState(false);
+    const [ editingEmployee, setEditingEmployee,] = useState(null);
+    const [ employeeRoleMap, setEmployeeRoleMap,] = useState({});
+    const [ showRoleAssignmentModal, setShowRoleAssignmentModal,] = useState(false);
+    const [ selectedEmployeeForRole, setSelectedEmployeeForRole,] = useState(null);
+    const [ roleAssignmentLoading, setRoleAssignmentLoading,] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [employeeToDelete, setEmployeeToDelete] = useState(null);
+const [toast, setToast] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
+const showToast = (message, type = "success") => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
 
-    /*
-     * =========================================================
-     * REDUX STATE
-     * =========================================================
-     */
-    const {
-        employees,
-        isLoading,
-        isFetching,
-        isDeleting,
-        error,
-    } = useSelector(
-        (state) => state.employees
-    );
+    const employeesPerPage = 10;
 
-
-    /*
-     * =========================================================
-     * LOCAL UI STATE
-     * =========================================================
-     */
-    const [search, setSearch] =
-        useState("");
-
-    const [showModal, setShowModal] =
-        useState(false);
-
-    const [
-        editingEmployee,
-        setEditingEmployee,
-    ] = useState(null);
-
-
-    /*
-     * =========================================================
-     * GET ALL EMPLOYEES
-     *
-     * Runs when page opens.
-     * =========================================================
-     */
     useEffect(() => {
-
-        dispatch(
-            getAllEmployees()
-        );
-
+        dispatch(getAllEmployees());
+        dispatch(getCountries());
+        dispatch(getAllRoles());
     }, [dispatch]);
 
+    useEffect(() => {setCurrentPage(1);}, [ search, statusFilter]);
 
-    /*
-     * =========================================================
-     * SEARCH
-     * =========================================================
-     */
+
     const filteredEmployees =
         useMemo(() => {
-
-            const query =
-                search
-                    .trim()
-                    .toLowerCase();
-
-
-            if (!query) {
-                return employees;
-            }
-
+            const query = search.trim().toLowerCase();
 
             return employees.filter(
-                (employee) => [
+                (employee) => {
 
-                    employee.fullName,
+                    const matchesStatus =   statusFilter === "all" ||
+                                            ( statusFilter === "active" && employee.active === true) ||
+                                            ( statusFilter === "inactive" && employee.active === false);
 
-                    employee.employeeId,
+                    if (!matchesStatus) {return false;}
+                    if (!query) {return true;}
 
-                    employee.employeeCode,
-
-                    employee.designation,
-
-                    employee.contactNumber,
-
-                    employee.phone,
-
-                    employee.whatsappNumber,
-
-                    employee.whatsapp,
-
-                    employee.officialEmail,
-
-                    employee.personalEmail,
-
-                ].some((value) =>
-                    String(value || "")
-                        .toLowerCase()
-                        .includes(query)
-                )
+                    return [
+                        employee.employeeCode,
+                        employee.fullName,
+                        employee.designation,
+                        employee.phone,
+                        employee.whatsapp,
+                        employee.officialEmail,
+                        employee.personalEmail,
+                        employee.country?.name,
+                        employee.country?.code,
+                        employee.active? "active": "inactive",
+                    ].some((value) => String(value || "").toLowerCase().includes(query));
+                }
             );
 
-        }, [
-            employees,
-            search,
-        ]);
+        }, [employees,search,statusFilter,]);
 
 
-    /*
-     * =========================================================
-     * DESIGNATIONS
-     * =========================================================
-     */
+    const totalPages = Math.ceil(filteredEmployees.length /employeesPerPage);
+
+
+    const paginatedEmployees =
+        useMemo(() => {
+            const startIndex = (currentPage - 1) * employeesPerPage;
+            const endIndex = startIndex + employeesPerPage;
+            return filteredEmployees.slice( startIndex, endIndex);
+        }, [ filteredEmployees, currentPage, employeesPerPage,]);
+
+
     const designations =
         useMemo(() => {
 
             return [
                 ...new Set(
-                    employees.map(
-                        (employee) =>
-                            employee.designation
-                    )
+                    employees
+                        .map(
+                            (employee) =>
+                                employee.designation
+                        )
                 ),
             ]
                 .filter(Boolean)
                 .sort();
 
-        }, [employees]);
+        }, [
+            employees,
+        ]);
 
 
-    /*
-     * =========================================================
-     * OPEN ADD MODAL
-     * =========================================================
-     */
+    const activeEmployees =
+        useMemo(() => {
+
+            return employees.filter(
+                (employee) =>
+                    employee.active === true
+            ).length;
+
+        }, [
+            employees,
+        ]);
+
+
+    const inactiveEmployees =
+        useMemo(() => {
+
+            return employees.filter(
+                (employee) =>
+                    employee.active === false
+            ).length;
+
+        }, [
+            employees,
+        ]);
+
     const openAddModal = () => {
 
         dispatch(
             clearEmployeeError()
         );
 
-        setEditingEmployee(null);
-
-        setShowModal(true);
-    };
-
-
-    /*
-     * =========================================================
-     * OPEN EDIT MODAL
-     *
-     * First call GET BY ID.
-     * =========================================================
-     */
-    const openEditModal = async (employee) => {
-
-        dispatch(
-            clearEmployeeError()
+        setEditingEmployee(
+            null
         );
 
-        try {
-
-            const response =
-                await dispatch(
-                    getEmployeeById(
-                        employee.id
-                    )
-                ).unwrap();
+        setShowModal(
+            true
+        );
+    };
 
 
-            console.log(
-                "Employee By ID:",
-                response
+    const openEditModal =
+        (employee) => {
+
+            dispatch(
+                clearEmployeeError()
             );
-
-
-            /*
-             * Backend response uses:
-             *
-             * employeeCode
-             * phone
-             * whatsapp
-             *
-             * Frontend modal uses:
-             *
-             * employeeId
-             * contactNumber
-             * whatsappNumber
-             */
-            const employeeForModal = {
-
-                ...employee,
-
-                ...response,
-
-                id:
-                    response.id ||
-                    employee.id,
-
-                employeeId:
-                    response.employeeCode ||
-                    employee.employeeId,
-
-                contactNumber:
-                    response.phone ||
-                    employee.contactNumber,
-
-                whatsappNumber:
-                    response.whatsapp ||
-                    employee.whatsappNumber,
-
-                officialEmail:
-                    response.officialEmail ||
-                    employee.officialEmail,
-
-                personalEmail:
-                    response.personalEmail ||
-                    employee.personalEmail,
-
-                photo:
-                    response.photoUrl ||
-                    employee.photo ||
-                    "",
-            };
-
 
             setEditingEmployee(
-                employeeForModal
+                employee
             );
 
-            setShowModal(true);
-
-        } catch (error) {
-
-            console.error(
-                "Unable to get employee:",
-                error
+            setShowModal(
+                true
             );
-
-            alert(
-                error ||
-                "Unable to load employee."
-            );
-        }
-    };
-
-
-    /*
-     * =========================================================
-     * CLOSE MODAL
-     * =========================================================
-     */
-    const closeModal = () => {
-
-        if (isLoading) {
-            return;
-        }
-
-        setShowModal(false);
-
-        setEditingEmployee(null);
-    };
-
-
-    /*
-     * =========================================================
-     * SAVE EMPLOYEE
-     * =========================================================
-     */
-    const handleSaveEmployee =
-        async (employeeData) => {
-
-
-        /*
-         * =====================================================
-         * EDIT
-         *
-         * No UPDATE API was provided yet.
-         * =====================================================
-         */
-        if (editingEmployee) {
-
-            alert(
-                "Employee update API is not available yet."
-            );
-
-            return;
-        }
-
-
-        /*
-         * =====================================================
-         * CREATE
-         * =====================================================
-         */
-        const apiEmployeeData = {
-
-            employeeCode:
-                employeeData.employeeId,
-
-            fullName:
-                employeeData.fullName,
-
-            designation:
-                employeeData.designation,
-
-            officialEmail:
-                employeeData.officialEmail,
-
-            personalEmail:
-                employeeData.personalEmail,
-
-            phone:
-                employeeData.contactNumber,
-
-            whatsapp:
-                employeeData.whatsappNumber,
-
-            role:
-                employeeData.role,
-
-            password:
-                employeeData.password,
-
-            isActive:
-                employeeData.isActive,
-
-            countryCode:
-                employeeData.countryCode,
         };
 
 
-        console.log(
-            "Employee API Data:",
-            apiEmployeeData
+    const closeModal = () => {
+
+        if (isSaving) {
+            return;
+        }
+
+        setShowModal(
+            false
         );
 
-
-        try {
-
-            /*
-             * Create API
-             */
-            const response =
-                await dispatch(
-                    createEmployee({
-
-                        employeeData:
-                            apiEmployeeData,
-
-                        photoFile:
-    employeeData.photo ||
-    null,
-
-                    })
-                ).unwrap();
-
-
-            console.log(
-                "Employee created successfully:",
-                response
-            );
-
-
-            /*
-             * Close modal
-             */
-            closeModal();
-
-
-            /*
-             * Reload from backend.
-             *
-             * This is better than manually adding
-             * the response because GET ALL gives
-             * us the actual backend list.
-             */
-            dispatch(
-                getAllEmployees()
-            );
-
-
-            alert(
-                "Employee created successfully."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Create employee failed:",
-                error
-            );
-        }
+        setEditingEmployee(
+            null
+        );
     };
 
 
-    /*
-     * =========================================================
-     * DELETE EMPLOYEE
-     * =========================================================
-     */
-    const handleDeleteEmployee =
-        async (employee) => {
+    const handleSaveEmployee =
+        async (
+            employeeData
+        ) => {
 
-        if (!employee?.id) {
+            try {
 
-            alert(
-                "Employee ID not found."
+                if (editingEmployee) {
+
+                    const updateData = {};
+
+                    if (
+                        employeeData.employeeId !== undefined &&
+                        employeeData.employeeId !== null &&
+                        employeeData.employeeId.trim() !== ""
+                    ) {
+
+                        updateData.employeeCode =
+                            employeeData.employeeId.trim();
+                    }
+
+
+                    if (
+                        employeeData.fullName !== undefined &&
+                        employeeData.fullName !== null &&
+                        employeeData.fullName.trim() !== ""
+                    ) {
+
+                        updateData.fullName =
+                            employeeData.fullName.trim();
+                    }
+
+
+                    if (
+                        employeeData.designation !== undefined &&
+                        employeeData.designation !== null &&
+                        employeeData.designation.trim() !== ""
+                    ) {
+
+                        updateData.designation =
+                            employeeData.designation.trim();
+                    }
+
+
+                    if (
+                        employeeData.officialEmail !== undefined &&
+                        employeeData.officialEmail !== null &&
+                        employeeData.officialEmail.trim() !== ""
+                    ) {
+
+                        updateData.officialEmail =
+                            employeeData.officialEmail.trim();
+                    }
+
+
+                    if (
+                        employeeData.personalEmail !== undefined &&
+                        employeeData.personalEmail !== null &&
+                        employeeData.personalEmail.trim() !== ""
+                    ) {
+
+                        updateData.personalEmail =
+                            employeeData.personalEmail.trim();
+                    }
+
+
+                    if (
+                        employeeData.contactNumber !== undefined &&
+                        employeeData.contactNumber !== null &&
+                        employeeData.contactNumber.trim() !== ""
+                    ) {
+
+                        updateData.phone =
+                            employeeData.contactNumber.trim();
+                    }
+
+
+                    if (
+                        employeeData.whatsappNumber !== undefined &&
+                        employeeData.whatsappNumber !== null &&
+                        employeeData.whatsappNumber.trim() !== ""
+                    ) {
+
+                        updateData.whatsapp =
+                            employeeData.whatsappNumber.trim();
+                    }
+
+
+                    if (
+                        employeeData.role !== undefined &&
+                        employeeData.role !== null &&
+                        employeeData.role.trim() !== ""
+                    ) {
+
+                        updateData.role =
+                            employeeData.role.trim();
+                    }
+
+
+                    if (
+                        employeeData.countryCode !== undefined &&
+                        employeeData.countryCode !== null &&
+                        employeeData.countryCode !== ""
+                    ) {
+
+                        updateData.countryCode =
+                            employeeData.countryCode;
+                    }
+
+
+                    if (
+                        employeeData.isActive !== undefined &&
+                        employeeData.isActive !== null
+                    ) {
+
+                        updateData.active =
+                            employeeData.isActive;
+                    }
+
+
+                    if (
+                        employeeData.password !== undefined &&
+                        employeeData.password !== null &&
+                        employeeData.password.trim() !== ""
+                    ) {
+
+                        updateData.password =
+                            employeeData.password.trim();
+                    }
+
+
+                    console.log(
+                        "UPDATE EMPLOYEE PAYLOAD:",
+                        updateData
+                    );
+
+await dispatch(
+    updateEmployee({
+        id: editingEmployee.id,
+        employeeData: updateData,
+    })
+).unwrap();
+
+closeModal();
+
+showToast(
+    `${employeeData.fullName.trim()} updated successfully.`
+);
+
+return;
+                }
+
+
+                const apiEmployeeData = {
+
+                    employeeCode:
+                        employeeData.employeeId,
+
+                    fullName:
+                        employeeData.fullName,
+
+                    designation:
+                        employeeData.designation,
+
+                    officialEmail:
+                        employeeData.officialEmail,
+
+                    personalEmail:
+                        employeeData.personalEmail,
+
+                    phone:
+                        employeeData.contactNumber,
+
+                    whatsapp:
+                        employeeData.whatsappNumber,
+
+                    role:
+                        employeeData.role,
+
+                    password:
+                        employeeData.password,
+
+                    countryCode:
+                        employeeData.countryCode,
+
+                    isActive:
+                        employeeData.isActive,
+                };
+
+
+                console.log(
+                    "Create Employee:",
+                    apiEmployeeData
+                );
+
+
+await dispatch(
+    createEmployee({
+        employeeData: apiEmployeeData,
+        photoFile: employeeData.photo,
+    })
+).unwrap();
+
+closeModal();
+
+showToast(
+    `${employeeData.fullName} added successfully.`
+);
+
+dispatch(
+    getAllEmployees()
+);
+} catch (error) {
+
+    console.error(
+        "Employee save failed:",
+        error
+    );
+
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to save employee.",
+        "error"
+    );
+}
+        };
+
+
+const openDeleteModal = (employee) => {
+
+    setEmployeeToDelete(employee);
+
+    setShowDeleteModal(true);
+};
+
+
+const closeDeleteModal = () => {
+
+    if (deleteLoading) {
+        return;
+    }
+
+    setShowDeleteModal(false);
+
+    setEmployeeToDelete(null);
+};
+
+
+const handleDeleteEmployee = async () => {
+
+    if (!employeeToDelete?.id) {
+        return;
+    }
+
+    try {
+await dispatch(
+    deleteEmployee(
+        employeeToDelete.id
+    )
+).unwrap();
+
+const deletedEmployeeName =
+    employeeToDelete.fullName;
+
+closeDeleteModal();
+
+showToast(
+    `${deletedEmployeeName} deleted successfully.`
+);
+
+dispatch(
+    getAllEmployees()
+);
+
+} catch (error) {
+
+    console.error(
+        "Employee delete failed:",
+        error
+    );
+
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to delete employee.",
+        "error"
+    );
+}
+};
+
+    const openRoleAssignmentModal =
+        (employee) => {
+            setSelectedEmployeeForRole(
+                employee
+            );
+            setShowRoleAssignmentModal(
+                true
+            );
+        };
+
+
+    const closeRoleAssignmentModal =
+        () => {
+
+            if (roleAssignmentLoading) {
+                return;
+            }
+
+            setShowRoleAssignmentModal(
+                false
             );
 
-            return;
-        }
+            setSelectedEmployeeForRole(
+                null
+            );
+        };
 
+    const handleAssignRoles =
+        async (
+            selectedRoleIds
+        ) => {
 
-        const confirmed =
-            window.confirm(
-                `Delete ${employee.fullName} from the employee directory?`
+            if (
+                !selectedEmployeeForRole?.id ||
+                !selectedRoleIds?.length
+            ) {
+                return;
+            }
+
+            setRoleAssignmentLoading(
+                true
             );
 
+            try {
 
-        if (!confirmed) {
-            return;
-        }
+                await Promise.all(
+                    selectedRoleIds.map(
+                        (roleId) =>
+                            dispatch(
+                                assignRoleToEmployee({
+                                    employeeId:
+                                        selectedEmployeeForRole.id,
 
-
-        try {
-
-            await dispatch(
-                deleteEmployeeApi(
-                    employee.id
-                )
-            ).unwrap();
-
-
-            alert(
-                "Employee deleted successfully."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Delete employee failed:",
-                error
-            );
-
-            alert(
-                error ||
-                "Unable to delete employee."
-            );
-        }
-    };
+                                    roleId:
+                                        roleId,
+                                })
+                            ).unwrap()
+                    )
+                );
+                const result =
+                    await dispatch(
+                        getEmployeeRoles(
+                            selectedEmployeeForRole.id
+                        )
+                    ).unwrap();
 
 
-    /*
-     * =========================================================
-     * EXPORT CSV
-     * =========================================================
-     */
+                const updatedRoles =
+                    Array.isArray(result)
+                        ? result
+                        : Array.isArray(
+                            result?.roles
+                        )
+                            ? result.roles
+                            : Array.isArray(
+                                result?.data
+                            )
+                                ? result.data
+                                : [];
+
+
+setEmployeeRoleMap(
+    (previous) => ({
+        ...previous,
+
+        [
+            selectedEmployeeForRole.id
+        ]:
+            updatedRoles,
+    })
+);
+
+const employeeName =
+    selectedEmployeeForRole.fullName;
+
+closeRoleAssignmentModal();
+
+showToast(
+    `Role assigned to ${employeeName} successfully.`
+);
+} catch (error) {
+
+    console.error(
+        "Role assignment failed:",
+        error
+    );
+
+    showToast(
+        typeof error === "string"
+            ? error
+            : "Failed to assign role.",
+        "error"
+    );
+
+} finally {
+
+                setRoleAssignmentLoading(
+                    false
+                );
+            }
+        };
+
     const exportCsv = () => {
 
-        if (employees.length === 0) {
-
-            alert(
-                "There are no employees to export."
-            );
-
+        if ( employees.length === 0) {
+            alert("There are no employees to export.");
             return;
         }
 
-
         const headers = [
-
-            "Full Name",
-
             "Employee ID",
-
+            "Full Name",
             "Designation",
-
             "Contact Number",
-
             "WhatsApp Number",
-
             "Official Email",
-
             "Personal Email",
-
+            "Role",
+            "Country",
+            "Status",
         ];
 
-
-        const rows =
-            employees.map(
-                (employee) => [
-
+        const rows = employees.map( (employee) => [
+                    employee.employeeCode,
                     employee.fullName,
-
-                    employee.employeeCode ||
-                    employee.employeeId,
-
                     employee.designation,
-
-                    employee.phone ||
-                    employee.contactNumber,
-
-                    employee.whatsapp ||
-                    employee.whatsappNumber,
-
+                    employee.phone,
+                    employee.whatsapp,
                     employee.officialEmail,
-
                     employee.personalEmail,
-
+                    employee.role,
+                    employee.country?.name,
+                    employee.active? "Active": "Inactive",
                 ]
             );
 
 
-        const csvContent = [
+        const csvContent = [headers,...rows,].map((row) => row .map( (value) =>`"${String(value || "").replace(/"/g,'""')}"` ).join(",")).join("\n");
+        const blob = new Blob( [csvContent],{type:"text/csv;charset=utf-8;",} );
 
-            headers,
-
-            ...rows,
-
-        ]
-
-            .map((row) =>
-                row
-                    .map(
-                        (value) =>
-                            `"${String(
-                                value || ""
-                            ).replace(
-                                /"/g,
-                                '""'
-                            )}"`
-                    )
-                    .join(",")
-            )
-
-            .join("\n");
-
-
-        const blob =
-            new Blob(
-                [csvContent],
-                {
-                    type:
-                        "text/csv;charset=utf-8;",
-                }
-            );
-
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-
-        const link =
-            document.createElement(
-                "a"
-            );
-
-
+        const url = URL.createObjectURL( blob );
+        const link = document.createElement("a" );
         link.href = url;
-
-        link.download =
-            "troy-employees.csv";
-
-
-        document.body.appendChild(
-            link
-        );
-
+        link.download = "troy-employees.csv";
+        document.body.appendChild(link);
         link.click();
-
         link.remove();
-
-
-        URL.revokeObjectURL(
-            url
-        );
+        URL.revokeObjectURL(url);
     };
 
 
-    /*
-     * =========================================================
-     * INITIALS
-     * =========================================================
-     */
     const initials = (name) => {
+            if (!name) {return "T";}
+            return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+        };
 
-        if (!name) {
-            return "T";
-        }
-
-
-        return name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(
-                (part) =>
-                    part[0]
-            )
-            .join("")
-            .toUpperCase();
-    };
+    const capitalizeRole = (role) => {
+            if (!role) {return "—";}
+            return (role.charAt(0).toUpperCase() + role.slice(1));
+        };
 
 
     return (
 
-        <div className="employees-page">
-
-            <div className="employees-content">
-
-
-                {/* =================================================
-                    HEADER
-                ================================================= */}
-
-                <div className="employees-header">
-
-                    <div>
-
-                        <h1>
-                            Troy Employees
-                        </h1>
-
-                        <p>
-
-                            {employees.length}{" "}
-
-                            {employees.length === 1
-                                ? "team member"
-                                : "team members"}
-
-                        </p>
-
-                    </div>
-
-
-                    <div className="employees-header-actions">
-
-                        <button
-                            type="button"
-                            className="employee-export-btn"
-                            onClick={
-                                exportCsv
-                            }
-                        >
-
-                            <i className="bi bi-download"></i>
-
-                            Export CSV
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            className="employee-add-btn"
-                            onClick={
-                                openAddModal
-                            }
-                        >
-
-                            <i className="bi bi-plus-lg"></i>
-
-                            Add employee
-
-                        </button>
-
-                    </div>
-
+        <div className="page">
+            <div className="employees-header">
+                <div>
+                    <h1> Troy Employees </h1>
+                    <p> {employees.length}{" "}
+                        {employees.length === 1? "team member": "team members"}
+                    </p>
                 </div>
 
+                <div className="employees-header-actions">
+                    <button
+                        type="button"
+                        className="employee-export-btn"
+                        onClick={exportCsv}
+                    >
+                        <i className="bi bi-download"></i> Export CSV
+                    </button>
+                    <button
+                        type="button"
+                        className="employee-add-btn"
+                        onClick={openAddModal}
+                    >
+                        <i className="bi bi-plus-lg"></i> Add employee
+                    </button>
+                </div>
+            </div>
 
-                {/* =================================================
-                    API ERROR
-                ================================================= */}
-
-                {error && (
-
-                    <div className="employee-api-error">
-
-                        {error}
-
-                    </div>
-
-                )}
-
-
-                {/* =================================================
-                    STATS
-                ================================================= */}
-
-                <div className="employee-stats">
-
-                    <div className="employee-stat-card">
-
-                        <div className="employee-stat-value">
-
-                            {employees.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Total
-
-                        </div>
-
-                    </div>
-
-
-                    <div className="employee-stat-card">
-
-                        <div className="employee-stat-value">
-
-                            {designations.length}
-
-                        </div>
-
-                        <div className="employee-stat-label">
-
-                            Designations
-
-                        </div>
-
-                    </div>
-
+            <div className="employee-stats">
+                <div className="employee-stat-card">
+                    <div className="employee-stat-value">{employees.length}</div>
+                    <div className="employee-stat-label">Total Employees</div>
                 </div>
 
+                <div className="employee-stat-card">
+                    <div className="employee-stat-value">{designations.length}</div>
+                    <div className="employee-stat-label">Designations</div>  
+                </div>
 
-                {/* =================================================
-                    SEARCH
-                ================================================= */}
+                <div className="employee-stat-card employee-stat-active">
+                    <div className="employee-stat-value">{activeEmployees}</div>
+                    <div className="employee-stat-label">Active</div>                
+                </div>
 
+                <div className="employee-stat-card employee-stat-inactive">
+                    <div className="employee-stat-value">{inactiveEmployees}</div>
+                    <div className="employee-stat-label">Inactive</div>                
+                </div>
+            </div>
+
+            <div className="employee-filters">
                 <div className="employee-search-wrapper">
-
                     <i className="bi bi-search"></i>
 
                     <input
                         type="text"
                         value={search}
-                        onChange={(event) =>
-                            setSearch(
-                                event.target.value
-                            )
-                        }
-                        placeholder="Search name, ID, designation, email..."
+                        onChange={(event) =>setSearch(    event.target.value)}
+                        placeholder="Search by ID, name, designation, email..."
                     />
-
                 </div>
 
+                <div className="employee-status-filter">
+                    <select
+                        value={statusFilter}
+                        onChange={(event) =>setStatusFilter(event.target.value)}
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
 
-                {/* =================================================
-                    LOADING
-                ================================================= */}
-
-                {isFetching && (
-
-                    <div className="employees-loading">
-
-                        Loading employees...
-
+            {isLoading ? (
+                <div className="employees-empty-state">
+                    <div className="empty-employee-icon">
+                        <i className="bi bi-arrow-repeat"></i>
                     </div>
+                    <p>Loading employees...</p>
+                </div>
 
-                )}
+            ) : filteredEmployees.length > 0 ? (
+                <div className="employees-table-wrapper">
+                    <table className="employees-table">
+                        <thead>
+                            <tr>
+                                <th>EMP ID</th>
+                                <th>EMPLOYEE</th>
+                                <th>DESIGNATION</th>
+                                <th>CONTACT</th>
+                                <th>OFFICIAL EMAIL</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
 
+                        <tbody>
 
-                {/* =================================================
-                    TABLE
-                ================================================= */}
-
-                {!isFetching &&
-                    filteredEmployees.length > 0 && (
-
-                    <div className="employees-table-wrapper">
-
-                        <table className="employees-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>
-                                        EMPLOYEE
-                                    </th>
-
-                                    <th>
-                                        EMP ID
-                                    </th>
-
-                                    <th>
-                                        DESIGNATION
-                                    </th>
-
-                                    <th>
-                                        CONTACT
-                                    </th>
-
-                                    <th>
-                                        OFFICIAL EMAIL
-                                    </th>
-
-                                    <th>
-                                        ACTIONS
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-
-                            <tbody>
-
-                                {filteredEmployees.map(
-                                    (employee) => {
-
-                                    const employeeId =
-                                        employee.id;
-
-                                    const employeeCode =
-                                        employee.employeeCode ||
-                                        employee.employeeId;
-
-                                    const phone =
-                                        employee.phone ||
-                                        employee.contactNumber ||
-                                        "";
-
-                                    const whatsapp =
-                                        employee.whatsapp ||
-                                        employee.whatsappNumber ||
-                                        "";
-
-
+                            {paginatedEmployees.map(
+                                (employee) => {
                                     return (
-
-                                        <tr
-                                            key={
-                                                employeeId
-                                            }
-                                        >
-
-                                            {/* EMPLOYEE */}
-
+                                        <tr key={ employee.id }>
                                             <td>
-
+                                                <span className="employee-id">
+                                                    { employee.employeeCode}
+                                                </span>
+                                            </td>
+                                            <td>
                                                 <div className="employee-person">
-
-                                                    {employee.photoUrl ||
-                                                    employee.photo ? (
-
-                                                        <img
-                                                            src={
-                                                                employee.photoUrl ||
-                                                                employee.photo
-                                                            }
-                                                            alt={
-                                                                employee.fullName
-                                                            }
+                                                    {employee.photoUrl ? (
+                                                        <img src={employee.photoUrl}
+                                                            alt={employee.fullName}
                                                             className="employee-avatar employee-avatar-image"
                                                         />
-
                                                     ) : (
-
                                                         <div className="employee-avatar">
-
-                                                            {initials(
-                                                                employee.fullName
-                                                            )}
-
+                                                            {initials(employee.fullName)}
                                                         </div>
-
                                                     )}
 
-
                                                     <div className="employee-person-info">
-
-                                                        <strong>
-
-                                                            {
-                                                                employee.fullName
-                                                            }
-
+                                                        <strong className="employee-name-link"
+                                                                onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
+                                                        >{employee.fullName}
                                                         </strong>
+                                                        {employee.personalEmail && (
+                                                            <a href={`mailto:${employee.personalEmail}`} 
+                                                                className="employee-personal-email"
+                                                            >
+                                                                {employee.personalEmail}
+                                                            </a>
+                                                        )}
 
-                                                        <span>
-
-                                                            {
-                                                                employee.personalEmail ||
-                                                                "—"
-                                                            }
-
+                                                        <span className={`employee-status-badge ${employee.active? "employee-status-active": "employee-status-inactive"}`}>
+                                                            <span className="employee-status-dot"></span>
+                                                            {employee.active ? "Active" : "Inactive"}
                                                         </span>
-
                                                     </div>
-
                                                 </div>
-
                                             </td>
-
-
-                                            {/* EMPLOYEE ID */}
-
                                             <td>
-
-                                                <span className="employee-id">
-
-                                                    {
-                                                        employeeCode
-                                                    }
-
-                                                </span>
-
+                                                <span className="designation-text">{ employee.designation}</span>
                                             </td>
-
-
-                                            {/* DESIGNATION */}
-
                                             <td>
-
-                                                <span className="designation-text">
-
-                                                    {
-                                                        employee.designation
-                                                    }
-
-                                                </span>
-
-                                            </td>
-
-
-                                            {/* CONTACT */}
-
-                                            <td>
-
                                                 <div className="employee-contact">
-
                                                     <span>
-
                                                         {
-                                                            phone
+                                                            employee.phone ||
+                                                            "—"
                                                         }
-
                                                     </span>
-
-
                                                     <div className="employee-comms">
+                                                        {employee.phone && (
+                                                            <a
+                                                                href={`tel:${employee.phone}`}
+                                                                title="Call"
+                                                            >
+                                                                <i className="bi bi-telephone"></i>
+                                                            </a>
+                                                        )}
+                                                        {employee.whatsapp && (
 
-                                                        <a
-                                                            href={
-                                                                `tel:${phone}`
-                                                            }
-                                                            title="Call"
-                                                        >
-
-                                                            <i className="bi bi-telephone"></i>
-
-                                                        </a>
-
-
-                                                        <a
-                                                            href={
-                                                                `https://wa.me/${whatsapp.replace(
+                                                            <a
+                                                                href={`https://wa.me/${employee.whatsapp.replace(
                                                                     /[^0-9]/g,
                                                                     ""
-                                                                )}`
-                                                            }
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            title="WhatsApp"
-                                                        >
+                                                                )}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                title="WhatsApp"
+                                                            >
 
-                                                            <i className="bi bi-whatsapp"></i>
+                                                                <i className="bi bi-whatsapp"></i>
 
-                                                        </a>
+                                                            </a>
+
+                                                        )}
 
 
-                                                        <a
-                                                            href={
-                                                                `mailto:${employee.officialEmail}`
-                                                            }
-                                                            title="Email"
-                                                        >
+                                                        {employee.officialEmail && (
 
-                                                            <i className="bi bi-envelope"></i>
+                                                            <a
+                                                                href={`mailto:${employee.officialEmail}`}
+                                                                title="Email"
+                                                            >
 
-                                                        </a>
+                                                                <i className="bi bi-envelope"></i>
+
+                                                            </a>
+
+                                                        )}
 
                                                     </div>
 
                                                 </div>
 
                                             </td>
-
-
-                                            {/* EMAIL */}
-
                                             <td>
 
                                                 <a
-                                                    href={
-                                                        `mailto:${employee.officialEmail}`
-                                                    }
+                                                    href={`mailto:${employee.officialEmail}`}
                                                     className="employee-email"
                                                 >
 
@@ -2084,129 +877,114 @@ function Employees() {
                                                 </a>
 
                                             </td>
-
-
-                                            {/* ACTIONS */}
-
                                             <td>
-
                                                 <div className="employee-actions">
-
                                                     <button
                                                         type="button"
-                                                        onClick={() =>
-                                                            openEditModal(
-                                                                employee
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            isDeleting ||
-                                                            isFetching
-                                                        }
+                                                        onClick={() =>openEditModal(employee)}
                                                     >
                                                         Edit
                                                     </button>
-
-
+<button
+    type="button"
+    className="employee-delete-action"
+    onClick={() => openDeleteModal(employee)}
+    disabled={deleteLoading}
+>
+    Delete
+</button>
                                                     <button
                                                         type="button"
-                                                        className="employee-delete-action"
-                                                        onClick={() =>
-                                                            handleDeleteEmployee(
-                                                                employee
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            isDeleting
+                                                        className="employee-assign-role-action"
+                                                        onClick={() =>openRoleAssignmentModal(employee)
                                                         }
                                                     >
-                                                        {isDeleting
-                                                            ? "Deleting..."
-                                                            : "Delete"}
+                                                        <i className="bi bi-person-plus"></i>
+
+                                                        Assign Role
                                                     </button>
-
                                                 </div>
-
                                             </td>
-
                                         </tr>
-
                                     );
+                                }
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
 
-                                })}
-
-                            </tbody>
-
-                        </table>
-
+                <div className="employees-empty-state">
+                    <div className="empty-employee-icon">
+                        <i className="bi bi-person-fill"></i>
                     </div>
-
-                )}
-
-
-                {/* =================================================
-                    EMPTY STATE
-                ================================================= */}
-
-                {!isFetching &&
-                    filteredEmployees.length === 0 && (
-
-                    <div className="employees-empty-state">
-
-                        <div className="empty-employee-icon">
-
-                            <i className="bi bi-person-fill"></i>
-
-                        </div>
-
-
-                        <p>
-
-                            {search
-                                ? "No employees found matching your search."
-                                : 'No employees yet. Click "+ Add employee" to add your team.'}
-
-                        </p>
-
-                    </div>
-
-                )}
-
-            </div>
-
-
-            {/* =================================================
-                MODAL
-            ================================================= */}
-
-            {showModal && (
-
-                <EmployeeModal
-
-                    employee={
-                        editingEmployee
-                    }
-
-                    onClose={
-                        closeModal
-                    }
-
-                    onSave={
-                        handleSaveEmployee
-                    }
-
-                    generateEmployeeId={
-                        generateEmployeeId
-                    }
-
-                    isSubmitting={
-                        isLoading
-                    }
-
-                />
+                    <p>
+                        {search? "No employees found matching your search.": 'No employees yet. Click "+ Add employee" to add your team.'}
+                    </p>
+                </div>
 
             )}
 
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredEmployees.length}
+                itemsPerPage={employeesPerPage}
+                onPageChange={setCurrentPage}
+            />
+
+            {showModal && (
+                <EmployeeModal
+                    employee={ editingEmployee}
+                    countries={ countries}
+                    countriesLoading={ countriesLoading}
+                    onClose={ closeModal}
+                    onSave={ handleSaveEmployee}
+                    generateEmployeeId={ generateEmployeeId}
+                    isSubmitting={ isSaving}
+                    error={ error}
+                    onClearError={() => dispatch(clearEmployeeError() )}
+                />
+            )}
+
+            {showRoleAssignmentModal && (
+                <RoleAssignmentModal
+                    employee={selectedEmployeeForRole}
+                    roles={roles}
+                    assignedRoles={employeeRoleMap[selectedEmployeeForRole?.id] || []}
+                    onClose={closeRoleAssignmentModal}
+                    onAssign={handleAssignRoles}
+                    isSubmitting={roleAssignmentLoading}
+                />
+            )}
+
+            {showDeleteModal && (
+    <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteEmployee}
+        title="Delete employee"
+        itemName={employeeToDelete?.fullName}
+        message={`Are you sure you want to delete ${employeeToDelete?.fullName}?`}
+        deleteText={
+            deleteLoading
+                ? "Deleting..."
+                : "Delete"
+        }
+        cancelText="Cancel"
+    />
+)}
+<Toast
+    show={toast.show}
+    type={toast.type}
+    message={toast.message}
+    onClose={() =>
+        setToast((current) => ({
+            ...current,
+            show: false,
+        }))
+    }
+/>
         </div>
     );
 }

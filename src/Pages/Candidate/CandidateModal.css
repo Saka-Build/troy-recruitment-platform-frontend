@@ -1,0 +1,441 @@
+/* =========================================================
+   CANDIDATE MODAL - LARGE
+========================================================= */
+
+.candidate-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(10, 27, 52, 0.42);
+    backdrop-filter: blur(2px);
+}
+
+/* .candidate-modal {
+    width: 100%;
+    max-width: 650px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    border: 1px solid #dce5f1;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(18, 40, 69, 0.22);
+} */
+
+.candidate-modal {
+    width: 100%;
+    max-width: 650px;
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+
+    display: flex;
+    flex-direction: column;
+
+    background: #fff;
+    border-radius: 12px;
+
+    overflow: hidden;
+}
+
+.candidate-modal-large {
+    max-width: 800px;
+}
+
+.candidate-modal-header {
+    min-height: 76px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e5ebf3;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.candidate-modal-header h2 {
+    margin: 0;
+    color: #10294c;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.candidate-modal-close {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dce5ef;
+    border-radius: 7px;
+    background: #fff;
+    color: #657993;
+    cursor: pointer;
+}
+
+.candidate-modal-close:hover {
+    background: #f3f6fa;
+}
+
+/* =========================================================
+   CANDIDATE FORM
+========================================================= */
+
+.candidate-form {
+    padding: 20px 24px 24px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.candidate-form-section {
+    margin-bottom: 28px;
+}
+
+.candidate-form-section:last-of-type {
+    margin-bottom: 20px;
+}
+
+.candidate-section-title {
+    margin: 0 0 16px 0;
+    color: #10294c;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* =========================================================
+   UPLOAD AREA
+========================================================= */
+
+.candidate-upload-area {
+    margin-bottom: 8px;
+}
+
+.candidate-upload-box {
+    padding: 16px;
+    border: 2px dashed #d6e0ec;
+    border-radius: 8px;
+    background: #fafcff;
+}
+
+.candidate-upload-label {
+    color: #3f5876;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.candidate-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid #d6e0ec;
+    border-radius: 6px;
+    background: #fff;
+    color: #3f5876;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.candidate-upload-btn:hover {
+    background: #f4f7fb;
+    border-color: #bfd0e6;
+}
+
+.candidate-upload-btn i {
+    color: #4b85f5;
+}
+
+.candidate-upload-status {
+    margin-top: 8px;
+    color: #71839d;
+    font-size: 12px;
+}
+
+.candidate-upload-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.candidate-upload-action-btn {
+    padding: 4px 12px;
+    border: 1px solid #d6e0ec;
+    border-radius: 5px;
+    background: #fff;
+    color: #536984;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.candidate-upload-action-btn:hover {
+    background: #f4f7fb;
+    border-color: #bfd0e6;
+    color: #1763e9;
+}
+
+/* =========================================================
+   CANDIDATE FORM GRID
+========================================================= */
+
+.candidate-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.candidate-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.candidate-form-group label {
+    color: #3f5876;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.candidate-form-group input,
+.candidate-form-group select,
+.candidate-form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d6e0ec;
+    border-radius: 7px;
+    outline: none;
+    background: #fff;
+    color: #203958;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.candidate-form-group input:focus,
+.candidate-form-group select:focus,
+.candidate-form-group textarea:focus {
+    border-color: #4b85f5;
+    box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.08);
+}
+
+.candidate-form-group input::placeholder,
+.candidate-form-group textarea::placeholder {
+    color: #9aa8ba;
+}
+
+.candidate-form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.candidate-form-full {
+    grid-column: 1 / -1;
+}
+
+/* =========================================================
+   RATE GROUP
+========================================================= */
+
+.candidate-rate-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.candidate-rate-select {
+    flex: 0 0 80px;
+    padding: 8px 10px;
+    border: 1px solid #d6e0ec;
+    border-radius: 7px;
+    outline: none;
+    background: #fff;
+    color: #203958;
+    font-size: 13px;
+}
+
+.candidate-rate-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d6e0ec;
+    border-radius: 7px;
+    outline: none;
+    background: #fff;
+    color: #203958;
+    font-size: 13px;
+}
+
+.candidate-rate-input:focus,
+.candidate-rate-select:focus {
+    border-color: #4b85f5;
+    box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.08);
+}
+
+/* =========================================================
+   INFO NOTE
+========================================================= */
+
+.candidate-info-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #f8fbff;
+    border: 1px solid #dce5f1;
+    border-radius: 8px;
+    margin: 20px 0 24px;
+}
+
+.candidate-info-note i {
+    color: #4b85f5;
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.candidate-info-note span {
+    color: #536984;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.candidate-info-note strong {
+    color: #203958;
+}
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.candidate-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5ebf3;
+    bottom: 0;
+    background: #fff;
+    padding-bottom: 4px;
+}
+
+.candidate-cancel-btn,
+.candidate-save-btn {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.candidate-cancel-btn {
+    border: 1px solid #d6e0ec;
+    background: #fff;
+    color: #536984;
+}
+
+.candidate-cancel-btn:hover {
+    background: #f5f7fa;
+}
+
+.candidate-save-btn {
+    border: 1px solid #2f6df6;
+    background: #2f6df6;
+    color: #fff;
+}
+
+.candidate-save-btn:hover {
+    background: #245edb;
+}
+
+/* =========================================================
+   RESPONSIVE FOR MODAL
+========================================================= */
+
+@media (max-width: 768px) {
+    .candidate-modal {
+        max-width: 100%;
+        max-height: calc(100vh - 20px);
+        margin: 10px;
+    }
+
+    .candidate-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .candidate-form-full {
+        grid-column: auto;
+    }
+
+    .candidate-rate-group {
+        flex-wrap: wrap;
+    }
+
+    .candidate-rate-select {
+        flex: 1;
+        min-width: 70px;
+    }
+
+    .candidate-rate-input {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .candidate-upload-actions {
+        flex-wrap: wrap;
+    }
+
+    .candidate-modal-header {
+        padding: 16px 18px 12px;
+    }
+
+    .candidate-form {
+        padding: 16px 18px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .candidate-modal-overlay {
+        padding: 8px;
+    }
+
+    .candidate-modal-header h2 {
+        font-size: 18px;
+    }
+
+    .candidate-section-title {
+        font-size: 14px;
+    }
+
+    .candidate-upload-box {
+        padding: 12px;
+    }
+
+    .candidate-info-note {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .candidate-modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .candidate-cancel-btn,
+    .candidate-save-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

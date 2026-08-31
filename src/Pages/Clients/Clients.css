@@ -468,7 +468,7 @@
     color: #263d5f;
 }
 
-.client-company-name {
+/* .client-company-name {
     font-size: 16px;
 
     line-height: 1.25;
@@ -478,7 +478,7 @@
     font-weight: 700;
 
     margin-bottom: 3px;
-}
+} */
 
 .client-industry {
     font-size: 13px;
@@ -489,7 +489,7 @@
    CONTACT PERSON
 ========================================================= */
 
-.client-contact-name {
+/* .client-contact-name {
     font-size: 16px;
     line-height: 1.25;
 
@@ -498,7 +498,7 @@
     font-weight: 400;
 
     margin-bottom: 6px;
-}
+} */
 
 .client-email {
     display: block;
@@ -583,11 +583,11 @@
     font-size: 14px;
 }
 
-.country-text {
+/* .country-text {
     color: #1d3557;
 
     font-size: 14px;
-}
+} */
 
 .client-status {
     display: inline-flex;
@@ -648,12 +648,8 @@
     padding: 0;
 }
 
-.edit-action {
-    color: #263e5e;
-}
-
-.delete-action {
-    color: #263e5e;
+.edit-action, .delete-action {
+    color: #49627f;
 }
 
 .edit-action:hover {
@@ -1846,11 +1842,11 @@
     gap: 2px;
 }
 
-.end-client-item {
+/* .end-client-item {
     font-size: 14px;
     color: #1d3557;
     white-space: nowrap;
-}
+} */
 
 .end-client-comma {
     color: #8899b0;

@@ -1,535 +1,3 @@
-// import { useEffect, useRef, useState } from "react";
-// import "./EmployeeModal.css";
-
-// function EmployeeModal({
-//     employee,
-//     onClose,
-//     onSave,
-//     generateEmployeeId,
-// }) {
-//     const fileInputRef = useRef(null);
-
-//     const [form, setForm] = useState({
-//         fullName: "",
-//         employeeId: "",
-//         designation: "",
-//         contactNumber: "",
-//         whatsappNumber: "",
-//         officialEmail: "",
-//         personalEmail: "",
-//         photo: "",
-//     });
-
-//     const [errors, setErrors] = useState({});
-
-//     const isEditMode = Boolean(employee);
-
-//     useEffect(() => {
-//         if (employee) {
-//             setForm({
-//                 fullName: employee.fullName || "",
-//                 employeeId: employee.employeeId || "",
-//                 designation: employee.designation || "",
-//                 contactNumber: employee.contactNumber || "",
-//                 whatsappNumber: employee.whatsappNumber || "",
-//                 officialEmail: employee.officialEmail || "",
-//                 personalEmail: employee.personalEmail || "",
-//                 photo: employee.photo || "",
-//             });
-//         } else {
-//             setForm({
-//                 fullName: "",
-//                 employeeId: generateEmployeeId(),
-//                 designation: "",
-//                 contactNumber: "",
-//                 whatsappNumber: "",
-//                 officialEmail: "",
-//                 personalEmail: "",
-//                 photo: "",
-//             });
-//         }
-
-//         setErrors({});
-//     }, [employee, generateEmployeeId]);
-
-//     const handleChange = (event) => {
-//         const { name, value } = event.target;
-
-//         setForm((current) => ({
-//             ...current,
-//             [name]: value,
-//         }));
-
-//         setErrors((current) => ({
-//             ...current,
-//             [name]: "",
-//         }));
-//     };
-
-//     const handlePhotoUpload = (event) => {
-//         const file = event.target.files?.[0];
-
-//         if (!file) return;
-
-//         const allowedTypes = [
-//             "image/jpeg",
-//             "image/png",
-//         ];
-
-//         if (!allowedTypes.includes(file.type)) {
-//             setErrors((current) => ({
-//                 ...current,
-//                 photo: "Only JPG and PNG images are allowed.",
-//             }));
-
-//             event.target.value = "";
-//             return;
-//         }
-
-//         if (file.size > 2 * 1024 * 1024) {
-//             setErrors((current) => ({
-//                 ...current,
-//                 photo: "Photo size must be less than 2 MB.",
-//             }));
-
-//             event.target.value = "";
-//             return;
-//         }
-
-//         const reader = new FileReader();
-
-//         reader.onload = (loadEvent) => {
-//             setForm((current) => ({
-//                 ...current,
-//                 photo: loadEvent.target.result,
-//             }));
-
-//             setErrors((current) => ({
-//                 ...current,
-//                 photo: "",
-//             }));
-//         };
-
-//         reader.readAsDataURL(file);
-//     };
-
-//     const removePhoto = () => {
-//         setForm((current) => ({
-//             ...current,
-//             photo: "",
-//         }));
-
-//         if (fileInputRef.current) {
-//             fileInputRef.current.value = "";
-//         }
-//     };
-
-//     const validate = () => {
-//         const newErrors = {};
-
-//         if (!form.fullName.trim()) {
-//             newErrors.fullName = "Full name is required.";
-//         }
-
-//         if (!form.employeeId.trim()) {
-//             newErrors.employeeId = "Employee ID is required.";
-//         }
-
-//         if (!form.designation.trim()) {
-//             newErrors.designation = "Designation is required.";
-//         }
-
-//         if (!form.contactNumber.trim()) {
-//             newErrors.contactNumber = "Contact number is required.";
-//         } else if (!/^[+0-9()\-\s]{7,20}$/.test(form.contactNumber)) {
-//             newErrors.contactNumber = "Enter a valid contact number.";
-//         }
-
-//         if (!form.whatsappNumber.trim()) {
-//             newErrors.whatsappNumber = "WhatsApp number is required.";
-//         } else if (!/^[+0-9()\-\s]{7,20}$/.test(form.whatsappNumber)) {
-//             newErrors.whatsappNumber = "Enter a valid WhatsApp number.";
-//         }
-
-//         if (!form.officialEmail.trim()) {
-//             newErrors.officialEmail = "Official email is required.";
-//         } else if (
-//             !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-//                 form.officialEmail
-//             )
-//         ) {
-//             newErrors.officialEmail = "Enter a valid email address.";
-//         }
-
-//         if (!form.personalEmail.trim()) {
-//             newErrors.personalEmail = "Personal email is required.";
-//         } else if (
-//             !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-//                 form.personalEmail
-//             )
-//         ) {
-//             newErrors.personalEmail = "Enter a valid email address.";
-//         }
-
-//         setErrors(newErrors);
-
-//         return Object.keys(newErrors).length === 0;
-//     };
-
-//     const handleSubmit = (event) => {
-//         event.preventDefault();
-
-//         if (!validate()) {
-//             return;
-//         }
-
-//         onSave({
-//             ...form,
-//             fullName: form.fullName.trim(),
-//             employeeId: form.employeeId.trim(),
-//             designation: form.designation.trim(),
-//             contactNumber: form.contactNumber.trim(),
-//             whatsappNumber: form.whatsappNumber.trim(),
-//             officialEmail: form.officialEmail.trim().toLowerCase(),
-//             personalEmail: form.personalEmail.trim().toLowerCase(),
-//         });
-//     };
-
-//     const initials = (name) => {
-//         if (!name) return "T";
-
-//         return name
-//             .split(" ")
-//             .filter(Boolean)
-//             .slice(0, 2)
-//             .map((part) => part[0])
-//             .join("")
-//             .toUpperCase();
-//     };
-
-//     return (
-//         <div className="employee-modal-overlay">
-
-//             <div className="employee-modal">
-
-//                 {/* =========================================
-//                     MODAL HEADER
-//                 ========================================= */}
-
-//                 <div className="employee-modal-header">
-
-//                     <h2>
-//                         {isEditMode
-//                             ? "Edit Troy employee"
-//                             : "Add Troy employee"}
-//                     </h2>
-
-//                     <button
-//                         type="button"
-//                         className="employee-modal-close"
-//                         onClick={onClose}
-//                         aria-label="Close"
-//                     >
-//                         ×
-//                     </button>
-
-//                 </div>
-
-//                 {/* =========================================
-//                     FORM
-//                 ========================================= */}
-
-//                 <form onSubmit={handleSubmit}>
-
-//                     <div className="employee-modal-body">
-
-//                         {/* PHOTO */}
-
-//                         <div className="employee-photo-section">
-
-//                             <div className="employee-photo-preview">
-
-//                                 {form.photo ? (
-
-//                                     <img
-//                                         src={form.photo}
-//                                         alt="Employee"
-//                                     />
-
-//                                 ) : (
-
-//                                     <div className="employee-photo-placeholder">
-//                                         <i className="bi bi-person-fill"></i>
-//                                     </div>
-
-//                                 )}
-
-//                             </div>
-
-//                             <div className="employee-photo-actions">
-
-//                                 <button
-//                                     type="button"
-//                                     className="upload-photo-btn"
-//                                     onClick={() =>
-//                                         fileInputRef.current?.click()
-//                                     }
-//                                 >
-//                                     <i className="bi bi-upload"></i>
-//                                     Upload photo
-//                                 </button>
-
-//                                 <span>
-//                                     JPG / PNG
-//                                 </span>
-
-//                                 {form.photo && (
-//                                     <button
-//                                         type="button"
-//                                         className="remove-photo-btn"
-//                                         onClick={removePhoto}
-//                                     >
-//                                         Remove photo
-//                                     </button>
-//                                 )}
-
-//                                 {errors.photo && (
-//                                     <small className="field-error">
-//                                         {errors.photo}
-//                                     </small>
-//                                 )}
-
-//                                 <input
-//                                     ref={fileInputRef}
-//                                     type="file"
-//                                     accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-//                                     hidden
-//                                     onChange={handlePhotoUpload}
-//                                 />
-
-//                             </div>
-
-//                         </div>
-
-//                         {/* FORM GRID */}
-
-//                         <div className="employee-form-grid">
-
-//                             {/* FULL NAME */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Full name <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="text"
-//                                     name="fullName"
-//                                     value={form.fullName}
-//                                     onChange={handleChange}
-//                                     placeholder=""
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.fullName && (
-//                                     <small className="field-error">
-//                                         {errors.fullName}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* EMPLOYEE ID */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Employee ID <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="text"
-//                                     name="employeeId"
-//                                     value={form.employeeId}
-//                                     onChange={handleChange}
-//                                     placeholder="TROY-6126"
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.employeeId && (
-//                                     <small className="field-error">
-//                                         {errors.employeeId}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* DESIGNATION */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Designation <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="text"
-//                                     name="designation"
-//                                     value={form.designation}
-//                                     onChange={handleChange}
-//                                     placeholder=""
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.designation && (
-//                                     <small className="field-error">
-//                                         {errors.designation}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* CONTACT */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Contact number <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="tel"
-//                                     name="contactNumber"
-//                                     value={form.contactNumber}
-//                                     onChange={handleChange}
-//                                     placeholder="+44..."
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.contactNumber && (
-//                                     <small className="field-error">
-//                                         {errors.contactNumber}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* WHATSAPP */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     WhatsApp number <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="tel"
-//                                     name="whatsappNumber"
-//                                     value={form.whatsappNumber}
-//                                     onChange={handleChange}
-//                                     placeholder="+44..."
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.whatsappNumber && (
-//                                     <small className="field-error">
-//                                         {errors.whatsappNumber}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* OFFICIAL EMAIL */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Official email <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="email"
-//                                     name="officialEmail"
-//                                     value={form.officialEmail}
-//                                     onChange={handleChange}
-//                                     placeholder="name@troy.com"
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.officialEmail && (
-//                                     <small className="field-error">
-//                                         {errors.officialEmail}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                             {/* PERSONAL EMAIL */}
-
-//                             <div className="employee-form-field">
-
-//                                 <label>
-//                                     Personal email <span>*</span>
-//                                 </label>
-
-//                                 <input
-//                                     type="email"
-//                                     name="personalEmail"
-//                                     value={form.personalEmail}
-//                                     onChange={handleChange}
-//                                     placeholder="name@gmail.com"
-//                                     autoComplete="off"
-//                                 />
-
-//                                 {errors.personalEmail && (
-//                                     <small className="field-error">
-//                                         {errors.personalEmail}
-//                                     </small>
-//                                 )}
-
-//                             </div>
-
-//                         </div>
-
-//                     </div>
-
-//                     {/* =========================================
-//                         FOOTER
-//                     ========================================= */}
-
-//                     <div className="employee-modal-footer">
-
-//                         <button
-//                             type="button"
-//                             className="employee-cancel-btn"
-//                             onClick={onClose}
-//                         >
-//                             Cancel
-//                         </button>
-
-//                         <button
-//                             type="submit"
-//                             className="employee-save-btn"
-//                         >
-//                             {isEditMode
-//                                 ? "Save changes"
-//                                 : "Add employee"}
-//                         </button>
-
-//                     </div>
-
-//                 </form>
-
-//             </div>
-
-//         </div>
-//     );
-// }
-
-// export default EmployeeModal;
-
-
 import {
     useEffect,
     useRef,
@@ -541,525 +9,291 @@ import "./EmployeeModal.css";
 
 function EmployeeModal({
     employee,
+    countries = [],
+    countriesLoading = false,
     onClose,
     onSave,
     generateEmployeeId,
     isSubmitting = false,
+    error = null,
+    onClearError,
 }) {
 
     const fileInputRef = useRef(null);
 
 
-    const [form, setForm] = useState({
-
-        fullName: "",
-
-        employeeId: "",
-
-        designation: "",
-
-        contactNumber: "",
-
-        whatsappNumber: "",
-
-        officialEmail: "",
-
-        personalEmail: "",
-
-        role: "admin",
-
-        password: "",
-
-        isActive: true,
-
-        countryCode: "IN",
-
-        photo: null,
-
-        photoPreview: "",
-    });
-
-
-    const [errors, setErrors] = useState({});
-
-
     const isEditMode = Boolean(employee);
 
+    const [validationError, setValidationError,] = useState("");
 
-    /*
-     * INITIALIZE FORM
-     */
+    const [
+        form,
+        setForm,
+    ] = useState({
+
+        fullName:
+            employee?.fullName ||
+            "",
+
+        employeeId:
+            employee?.employeeCode ||
+            "",
+
+        designation:
+            employee?.designation ||
+            "",
+
+        officialEmail:
+            employee?.officialEmail ||
+            "",
+
+        personalEmail:
+            employee?.personalEmail ||
+            "",
+
+        contactNumber:
+            employee?.phone ||
+            "",
+
+        whatsappNumber:
+            employee?.whatsapp ||
+            "",
+
+        role:
+            employee?.role ||
+            "admin",
+
+        password:
+            "",
+
+        countryCode:
+            employee?.country?.code ||
+            "",
+
+        isActive:
+            employee?.active ??
+            true,
+
+        photo:
+            null,
+
+        photoPreview:
+            null,
+    });
+
     useEffect(() => {
 
-        if (employee) {
+        setForm({
 
-            setForm({
+            fullName:
+                employee?.fullName ||
+                "",
 
-                fullName:
-                    employee.fullName || "",
+            employeeId:
+                employee?.employeeCode ||
+                "",
 
-                employeeId:
-                    employee.employeeId ||
-                    employee.employeeCode ||
-                    "",
+            designation:
+                employee?.designation ||
+                "",
 
-                designation:
-                    employee.designation || "",
+            officialEmail:
+                employee?.officialEmail ||
+                "",
 
-                contactNumber:
-                    employee.contactNumber ||
-                    employee.phone ||
-                    "",
+            personalEmail:
+                employee?.personalEmail ||
+                "",
 
-                whatsappNumber:
-                    employee.whatsappNumber ||
-                    employee.whatsapp ||
-                    "",
+            contactNumber:
+                employee?.phone ||
+                "",
 
-                officialEmail:
-                    employee.officialEmail || "",
+            whatsappNumber:
+                employee?.whatsapp ||
+                "",
 
-                personalEmail:
-                    employee.personalEmail || "",
+            role:
+                employee?.role ||
+                "admin",
 
-                role:
-                    employee.role || "admin",
+            password:
+                "",
 
-                password: "",
+            countryCode:
+                employee?.country?.code ||
+                "",
 
-                isActive:
-                    employee.isActive !== undefined
-                        ? employee.isActive
-                        : true,
+            isActive:
+                employee?.active ??
+                true,
 
-                countryCode:
-                    employee.countryCode || "IN",
+            photo:
+                null,
 
-                photo: null,
-
-                photoPreview:
-                    employee.photoUrl ||
-                    employee.photo ||
-                    "",
-            });
-
-        } else {
-
-            setForm({
-
-                fullName: "",
-
-                employeeId:
-                    generateEmployeeId(),
-
-                designation: "",
-
-                contactNumber: "",
-
-                whatsappNumber: "",
-
-                officialEmail: "",
-
-                personalEmail: "",
-
-                role: "admin",
-
-                password: "",
-
-                isActive: true,
-
-                countryCode: "IN",
-
-                photo: null,
-
-                photoPreview: "",
-            });
-        }
-
-        setErrors({});
+            photoPreview:
+                null,
+        });
 
     }, [
         employee,
-        generateEmployeeId,
     ]);
 
+    const handleChange =
+        (event) => {
 
-    /*
-     * HANDLE INPUT CHANGE
-     */
-    const handleChange = (event) => {
+            const {
+                name,
+                value,
+            } = event.target;
 
-        const {
-            name,
-            value,
-            type,
-            checked,
-        } = event.target;
+            // Clear errors when user starts correcting the form
+            setValidationError("");
 
+            if (onClearError) {
+                onClearError();
+            }
 
-        setForm((current) => ({
+            if (
+                name === "isActive"
+            ) {
+                setForm(
+                    (current) => ({
+                        ...current,
+                        isActive:
+                            value === "true",
+                    })
+                );
 
-            ...current,
+                return;
+            }
 
-            [name]:
-                type === "checkbox"
-                    ? checked
-                    : value,
-        }));
-
-
-        setErrors((current) => ({
-
-            ...current,
-
-            [name]: "",
-        }));
-    };
-
-
-    /*
-     * PHOTO UPLOAD
-     */
-    const handlePhotoUpload = (event) => {
-
-        const file =
-            event.target.files?.[0];
-
-
-        if (!file) {
-            return;
-        }
-
-
-        const allowedTypes = [
-
-            "image/jpeg",
-
-            "image/png",
-        ];
-
-
-        if (!allowedTypes.includes(file.type)) {
-
-            setErrors((current) => ({
-
-                ...current,
-
-                photo:
-                    "Only JPG and PNG images are allowed.",
-            }));
-
-            event.target.value = "";
-
-            return;
-        }
-
-
-        if (
-            file.size >
-            2 * 1024 * 1024
-        ) {
-
-            setErrors((current) => ({
-
-                ...current,
-
-                photo:
-                    "Photo size must be less than 2 MB.",
-            }));
-
-            event.target.value = "";
-
-            return;
-        }
-
-
-        /*
-         * Store actual File
-         */
-        setForm((current) => ({
-
-            ...current,
-
-            photo: file,
-        }));
-
-
-        /*
-         * Create preview
-         */
-        const reader =
-            new FileReader();
-
-
-        reader.onload = (loadEvent) => {
-
-            setForm((current) => ({
-
-                ...current,
-
-                photoPreview:
-                    loadEvent.target.result,
-            }));
+            setForm(
+                (current) => ({
+                    ...current,
+                    [name]:
+                        value,
+                })
+            );
         };
 
+    const handlePhotoChange =
+        (event) => {
 
-        reader.readAsDataURL(file);
-
-
-        setErrors((current) => ({
-
-            ...current,
-
-            photo: "",
-        }));
-    };
+            const file =
+                event.target.files?.[0];
 
 
-    /*
-     * REMOVE PHOTO
-     */
-    const removePhoto = () => {
+            if (!file) {
 
-        setForm((current) => ({
-
-            ...current,
-
-            photo: null,
-
-            photoPreview: "",
-        }));
+                return;
+            }
 
 
-        if (fileInputRef.current) {
-
-            fileInputRef.current.value = "";
-        }
-    };
-
-
-    /*
-     * VALIDATION
-     */
-    const validate = () => {
-
-        const newErrors = {};
+            const preview =
+                URL.createObjectURL(
+                    file
+                );
 
 
-        if (!form.fullName.trim()) {
+            setForm(
+                (current) => ({
 
-            newErrors.fullName =
-                "Full name is required.";
-        }
+                    ...current,
 
+                    photo:
+                        file,
 
-        if (!form.employeeId.trim()) {
+                    photoPreview:
+                        preview,
 
-            newErrors.employeeId =
-                "Employee code is required.";
-        }
+                })
+            );
+        };
 
+    const handleSubmit =
+        (event) => {
 
-        if (!form.designation.trim()) {
+            event.preventDefault();
 
-            newErrors.designation =
-                "Designation is required.";
-        }
+            // Clear previous errors
+            setValidationError("");
 
+            if (onClearError) {
+                onClearError();
+            }
 
-        if (!form.contactNumber.trim()) {
+            if (!form.fullName.trim()) {
 
-            newErrors.contactNumber =
-                "Contact number is required.";
+                setValidationError(
+                    "Please enter full name."
+                );
 
-        } else if (
-            !/^[+0-9()\-\s]{7,20}$/.test(
-                form.contactNumber
-            )
-        ) {
+                return;
+            }
 
-            newErrors.contactNumber =
-                "Enter a valid contact number.";
-        }
+            if (!form.employeeId.trim()) {
 
+                setValidationError(
+                    "Please enter employee ID."
+                );
 
-        if (!form.whatsappNumber.trim()) {
+                return;
+            }
 
-            newErrors.whatsappNumber =
-                "WhatsApp number is required.";
+            if (!form.designation.trim()) {
 
-        } else if (
-            !/^[+0-9()\-\s]{7,20}$/.test(
-                form.whatsappNumber
-            )
-        ) {
+                setValidationError(
+                    "Please enter designation."
+                );
 
-            newErrors.whatsappNumber =
-                "Enter a valid WhatsApp number.";
-        }
+                return;
+            }
 
+            if (!form.officialEmail.trim()) {
 
-        if (!form.officialEmail.trim()) {
+                setValidationError(
+                    "Please enter official email."
+                );
 
-            newErrors.officialEmail =
-                "Official email is required.";
+                return;
+            }
 
-        } else if (
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                form.officialEmail
-            )
-        ) {
+            if (!form.countryCode) {
 
-            newErrors.officialEmail =
-                "Enter a valid official email.";
-        }
+                setValidationError(
+                    "Please select country."
+                );
 
+                return;
+            }
 
-        if (!form.personalEmail.trim()) {
-
-            newErrors.personalEmail =
-                "Personal email is required.";
-
-        } else if (
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                form.personalEmail
-            )
-        ) {
-
-            newErrors.personalEmail =
-                "Enter a valid personal email.";
-        }
-
-
-        /*
-         * Password required only when creating
-         */
-        if (!isEditMode) {
-
-            if (!form.password.trim()) {
-
-                newErrors.password =
-                    "Password is required.";
-
-            } else if (
-                form.password.length < 8
+            if (
+                !isEditMode &&
+                !form.password
             ) {
 
-                newErrors.password =
-                    "Password must be at least 8 characters.";
+                setValidationError(
+                    "Please enter password."
+                );
+
+                return;
             }
-        }
 
+            onSave(form);
+        };
 
-        if (!form.role) {
+    const handleClose = () => {
 
-            newErrors.role =
-                "Role is required.";
-        }
-
-
-        if (!form.countryCode.trim()) {
-
-            newErrors.countryCode =
-                "Country code is required.";
-        }
-
-
-        setErrors(newErrors);
-
-
-        return (
-            Object.keys(newErrors).length === 0
-        );
-    };
-
-
-    /*
-     * SUBMIT
-     */
-    const handleSubmit = (event) => {
-
-        event.preventDefault();
-
-
-        if (!validate()) {
+        if (
+            isSubmitting
+        ) {
 
             return;
         }
 
 
-        /*
-         * Send clean data to Employees.jsx
-         */
-        onSave({
-
-            fullName:
-                form.fullName.trim(),
-
-            employeeId:
-                form.employeeId.trim(),
-
-            designation:
-                form.designation.trim(),
-
-            contactNumber:
-                form.contactNumber.trim(),
-
-            whatsappNumber:
-                form.whatsappNumber.trim(),
-
-            officialEmail:
-                form.officialEmail
-                    .trim()
-                    .toLowerCase(),
-
-            personalEmail:
-                form.personalEmail
-                    .trim()
-                    .toLowerCase(),
-
-            role:
-                form.role,
-
-            password:
-                form.password,
-
-            isActive:
-                form.isActive,
-
-            countryCode:
-                form.countryCode
-                    .trim()
-                    .toUpperCase(),
-
-            photo:
-                form.photo,
-
-            photoPreview:
-                form.photoPreview,
-        });
-    };
-
-
-    /*
-     * INITIALS
-     */
-    const initials = (name) => {
-
-        if (!name) {
-            return "T";
-        }
-
-
-        return name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(
-                (part) => part[0]
-            )
-            .join("")
-            .toUpperCase();
+        onClose();
     };
 
 
@@ -1069,41 +303,73 @@ function EmployeeModal({
 
             <div className="employee-modal">
 
-
                 {/* HEADER */}
 
                 <div className="employee-modal-header">
 
-                    <h2>
-                        {isEditMode
-                            ? "Edit Troy employee"
-                            : "Add Troy employee"}
-                    </h2>
+                    <div>
+
+                        <h2>
+
+                            {isEditMode
+                                ? "Edit Employee"
+                                : "Add Employee"}
+
+                        </h2>
+
+
+                        <p>
+
+                            {isEditMode
+                                ? "Update employee information"
+                                : "Add a new employee to the Troy team"}
+
+                        </p>
+
+                    </div>
 
 
                     <button
                         type="button"
-                        className="employee-modal-close"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        aria-label="Close"
+                        className="employee-modal-close-btn"
+                        onClick={
+                            handleClose
+                        }
+                        disabled={
+                            isSubmitting
+                        }
                     >
-                        ×
+
+                        <i className="bi bi-x-lg"></i>
+
                     </button>
 
                 </div>
 
+                {(validationError || error) && (
 
+                    <div className="employee-modal-error">
+
+                        <i className="bi bi-exclamation-circle-fill"></i>
+
+                        <span>
+                            {validationError || error}
+                        </span>
+
+                    </div>
+
+                )}
                 {/* FORM */}
 
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={
+                        handleSubmit
+                    }
                 >
 
                     <div className="employee-modal-body">
 
-
-                        {/* PHOTO */}
+                        {/* PHOTO SECTION */}
 
                         <div className="employee-photo-section">
 
@@ -1118,501 +384,641 @@ function EmployeeModal({
                                         alt="Employee"
                                     />
 
+                                ) : employee?.photoUrl ? (
+
+                                    <img
+                                        src={
+                                            employee.photoUrl
+                                        }
+                                        alt="Employee"
+                                    />
+
                                 ) : (
 
-                                    <div className="employee-photo-placeholder">
+                                    <i className="bi bi-person"></i>
 
-                                        <i className="bi bi-person-fill"></i>
-
-                                    </div>
                                 )}
 
                             </div>
 
 
-                            <div className="employee-photo-actions">
+                            <div>
 
                                 <button
                                     type="button"
-                                    className="upload-photo-btn"
+                                    className="employee-upload-btn"
                                     onClick={() =>
                                         fileInputRef.current?.click()
                                     }
-                                    disabled={isSubmitting}
+                                    disabled={
+                                        isSubmitting
+                                    }
                                 >
 
-                                    <i className="bi bi-upload"></i>
+                                    <i className="bi bi-camera"></i>
 
                                     Upload photo
 
                                 </button>
 
 
-                                <span>
-                                    JPG / PNG
-                                </span>
-
-
-                                {form.photoPreview && (
-
-                                    <button
-                                        type="button"
-                                        className="remove-photo-btn"
-                                        onClick={
-                                            removePhoto
-                                        }
-                                        disabled={
-                                            isSubmitting
-                                        }
-                                    >
-                                        Remove photo
-                                    </button>
-                                )}
-
-
-                                {errors.photo && (
-
-                                    <small className="field-error">
-                                        {errors.photo}
-                                    </small>
-                                )}
-
-
                                 <input
-                                    ref={fileInputRef}
+                                    ref={
+                                        fileInputRef
+                                    }
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                    accept="image/*"
                                     hidden
                                     onChange={
-                                        handlePhotoUpload
+                                        handlePhotoChange
                                     }
                                 />
+
+
+                                <small>
+
+                                    JPG, PNG or WEBP
+
+                                </small>
 
                             </div>
 
                         </div>
 
 
-                        {/* FORM GRID */}
-
-                        <div className="employee-form-grid">
-
-
-                            {/* FULL NAME */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Full name{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={
-                                        form.fullName
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    autoComplete="off"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.fullName && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.fullName
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* EMPLOYEE CODE */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Employee code{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="employeeId"
-                                    value={
-                                        form.employeeId
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    autoComplete="off"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.employeeId && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.employeeId
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* DESIGNATION */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Designation{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="designation"
-                                    value={
-                                        form.designation
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.designation && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.designation
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* OFFICIAL EMAIL */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Official email{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="email"
-                                    name="officialEmail"
-                                    value={
-                                        form.officialEmail
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    autoComplete="off"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.officialEmail && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.officialEmail
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* PERSONAL EMAIL */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Personal email{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="email"
-                                    name="personalEmail"
-                                    value={
-                                        form.personalEmail
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    autoComplete="off"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.personalEmail && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.personalEmail
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* PHONE */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Phone{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="tel"
-                                    name="contactNumber"
-                                    value={
-                                        form.contactNumber
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="+91..."
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.contactNumber && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.contactNumber
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* WHATSAPP */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    WhatsApp{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="tel"
-                                    name="whatsappNumber"
-                                    value={
-                                        form.whatsappNumber
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    placeholder="+91..."
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.whatsappNumber && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.whatsappNumber
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* ROLE */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Role{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <select
-                                    name="role"
-                                    value={
-                                        form.role
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                >
-
-                                    <option value="admin">
-                                        Admin
-                                    </option>
-
-                                    <option value="hr">
-                                        HR
-                                    </option>
-
-                                    <option value="recruiter">
-                                        Recruiter
-                                    </option>
-
-                                    <option value="user">
-                                        User
-                                    </option>
-
-                                </select>
-
-
-                                {errors.role && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.role
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* PASSWORD */}
-
-                            {!isEditMode && (
-
-                                <div className="employee-form-field">
+                        {isEditMode ? (
+                            <>
+                                {/* FULL NAME + EMPLOYEE ID */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Full Name
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={form.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Employee ID
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="employeeId"
+                                            value={form.employeeId}
+                                            onChange={handleChange}
+                                            placeholder="EMP001"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                {/* DESIGNATION + ROLE */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group employee-form-full-width">
+
+                                        <label>
+                                            Designation
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Recruiter"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    {/* <div className="employee-form-group">
+
+                                        <label>
+                                            Role
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="role"
+                                            value={form.role}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
+
+                                            <option value="admin">Admin</option>
+                                            <option value="recruiter">Recruiter</option>
+                                            <option value="hr">HR</option>
+
+                                        </select>
+
+                                    </div> */}
+
+                                </div>
+
+                                {/* COUNTRY + STATUS */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Country
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="countryCode"
+                                            value={form.countryCode}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || countriesLoading}
+                                        >
+
+                                            <option value="">
+                                                {countriesLoading
+                                                    ? "Loading countries..."
+                                                    : "Select country"}
+                                            </option>
+
+                                            {countries.map(
+                                                (country) => (
+
+                                                    <option
+                                                        key={country.id || country.code}
+                                                        value={country.code}
+                                                    >
+                                                        {country.name}
+                                                    </option>
+
+                                                )
+                                            )}
+
+                                        </select>
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Status
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="isActive"
+                                            value={String(form.isActive)}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
+
+                                            <option value="true">True</option>
+                                            <option value="false">False</option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                               {/* OFFICIAL EMAIL + PERSONAL EMAIL */}
+<div className="employee-form-row">
+
+    <div className="employee-form-group">
+
+        <label>
+            Official Email
+            <span>*</span>
+        </label>
+
+        <input
+            type="email"
+            name="officialEmail"
+            value={form.officialEmail}
+            onChange={handleChange}
+            placeholder="name@troy.com"
+            disabled={isSubmitting}
+        />
+
+    </div>
+
+    <div className="employee-form-group">
+
+        <label>
+            Personal Email
+        </label>
+
+        <input
+            type="email"
+            name="personalEmail"
+            value={form.personalEmail}
+            onChange={handleChange}
+            placeholder="personal@gmail.com"
+            disabled={isSubmitting}
+        />
+
+    </div>
+
+</div>
+
+
+{/* CONTACT + WHATSAPP */}
+<div className="employee-form-row">
+
+    <div className="employee-form-group">
+
+        <label>
+            Contact Number
+        </label>
+
+        <div className="employee-phone-input-wrapper">
+
+            <span className="employee-country-code">
+                +91
+            </span>
+
+            <input
+                type="text"
+                name="contactNumber"
+                value={form.contactNumber.replace(/^\+91\s*/, '')}
+                onChange={(e) => {
+
+                    const rawValue =
+                        e.target.value.replace(/\D/g, '');
+
+                    setForm((current) => ({
+                        ...current,
+                        contactNumber:
+                            rawValue
+                                ? `+91${rawValue}`
+                                : '',
+                    }));
+
+                }}
+                placeholder="Enter phone number"
+                disabled={isSubmitting}
+                className="employee-phone-input"
+            />
+
+        </div>
+
+    </div>
+
+
+    <div className="employee-form-group">
+
+        <label>
+            WhatsApp Number
+        </label>
+
+        <div className="employee-phone-input-wrapper">
+
+            <span className="employee-country-code">
+                +91
+            </span>
+
+            <input
+                type="text"
+                name="whatsappNumber"
+                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
+                onChange={(e) => {
+
+                    const rawValue =
+                        e.target.value.replace(/\D/g, '');
+
+                    setForm((current) => ({
+                        ...current,
+                        whatsappNumber:
+                            rawValue
+                                ? `+91${rawValue}`
+                                : '',
+                    }));
+
+                }}
+                placeholder="Enter WhatsApp number"
+                disabled={isSubmitting}
+                className="employee-phone-input"
+            />
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{/* PASSWORD - KEEP THIS AT THE BOTTOM */}
+<div className="employee-form-group">
+
+    <label>
+        Password
+    </label>
+
+    <input
+        type="password"
+        name="password"
+        value={form.password}
+        onChange={handleChange}
+        placeholder="Leave blank to keep current password"
+        disabled={isSubmitting}
+    />
+
+</div>
+                            </>
+
+                        ) : (
+                            /* 
+                             * ============================================================
+                             * CREATE MODE LAYOUT (ORIGINAL)
+                             * ============================================================
+                             */
+
+                            <>
+                                {/* FULL NAME + EMPLOYEE ID */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Full Name
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={form.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Employee ID
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="employeeId"
+                                            value={form.employeeId}
+                                            onChange={handleChange}
+                                            placeholder="EMP001"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                {/* DESIGNATION + ROLE */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group employee-form-full-width">
+
+                                        <label>
+                                            Designation
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Recruiter"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    {/* <div className="employee-form-group">
+
+                                        <label>
+                                            Role
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="role"
+                                            value={form.role}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting}
+                                        >
+
+                                            <option value="admin">Admin</option>
+                                            <option value="recruiter">Recruiter</option>
+                                            <option value="hr">HR</option>
+
+                                        </select>
+
+                                    </div> */}
+
+                                </div>
+
+                                {/* COUNTRY + STATUS */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Country
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="countryCode"
+                                            value={form.countryCode}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || countriesLoading}
+                                        >
+
+                                            <option value="">
+                                                {countriesLoading
+                                                    ? "Loading countries..."
+                                                    : "Select country"}
+                                            </option>
+
+                                            {countries.map(
+                                                (country) => (
+
+                                                    <option
+                                                        key={country.id || country.code}
+                                                        value={country.code}
+                                                    >
+                                                        {country.name}
+                                                    </option>
+
+                                                )
+                                            )}
+
+                                        </select>
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Status
+                                            <span>*</span>
+                                        </label>
+
+                                        <select
+                                            name="isActive"
+                                            value={String(form.isActive)}
+                                            onChange={handleChange}
+                                            disabled={isSubmitting || !isEditMode}
+                                        >
+
+                                            <option value="true">True</option>
+                                            <option value="false">False</option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                                {/* OFFICIAL EMAIL + PERSONAL EMAIL */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Official Email
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            name="officialEmail"
+                                            value={form.officialEmail}
+                                            onChange={handleChange}
+                                            placeholder="name@troy.com"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Personal Email
+                                            <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            name="personalEmail"
+                                            value={form.personalEmail}
+                                            onChange={handleChange}
+                                            placeholder="personal@gmail.com"
+                                            disabled={isSubmitting}
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                {/* CONTACT + WHATSAPP */}
+                                <div className="employee-form-row">
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            Contact Number
+                                        </label>
+
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="contactNumber"
+                                                value={form.contactNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        contactNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter phone number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
+
+                                    </div>
+
+                                    <div className="employee-form-group">
+
+                                        <label>
+                                            WhatsApp Number
+                                        </label>
+
+                                        <div className="employee-phone-input-wrapper">
+                                            <span className="employee-country-code">+91</span>
+                                            <input
+                                                type="text"
+                                                name="whatsappNumber"
+                                                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    setForm((current) => ({
+                                                        ...current,
+                                                        whatsappNumber: rawValue ? `+91${rawValue}` : '',
+                                                    }));
+                                                }}
+                                                placeholder="Enter WhatsApp number"
+                                                disabled={isSubmitting}
+                                                className="employee-phone-input"
+                                            />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* PASSWORD */}
+                                <div className="employee-form-group">
 
                                     <label>
-                                        Password{" "}
+                                        Password
                                         <span>*</span>
                                     </label>
 
                                     <input
                                         type="password"
                                         name="password"
-                                        value={
-                                            form.password
-                                        }
-                                        onChange={
-                                            handleChange
-                                        }
-                                        autoComplete="new-password"
+                                        value={form.password}
+                                        onChange={handleChange}
                                         placeholder="Enter password"
-                                        disabled={
-                                            isSubmitting
-                                        }
+                                        disabled={isSubmitting}
                                     />
-
-                                    {errors.password && (
-
-                                        <small className="field-error">
-                                            {
-                                                errors.password
-                                            }
-                                        </small>
-                                    )}
 
                                 </div>
-                            )}
-
-
-                            {/* COUNTRY CODE */}
-
-                            <div className="employee-form-field">
-
-                                <label>
-                                    Country code{" "}
-                                    <span>*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="countryCode"
-                                    value={
-                                        form.countryCode
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    maxLength={2}
-                                    placeholder="IN"
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                />
-
-                                {errors.countryCode && (
-
-                                    <small className="field-error">
-                                        {
-                                            errors.countryCode
-                                        }
-                                    </small>
-                                )}
-
-                            </div>
-
-
-                            {/* ACTIVE */}
-
-                            <div className="employee-form-field employee-active-field">
-
-                                <label>
-                                    Account status
-                                </label>
-
-                                <label className="employee-checkbox-label">
-
-                                    <input
-                                        type="checkbox"
-                                        name="isActive"
-                                        checked={
-                                            form.isActive
-                                        }
-                                        onChange={
-                                            handleChange
-                                        }
-                                        disabled={
-                                            isSubmitting
-                                        }
-                                    />
-
-                                    <span>
-                                        Active employee
-                                    </span>
-
-                                </label>
-
-                            </div>
-
-
-                        </div>
+                            </>
+                        )}
 
                     </div>
 
@@ -1623,41 +1029,44 @@ function EmployeeModal({
 
                         <button
                             type="button"
-                            className="employee-cancel-btn"
-                            onClick={onClose}
-                            disabled={
-                                isSubmitting
-                            }
+                            className="employee-modal-cancel-btn"
+                            onClick={handleClose}
+                            disabled={isSubmitting}
                         >
+
                             Cancel
+
                         </button>
 
 
                         <button
                             type="submit"
-                            className="employee-save-btn"
-                            disabled={
-                                isSubmitting
-                            }
+                            className="employee-modal-save-btn"
+                            disabled={isSubmitting}
                         >
 
                             {isSubmitting ? (
 
                                 <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
 
-                                    Creating...
+                                    <i className="bi bi-arrow-repeat"></i>
+
+                                    Saving...
+
                                 </>
 
                             ) : (
 
-                                isEditMode
-                                    ? "Save changes"
-                                    : "Add employee"
+                                <>
+
+                                    {/* <i className="bi bi-check-lg"></i> */}
+
+                                    {isEditMode
+                                        ? "Update Employee"
+                                        : "Add Employee"}
+
+                                </>
+
                             )}
 
                         </button>
@@ -1669,6 +1078,7 @@ function EmployeeModal({
             </div>
 
         </div>
+
     );
 }
 

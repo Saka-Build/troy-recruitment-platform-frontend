@@ -1,469 +1,1269 @@
-import "./Candidate.css";
+import React, {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
-const candidates = [
-  {
-    initials: "JD",
-    name: "Julia Deveraux",
-    location: "SAP FICO Lead · London, UK",
-    appliedFor: "SAP S/4HANA Consultant",
-    experience: "11y",
-    skills: "SAP FICO, S/4HANA",
-    status: "Submitted",
-    statusClass: "status-submitted",
-    subStatus: "Submitted",
-  },
-  {
-    initials: "OS",
-    name: "Omar Salah",
-    location: "Cloud Architect · Dubai, UAE",
-    appliedFor: "Cloud Security Engineer",
-    experience: "9y",
-    skills: "AWS, IAM",
-    status: "Interview",
-    statusClass: "status-interview",
-    subStatus: "Interview",
-  },
-  {
-    initials: "AK",
-    name: "Anita Kumar",
-    location: "SAP Consultant · Pune, IN",
-    appliedFor: "SAP S/4HANA Consultant",
-    experience: "8y",
-    skills: "SAP FICO, MM",
-    status: "Actively Sourcing",
-    statusClass: "status-sourcing",
-    subStatus: "Actively Sourcing",
-  },
-  {
-    initials: "MB",
-    name: "Marco Bianchi",
-    location: "ML Engineer · Berlin, DE",
-    appliedFor: "AI / ML Engineer",
-    experience: "6y",
-    skills: "PyTorch, Python",
-    status: "Pipeline",
-    statusClass: "status-pipeline",
-    subStatus: "Pipeline",
-  },
-  {
-    initials: "PN",
-    name: "Priya Nair",
-    location: "DevSecOps Engineer · Remote",
-    appliedFor: "Cloud Security Engineer",
-    experience: "7y",
-    skills: "AWS, Security",
-    status: "Selected",
-    statusClass: "status-selected",
-    subStatus: "Selected",
-  },
-  {
-    initials: "DO",
-    name: "David Osei",
-    location: "SAP ABAP Developer · Manchester, UK",
-    appliedFor: "SAP S/4HANA Consultant",
-    experience: "10y",
-    skills: "SAP ABAP, Fiori",
-    status: "Onboarded",
-    statusClass: "status-onboarded",
-    subStatus: "Onboarded",
-  },
-];
+import {
+    useDispatch,
+    useSelector,
+} from "react-redux";
 
-const stats = [
-  {
-    value: "6",
-    label: "Total",
-  },
-  {
-    value: "5",
-    label: "Active",
-  },
-  {
-    value: "1",
-    label: "Submitted",
-  },
-  {
-    value: "1",
-    label: "Interviewing",
-  },
-  {
-    value: "1",
-    label: "Offered",
-  },
-  {
-    value: "1",
-    label: "Joined",
-  },
-  {
-    value: "0",
-    label: "Rejected",
-  },
-];
+import "./candidate.css";
 
-function Candidates() {
-  return (
-    <div className="candidates-page">
-      <div className="container-fluid candidates-container">
+import CandidateModal from "../Candidate/CandidateModal";
 
-        {/* =========================================
-            PAGE HEADER
-        ========================================= */}
+import {
+    getAllCandidates,
+    getAllEmployees,
+    addCandidate,
+    updateCandidate,
+    deleteCandidate,
+} from "../../Redux/Slice/candidateSlice";
+import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import { useNavigate } from "react-router-dom";
+const Candidates = () => {
 
-        <div className="candidates-header">
-
-          <div className="candidates-heading">
-            <h1 className="candidates-title">
-              Candidates
-            </h1>
-
-            <p className="candidates-subtitle">
-              6 candidates in your database
-            </p>
-          </div>
-
-          <div className="candidates-actions">
-
-            <button className="candidate-secondary-btn">
-              <i className="bi bi-gear"></i>
-              <span>Statuses</span>
-            </button>
-
-            <button className="candidate-secondary-btn">
-              <i className="bi bi-download"></i>
-              <span>Export CSV</span>
-            </button>
-
-            <button className="candidate-primary-btn">
-              <i className="bi bi-plus-lg"></i>
-              <span>Add candidate</span>
-            </button>
-
-          </div>
-
-        </div>
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
 
-        {/* =========================================
-            STATISTICS
-        ========================================= */}
+    /*
+    |--------------------------------------------------------------------------
+    | REDUX
+    |--------------------------------------------------------------------------
+    */
+    const {
+        candidates = [],
+        employees = [],
+        loading,
+        employeesLoading,
+        adding,
+        error,
+        employeeError,
+    } = useSelector(
+        (state) => state.candidate
+    );
 
-        <div className="candidate-stats">
 
-          {stats.map((stat) => (
-            <div
-              className="candidate-stat-card"
-              key={stat.label}
-            >
-              <div className="candidate-stat-value">
-                {stat.value}
-              </div>
+    /*
+    |--------------------------------------------------------------------------
+    | LOCAL STATE
+    |--------------------------------------------------------------------------
+    */
+    const [searchTerm, setSearchTerm] =
+        useState("");
 
-              <div className="candidate-stat-label">
-                {stat.label}
-              </div>
+    const [showModal, setShowModal] =
+        useState(false);
+
+    const [modalMode, setModalMode] =
+        useState("add");
+
+    const [selectedCandidate, setSelectedCandidate] =
+        useState(null);
+
+    const [statusFilter, setStatusFilter] =
+        useState("All statuses");
+
+    const [localStatuses, setLocalStatuses] =
+        useState({});
+    const [showDeleteModal, setShowDeleteModal] =
+        useState(false);
+
+    const [candidateToDelete, setCandidateToDelete] =
+        useState(null);
+
+    const [deleting, setDeleting] =
+        useState(false);
+    const [notification, setNotification] = useState({
+        show: false,
+        type: "",
+        message: "",
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH CANDIDATES + EMPLOYEES
+    |--------------------------------------------------------------------------
+    */
+    useEffect(() => {
+
+        dispatch(getAllCandidates());
+
+        dispatch(getAllEmployees());
+
+    }, [dispatch]);
+
+    const showNotification = (type, message) => {
+        setNotification({
+            show: true,
+            type,
+            message,
+        });
+
+        setTimeout(() => {
+            setNotification({
+                show: false,
+                type: "",
+                message: "",
+            });
+        }, 3000);
+    };
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS COLORS
+    |--------------------------------------------------------------------------
+    */
+    const getStatusColor = (status) => {
+
+        switch (status) {
+
+            case "Active":
+                return "#138f67";
+
+            case "Inactive":
+                return "#6b6f78";
+
+            case "Blacklisted":
+                return "#c33443";
+
+            default:
+                return "#6b6f78";
+        }
+    };
+
+
+    const getStatusBgColor = (status) => {
+
+        switch (status) {
+
+            case "Active":
+                return "#e7f8ef";
+
+            case "Inactive":
+                return "#f1f3f5";
+
+            case "Blacklisted":
+                return "#fff0f2";
+
+            default:
+                return "#f1f3f5";
+        }
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET CURRENT STATUS
+    |--------------------------------------------------------------------------
+    */
+    const getCandidateStatus = (candidate) => {
+
+        return (
+            localStatuses[candidate.id] ??
+            candidate.status ??
+            "Active"
+        );
+    };
+
+
+    const handleStatusChange = async (
+        candidate,
+        newStatus
+    ) => {
+
+        const previousStatus =
+            getCandidateStatus(candidate);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Don't call API if status hasn't changed
+        |--------------------------------------------------------------------------
+        */
+
+        if (previousStatus === newStatus) {
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Optimistic UI update
+        |--------------------------------------------------------------------------
+        | Change dropdown immediately while API is processing.
+        */
+
+        setLocalStatuses((previous) => ({
+            ...previous,
+            [candidate.id]: newStatus,
+        }));
+
+
+        try {
+
+            console.log(
+                "UPDATING CANDIDATE STATUS:",
+                {
+                    id: candidate.id,
+                    status: newStatus,
+                }
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE API
+            |--------------------------------------------------------------------------
+            | Only send status.
+            */
+
+            await dispatch(
+                updateCandidate({
+                    id: candidate.id,
+
+                    candidateData: {
+                        status: newStatus,
+                    },
+                })
+            ).unwrap();
+
+
+            console.log(
+                "Candidate status updated successfully:",
+                newStatus
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Refresh candidates
+            |--------------------------------------------------------------------------
+            | This makes sure Redux contains the backend value.
+            */
+
+            dispatch(
+                getAllCandidates()
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "STATUS UPDATE ERROR:",
+                error
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | API failed
+            |--------------------------------------------------------------------------
+            | Restore previous status in UI.
+            */
+
+            setLocalStatuses((previous) => ({
+                ...previous,
+                [candidate.id]: previousStatus,
+            }));
+            showNotification(
+                "error",
+                typeof error === "string"
+                    ? error
+                    : "Failed to update candidate status"
+            );
+        }
+    };
+
+    const handleCandidateClick = (candidate) => {
+
+        if (!candidate?.id) {
+            console.error("Candidate ID is missing");
+            return;
+        }
+
+        navigate(
+            `/dashboard/candidates/${candidate.id}`
+        );
+    };
+    const handleDelete = (candidate) => {
+
+        if (!candidate?.id) {
+            console.error("Candidate ID is missing");
+            return;
+        }
+
+        setCandidateToDelete(candidate);
+        setShowDeleteModal(true);
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONFIRM DELETE CANDIDATE
+    |--------------------------------------------------------------------------
+    */
+
+    const handleConfirmDelete = async () => {
+
+        if (!candidateToDelete?.id) {
+            return;
+        }
+
+        try {
+
+            setDeleting(true);
+
+            console.log(
+                "DELETING CANDIDATE:",
+                candidateToDelete.id
+            );
+
+
+            await dispatch(
+                deleteCandidate(
+                    candidateToDelete.id
+                )
+            ).unwrap();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove local status
+            |--------------------------------------------------------------------------
+            */
+
+            setLocalStatuses((previous) => {
+
+                const updated = {
+                    ...previous,
+                };
+
+                delete updated[
+                    candidateToDelete.id
+                ];
+
+                return updated;
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Close delete modal
+            |--------------------------------------------------------------------------
+            */
+
+            setShowDeleteModal(false);
+
+            setCandidateToDelete(null);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Refresh candidates
+            |--------------------------------------------------------------------------
+            */
+
+            await dispatch(
+                getAllCandidates()
+            ).unwrap();
+
+
+            console.log(
+                "Candidate deleted successfully"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "DELETE CANDIDATE ERROR:",
+                error
+            );
+
+        } finally {
+
+            setDeleting(false);
+        }
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADD
+    |--------------------------------------------------------------------------
+    */
+    const handleAddClick = () => {
+
+        setModalMode("add");
+
+        setSelectedCandidate(null);
+
+        setShowModal(true);
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT
+    |--------------------------------------------------------------------------
+    */
+    const handleEditClick = (candidate) => {
+
+        setModalMode("edit");
+
+        setSelectedCandidate(candidate);
+
+        setShowModal(true);
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | APPLICATIONS
+    |--------------------------------------------------------------------------
+    */
+    const handleApplications = (id) => {
+
+        if (!id) {
+            console.error("Candidate ID is missing");
+            return;
+        }
+
+        navigate(
+            `/dashboard/candidates/${id}?tab=Applications`
+        );
+    };
+
+    const handleSave = async (data) => {
+        const isNull = (value) => value === null;
+
+        const candidateData = {
+            fullName: data.fullName,
+
+            currentDesignation: data.designation,
+
+            cvOwnerId: data.cvOwnerId,
+
+            referredBy: data.referredBy,
+
+            referenceNote: data.referenceNote,
+
+            email: data.email,
+
+            phone: data.phone,
+
+            whatsapp: data.whatsapp,
+
+            nationality: data.nationality,
+
+            location: data.currentLocation,
+
+            currentEmployer: data.currentCompany,
+
+            experienceYears: isNull(data.experience)
+                ? null
+                : data.experience === ""
+                    ? ""
+                    : Number(data.experience),
+
+            skills: isNull(data.primarySkills)
+                ? null
+                : data.primarySkills
+                    ? data.primarySkills
+                        .split(",")
+                        .map((skill) => skill.trim())
+                        .filter(Boolean)
+                    : [],
+
+            noticePeriodDays: isNull(data.noticePeriod)
+                ? null
+                : data.noticePeriod === ""
+                    ? ""
+                    : Number(data.noticePeriod),
+
+            visaStatus: data.visaStatus,
+
+            source: data.source,
+
+            linkedinUrl: data.linkedinUrl,
+
+            status: data.candidateStatus,
+
+            education: data.education,
+
+            currentSalaryAmount: isNull(data.currentRateAmount)
+                ? null
+                : data.currentRateAmount === ""
+                    ? ""
+                    : Number(data.currentRateAmount),
+
+            currentSalaryCurrency: data.currentRateCurrency,
+
+            currentSalaryPeriod: data.currentRatePeriod,
+
+            expectedSalaryAmount: isNull(data.dayRateAmount)
+                ? null
+                : data.dayRateAmount === ""
+                    ? ""
+                    : Number(data.dayRateAmount),
+
+            expectedSalaryCurrency: data.dayRateCurrency,
+
+            expectedSalaryPeriod: data.dayRatePeriod,
+        };
+
+        console.log("FINAL CANDIDATE PAYLOAD:", candidateData);
+
+        try {
+            if (modalMode === "add") {
+                await dispatch(
+                    addCandidate({
+                        candidateData,
+                        originalCV: data.originalCV,
+                        troyCV: data.troyCV,
+                    })
+                ).unwrap();
+
+                showNotification(
+                    "success",
+                    "Candidate added successfully"
+                );
+            } else if (modalMode === "edit") {
+                if (!selectedCandidate?.id) {
+                    showNotification(
+                        "error",
+                        "Candidate ID is missing"
+                    );
+                    return;
+                }
+
+                console.log(
+                    "UPDATING CANDIDATE ID:",
+                    selectedCandidate.id
+                );
+
+                await dispatch(
+                    updateCandidate({
+                        id: selectedCandidate.id,
+                        candidateData,
+                        originalCV: data.originalCV,
+                        troyCV: data.troyCV,
+                    })
+                ).unwrap();
+
+                showNotification(
+                    "success",
+                    "Candidate updated successfully"
+                );
+            }
+
+            setShowModal(false);
+            setSelectedCandidate(null);
+
+            dispatch(getAllCandidates());
+        } catch (error) {
+            console.error(
+                modalMode === "edit"
+                    ? "UPDATE CANDIDATE ERROR:"
+                    : "ADD CANDIDATE ERROR:",
+                error
+            );
+
+            showNotification(
+                "error",
+                typeof error === "string"
+                    ? error
+                    : modalMode === "edit"
+                        ? "Failed to update candidate"
+                        : "Failed to add candidate"
+            );
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | FILTER + SEARCH
+    |--------------------------------------------------------------------------
+    */
+    const filteredCandidates = useMemo(() => {
+
+        const search =
+            searchTerm
+                .trim()
+                .toLowerCase();
+
+
+        return candidates.filter(
+            (candidate) => {
+
+                const currentStatus =
+                    getCandidateStatus(candidate);
+
+
+                const skillsText =
+                    Array.isArray(candidate.skills)
+                        ? candidate.skills.join(" ")
+                        : "";
+
+
+                const searchMatch = [
+
+                    candidate.fullName,
+
+                    candidate.cvId,
+
+                    candidate.currentDesignation,
+
+                    candidate.location,
+
+                    candidate.cvOwnerName,
+
+                    candidate.email,
+
+                    candidate.phone,
+
+                    candidate.currentEmployer,
+
+                    candidate.source,
+
+                    skillsText,
+
+                ]
+                    .filter(Boolean)
+                    .some((value) =>
+                        String(value)
+                            .toLowerCase()
+                            .includes(search)
+                    );
+
+
+                const statusMatch =
+                    statusFilter === "All statuses" ||
+                    currentStatus === statusFilter;
+
+
+                return (
+                    searchMatch &&
+                    statusMatch
+                );
+            }
+        );
+
+    }, [
+        candidates,
+        searchTerm,
+        statusFilter,
+        localStatuses,
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATS
+    |--------------------------------------------------------------------------
+    */
+    const total =
+        candidates.length;
+
+
+    const active =
+        candidates.filter(
+            (candidate) =>
+                getCandidateStatus(candidate) ===
+                "Active"
+        ).length;
+
+
+    const inactive =
+        candidates.filter(
+            (candidate) =>
+                getCandidateStatus(candidate) ===
+                "Inactive"
+        ).length;
+
+
+    const blacklisted =
+        candidates.filter(
+            (candidate) =>
+                getCandidateStatus(candidate) ===
+                "Blacklisted"
+        ).length;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOADING
+    |--------------------------------------------------------------------------
+    */
+    if (loading) {
+
+        return (
+            <div className="page">
+
+                <div className="candidates-header">
+
+                    <div>
+
+                        <h1>
+                            Candidates
+                        </h1>
+
+                        <p className="candidates-subtitle">
+                            Loading candidates...
+                        </p>
+
+                    </div>
+
+                </div>
+
             </div>
-          ))}
-
-        </div>
-
-
-        {/* =========================================
-            FILTERS
-        ========================================= */}
-
-        <div className="candidate-filters">
-
-          <div className="candidate-search">
-
-            <i className="bi bi-search"></i>
-
-            <input
-              type="text"
-              placeholder="Search name, skills, designation..."
-            />
-
-          </div>
-
-          <div className="candidate-filter-select">
-
-            <select defaultValue="">
-              <option value="">
-                All statuses
-              </option>
-              <option>Submitted</option>
-              <option>Interview</option>
-              <option>Actively Sourcing</option>
-              <option>Pipeline</option>
-              <option>Selected</option>
-              <option>Onboarded</option>
-            </select>
-
-            <i className="bi bi-chevron-down"></i>
-
-          </div>
-
-          <div className="candidate-filter-select">
-
-            <select defaultValue="">
-              <option value="">
-                All sub-statuses
-              </option>
-              <option>Submitted</option>
-              <option>Interview</option>
-              <option>Actively Sourcing</option>
-              <option>Pipeline</option>
-              <option>Selected</option>
-              <option>Onboarded</option>
-            </select>
-
-            <i className="bi bi-chevron-down"></i>
-
-          </div>
-
-          <div className="candidate-filter-select">
-
-            <select defaultValue="">
-              <option value="">
-                All jobs
-              </option>
-              <option>SAP S/4HANA Consultant</option>
-              <option>Cloud Security Engineer</option>
-              <option>AI / ML Engineer</option>
-            </select>
-
-            <i className="bi bi-chevron-down"></i>
-
-          </div>
-
-        </div>
+        );
+    }
 
 
-        {/* =========================================
-            TABLE
-        ========================================= */}
+    /*
+    |--------------------------------------------------------------------------
+    | ERROR
+    |--------------------------------------------------------------------------
+    */
+    if (error && candidates.length === 0) {
 
-        <div className="candidate-table-wrapper">
+        return (
+            <div className="page">
 
-          <table className="candidate-table">
+                <div className="candidates-header">
 
-            <thead>
-              <tr>
+                    <div>
 
-                <th className="candidate-column">
-                  Candidate
-                </th>
+                        <h1>
+                            Candidates
+                        </h1>
 
-                <th className="applied-column">
-                  Applied for
-                </th>
-
-                <th className="experience-column">
-                  Exp.
-                </th>
-
-                <th className="skills-column">
-                  Skills
-                </th>
-
-                <th className="status-column">
-                  Status
-                </th>
-
-                <th className="actions-column">
-                  Actions
-                </th>
-
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {candidates.map((candidate) => (
-
-                <tr key={candidate.name}>
-
-                  {/* Candidate */}
-
-                  <td>
-
-                    <div className="candidate-profile">
-
-                      <div className="candidate-avatar">
-                        {candidate.initials}
-                      </div>
-
-                      <div className="candidate-info">
-
-                        <div className="candidate-name">
-                          {candidate.name}
-                        </div>
-
-                        <div className="candidate-location">
-                          {candidate.location}
-                        </div>
-
-                        <div className="candidate-icons">
-
-                          <button title="Resume">
-                            <i className="bi bi-file-earmark-text"></i>
-                          </button>
-
-                          <button title="Email">
-                            <i className="bi bi-envelope"></i>
-                          </button>
-
-                          <button title="Messages">
-                            <i className="bi bi-chat-dots"></i>
-                          </button>
-
-                          <button title="Profile">
-                            <i className="bi bi-person"></i>
-                          </button>
-
-                        </div>
-
-                      </div>
+                        <p className="candidates-subtitle">
+                            Unable to load candidates
+                        </p>
 
                     </div>
 
-                  </td>
+                </div>
 
 
-                  {/* Applied For */}
+                <div
+                    style={{
+                        padding: "20px",
+                        color: "#c33443",
+                        background: "#fff0f2",
+                        borderRadius: "8px",
+                    }}
+                >
+                    {error}
+                </div>
 
-                  <td>
 
-                    <div className="applied-job">
-                      {candidate.appliedFor}
+                <button
+                    className="candidates-add-btn"
+                    style={{
+                        marginTop: "15px",
+                    }}
+                    onClick={() =>
+                        dispatch(
+                            getAllCandidates()
+                        )
+                    }
+                >
+                    Retry
+                </button>
+
+            </div>
+        );
+    }
+
+
+    return (
+
+        <div className="page">
+
+            {/* HEADER */}
+
+            <div className="candidates-header">
+
+                <div>
+
+                    <h1>
+                        Candidates
+                    </h1>
+
+                    <p className="candidates-subtitle">
+                        {total} candidates in your database
+                    </p>
+
+                </div>
+
+
+                <div className="candidates-header-actions">
+
+                    <button
+                        className="candidates-export-btn"
+                    >
+                        <i className="fas fa-download"></i>
+                        {" "}Export CSV
+                    </button>
+
+
+                    <button
+                        className="candidates-add-btn"
+                        onClick={handleAddClick}
+                    >
+                        <i className="fas fa-plus"></i>
+                        {" "}Add candidate
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            {/* STATS */}
+
+            <div className="candidates-stats-grid">
+
+                <div className="candidate-stat-card">
+
+                    <div className="candidate-stat-value">
+                        {total}
                     </div>
 
-                  </td>
+                    <div className="candidate-stat-label">
+                        Total
+                    </div>
+
+                </div>
 
 
-                  {/* Experience */}
+                <div className="candidate-stat-card">
 
-                  <td>
+                    <div className="candidate-stat-value">
+                        {active}
+                    </div>
 
-                    <span className="candidate-experience">
-                      {candidate.experience}
+                    <div className="candidate-stat-label">
+                        Active
+                    </div>
+
+                </div>
+
+
+                <div className="candidate-stat-card">
+
+                    <div className="candidate-stat-value">
+                        {inactive}
+                    </div>
+
+                    <div className="candidate-stat-label">
+                        Inactive
+                    </div>
+
+                </div>
+
+
+                <div className="candidate-stat-card">
+
+                    <div className="candidate-stat-value">
+                        {blacklisted}
+                    </div>
+
+                    <div className="candidate-stat-label">
+                        Blacklisted
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* SEARCH */}
+
+            <div className="candidates-search-filter">
+
+                <div className="candidates-search-wrapper">
+
+                    <i className="fas fa-search"></i>
+
+                    <input
+                        type="text"
+                        placeholder="Search name, CV ID, owner, skills..."
+                        value={searchTerm}
+                        onChange={(e) =>
+                            setSearchTerm(
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
+
+                <div className="candidates-filter-wrapper">
+
+                    <select
+                        className="candidates-status-filter"
+                        value={statusFilter}
+                        onChange={(e) =>
+                            setStatusFilter(
+                                e.target.value
+                            )
+                        }
+                    >
+
+                        <option value="All statuses">
+                            All statuses
+                        </option>
+
+                        <option value="Active">
+                            Active
+                        </option>
+
+                        <option value="Inactive">
+                            Inactive
+                        </option>
+
+                        <option value="Blacklisted">
+                            Blacklisted
+                        </option>
+
+                    </select>
+
+
+                    <i className="fas fa-chevron-down filter-arrow"></i>
+
+                </div>
+
+            </div>
+
+
+            {/* TABLE */}
+
+            <div className="candidates-table-wrapper">
+
+                <table className="candidates-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                CV ID
+                            </th>
+
+                            <th>
+                                CANDIDATE
+                            </th>
+
+                            <th>
+                                CANDIDATE STATUS
+                            </th>
+
+                            <th>
+                                OWNER · RECRUITER
+                            </th>
+
+                            <th>
+                                ACTIONS
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {filteredCandidates.map(
+                            (candidate) => {
+
+                                const status =
+                                    getCandidateStatus(
+                                        candidate
+                                    );
+
+
+                                return (
+
+                                    <tr
+                                        key={candidate.id}
+                                    >
+
+                                        <td className="candidate-cv-id">
+
+                                            {candidate.cvId ||
+                                                "-"}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <div
+                                                className="candidate-name"
+                                                onClick={() =>
+                                                    handleCandidateClick(candidate)
+                                                }
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                {candidate.fullName || "-"}
+                                            </div>
+
+
+                                            <div className="candidate-details">
+
+                                                {candidate.currentDesignation ||
+                                                    "-"}
+
+                                                {" · "}
+
+                                                {candidate.location ||
+                                                    "-"}
+
+                                            </div>
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <div className="candidate-status-wrapper">
+
+                                                <span
+                                                    className="candidate-status-dot"
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatusColor(
+                                                                status
+                                                            ),
+                                                    }}
+                                                ></span>
+
+
+                                                <select
+                                                    className="candidate-status-select"
+                                                    value={status}
+                                                    onChange={(e) =>
+                                                        handleStatusChange(
+                                                            candidate,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    style={{
+                                                        backgroundColor:
+                                                            getStatusBgColor(
+                                                                status
+                                                            ),
+                                                        color:
+                                                            getStatusColor(
+                                                                status
+                                                            ),
+                                                    }}
+                                                >
+
+                                                    <option value="Active">
+                                                        Active
+                                                    </option>
+
+                                                    <option value="Inactive">
+                                                        Inactive
+                                                    </option>
+
+                                                    <option value="Blacklisted">
+                                                        Blacklisted
+                                                    </option>
+
+                                                </select>
+
+                                            </div>
+
+                                        </td>
+
+
+                                        <td className="candidate-owner">
+
+                                            {candidate.cvOwnerName ||
+                                                "-"}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <div className="candidate-actions">
+
+                                                <button
+                                                    className="candidate-action-btn"
+                                                    onClick={() =>
+                                                        handleApplications(
+                                                            candidate.id
+                                                        )
+                                                    }
+                                                >
+                                                    Applications
+                                                </button>
+
+
+                                                <button
+                                                    className="candidate-action-btn"
+                                                    onClick={() =>
+                                                        handleEditClick(
+                                                            candidate
+                                                        )
+                                                    }
+                                                >
+                                                    Edit
+                                                </button>
+
+
+                                                <button
+                                                    className="candidate-action-btn candidate-delete-btn"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            candidate
+                                                        )
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                );
+                            }
+                        )}
+
+
+                        {filteredCandidates.length === 0 && (
+
+                            <tr>
+
+                                <td
+                                    colSpan="5"
+                                    className="candidates-empty-state"
+                                >
+
+                                    <div>
+
+                                        <i className="fas fa-users"></i>
+
+                                        <strong>
+                                            No candidates found
+                                        </strong>
+
+                                        <span>
+                                            Try adjusting your search or filter
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {/* NOTIFICATION */}
+
+            {notification.show && (
+                <div
+                    className={`candidate-notification candidate-notification-${notification.type}`}
+                >
+                    <div className="candidate-notification-icon">
+                        {notification.type === "success" && (
+                            <i className="fas fa-check"></i>
+                        )}
+
+                        {notification.type === "error" && (
+                            <i className="fas fa-times"></i>
+                        )}
+
+                        {notification.type === "info" && (
+                            <i className="fas fa-info"></i>
+                        )}
+                    </div>
+
+                    <span>
+                        {notification.message}
                     </span>
 
-                  </td>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setNotification({
+                                show: false,
+                                type: "",
+                                message: "",
+                            })
+                        }
+                    >
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+            )}
+            {/* MODAL */}
 
+            {showModal && (
 
-                  {/* Skills */}
+                <CandidateModal
+                    mode={modalMode}
+                    initialData={selectedCandidate}
+                    employees={employees}
+                    employeesLoading={employeesLoading}
+                    employeeError={employeeError}
+                    adding={adding}
+                    onClose={() =>
+                        setShowModal(false)
+                    }
+                    onSave={handleSave}
+                />
 
-                  <td>
+            )}
+            {/* DELETE CONFIRMATION MODAL */}
 
-                    <div className="candidate-skills">
-                      {candidate.skills}
-                    </div>
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
 
-                  </td>
+                onClose={() => {
 
-
-                  {/* Status */}
-
-                  <td>
-
-                    <div className="candidate-status-wrapper">
-
-                      <span
-                        className={`candidate-status ${candidate.statusClass}`}
-                      >
-
-                        <span className="status-dot"></span>
-
-                        {candidate.status}
-
-                      </span>
-
-                      <div className="candidate-status-select">
-
-                        <select
-                          defaultValue={candidate.subStatus}
-                        >
-                          <option>
-                            Submitted
-                          </option>
-
-                          <option>
-                            Interview
-                          </option>
-
-                          <option>
-                            Actively Sourcing
-                          </option>
-
-                          <option>
-                            Pipeline
-                          </option>
-
-                          <option>
-                            Selected
-                          </option>
-
-                          <option>
-                            Onboarded
-                          </option>
-
-                        </select>
-
-                        <i className="bi bi-chevron-down"></i>
-
-                      </div>
-
-                    </div>
-
-                  </td>
-
-
-                  {/* Actions */}
-
-                  <td>
-
-                    <div className="candidate-row-actions">
-
-                      <button className="edit-btn">
-                        Edit
-                      </button>
-
-                      <button className="delete-btn">
-                        Delete
-                      </button>
-
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
+                    if (deleting) {
+                        return;
+                    }
+                    setShowDeleteModal(false);
+                    setCandidateToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                title="Delete candidate"
+                itemName={
+                    candidateToDelete?.fullName || ""
+                }
+                deleteText={
+                    deleting
+                        ? "Deleting..."
+                        : "Delete"
+                }
+                cancelText="Cancel"
+            />
 
         </div>
+    );
+};
 
-
-        {/* =========================================
-            MOBILE TABLE HINT
-        ========================================= */}
-
-        <div className="candidate-scroll-hint">
-
-          <i className="bi bi-arrow-left-right"></i>
-
-          <span>
-            Swipe horizontally to view all candidate details
-          </span>
-
-        </div>
-
-      </div>
-    </div>
-  );
-}
 
 export default Candidates;
