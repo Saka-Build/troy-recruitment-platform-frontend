@@ -1,19 +1,27 @@
+// EmployeeDetails.jsx - Enhanced UI
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Employees.css";
+
 import {
     getAllEmployees,
+    getCountries,
+    updateEmployee,
     clearEmployeeError,
 } from "../../Redux/Slice/employeeSlice";
+
 import {
     getAllRoles,
     getEmployeeRoles,
     assignRoleToEmployee,
     removeRoleFromEmployee,
 } from "../../Redux/Slice/roleSlice";
+
+import EmployeeModal from "./EmployeeModal";
 import RoleAssignmentModal from "./RoleAssignmentModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import Toast from "../../Components/Toast";
 
 function EmployeeDetails() {
     const { employeeId } = useParams();
@@ -22,7 +30,10 @@ function EmployeeDetails() {
 
     const {
         employees = [],
+        countries = [],
         isLoading,
+        isSaving,
+        countriesLoading,
         error,
     } = useSelector((state) => state.employees);
 
@@ -33,16 +44,23 @@ function EmployeeDetails() {
     const [activeTab, setActiveTab] = useState("Overview");
     const [employeeRoles, setEmployeeRoles] = useState([]);
     const [rolesLoading, setRolesLoading] = useState(false);
-    const [showRoleAssignmentModal, setShowRoleAssignmentModal] = useState(false);
-    const [roleAssignmentLoading, setRoleAssignmentLoading] = useState(false);
+
+    const [showRoleAssignmentModal, setShowRoleAssignmentModal] =
+        useState(false);
+
+    const [roleAssignmentLoading, setRoleAssignmentLoading] =
+        useState(false);
+
     const [roleToRemove, setRoleToRemove] = useState(null);
     const [removingRole, setRemovingRole] = useState(false);
-    const [notification, setNotification] = useState({
-        show: false,
-        type: "",
-        message: "",
-    });
 
+    const [showEditModal, setShowEditModal] = useState(false);
+
+const [toast, setToast] = useState({
+    show: false,
+    type: "success",
+    message: "",
+});
     const employee = useMemo(() => {
         return employees.find(
             (item) => String(item.id) === String(employeeId)
@@ -53,6 +71,8 @@ function EmployeeDetails() {
         if (!employees.length) {
             dispatch(getAllEmployees());
         }
+
+        dispatch(getCountries());
 
         return () => {
             dispatch(clearEmployeeError());
@@ -110,21 +130,13 @@ function EmployeeDetails() {
         };
     }, [dispatch, employee?.id]);
 
-    const showNotification = (type, message) => {
-        setNotification({
-            show: true,
-            type,
-            message,
-        });
-
-        setTimeout(() => {
-            setNotification({
-                show: false,
-                type: "",
-                message: "",
-            });
-        }, 3000);
-    };
+const showNotification = (type, message) => {
+    setToast({
+        show: true,
+        type,
+        message,
+    });
+};
 
     const getRoleId = (role) =>
         role?.id ||
@@ -158,6 +170,167 @@ function EmployeeDetails() {
             .map((part) => part.charAt(0))
             .join("")
             .toUpperCase();
+    };
+
+    const openEditModal = () => {
+        if (!employee) {
+            return;
+        }
+
+        dispatch(clearEmployeeError());
+        setShowEditModal(true);
+    };
+
+    const closeEditModal = () => {
+        if (isSaving) {
+            return;
+        }
+
+        setShowEditModal(false);
+        dispatch(clearEmployeeError());
+    };
+
+    const handleUpdateEmployee = async (employeeData) => {
+        if (!employee?.id) {
+            return;
+        }
+
+        try {
+            const updateData = {};
+
+            if (
+                employeeData.employeeId !== undefined &&
+                employeeData.employeeId !== null &&
+                employeeData.employeeId.trim() !== ""
+            ) {
+                updateData.employeeCode =
+                    employeeData.employeeId.trim();
+            }
+
+            if (
+                employeeData.fullName !== undefined &&
+                employeeData.fullName !== null &&
+                employeeData.fullName.trim() !== ""
+            ) {
+                updateData.fullName =
+                    employeeData.fullName.trim();
+            }
+
+            if (
+                employeeData.designation !== undefined &&
+                employeeData.designation !== null &&
+                employeeData.designation.trim() !== ""
+            ) {
+                updateData.designation =
+                    employeeData.designation.trim();
+            }
+
+            if (
+                employeeData.officialEmail !== undefined &&
+                employeeData.officialEmail !== null &&
+                employeeData.officialEmail.trim() !== ""
+            ) {
+                updateData.officialEmail =
+                    employeeData.officialEmail.trim();
+            }
+
+            if (
+                employeeData.personalEmail !== undefined &&
+                employeeData.personalEmail !== null &&
+                employeeData.personalEmail.trim() !== ""
+            ) {
+                updateData.personalEmail =
+                    employeeData.personalEmail.trim();
+            }
+
+            if (
+                employeeData.contactNumber !== undefined &&
+                employeeData.contactNumber !== null &&
+                employeeData.contactNumber.trim() !== ""
+            ) {
+                updateData.phone =
+                    employeeData.contactNumber.trim();
+            }
+
+            if (
+                employeeData.whatsappNumber !== undefined &&
+                employeeData.whatsappNumber !== null &&
+                employeeData.whatsappNumber.trim() !== ""
+            ) {
+                updateData.whatsapp =
+                    employeeData.whatsappNumber.trim();
+            }
+
+            if (
+                employeeData.role !== undefined &&
+                employeeData.role !== null &&
+                employeeData.role.trim() !== ""
+            ) {
+                updateData.role =
+                    employeeData.role.trim();
+            }
+
+            if (
+                employeeData.countryCode !== undefined &&
+                employeeData.countryCode !== null &&
+                employeeData.countryCode !== ""
+            ) {
+                updateData.countryCode =
+                    employeeData.countryCode;
+            }
+
+            if (
+                employeeData.isActive !== undefined &&
+                employeeData.isActive !== null
+            ) {
+                updateData.active =
+                    employeeData.isActive;
+            }
+
+            if (
+                employeeData.password !== undefined &&
+                employeeData.password !== null &&
+                employeeData.password.trim() !== ""
+            ) {
+                updateData.password =
+                    employeeData.password.trim();
+            }
+
+            console.log(
+                "UPDATE EMPLOYEE FROM DETAILS PAGE:",
+                updateData
+            );
+
+            await dispatch(
+                updateEmployee({
+                    id: employee.id,
+                    employeeData: updateData,
+                })
+            ).unwrap();
+
+            await dispatch(getAllEmployees()).unwrap();
+
+            setShowEditModal(false);
+
+            dispatch(clearEmployeeError());
+
+            showNotification(
+                "success",
+                `${employeeData.fullName.trim()} updated successfully`
+            );
+        } catch (error) {
+            console.error(
+                "Employee update failed:",
+                error
+            );
+
+            showNotification(
+                "error",
+                typeof error === "string"
+                    ? error
+                    : "Failed to update employee"
+            );
+        }
     };
 
     const refreshEmployeeRoles = async () => {
@@ -311,6 +484,7 @@ function EmployeeDetails() {
                     <div className="employee-loading-icon">
                         <i className="bi bi-arrow-repeat"></i>
                     </div>
+
                     <h2>Loading employee...</h2>
                 </div>
             </div>
@@ -377,437 +551,568 @@ function EmployeeDetails() {
         );
     }
 
-return (
-    <div className="page employee-details-page">
-        <div className="employee-detail-top">
-            <button
-                type="button"
-                className="back-employees-btn"
-                onClick={() => navigate("/dashboard/employees")}
-            >
-                <i className="bi bi-arrow-left"></i>
-                Employees
-            </button>
-        </div>
+    return (
+        <div className="page employee-details-page">
 
-        <div className="employee-profile-header">
-            <div className="employee-profile-left">
-                {employee.photoUrl ? (
-                    <img
-                        src={employee.photoUrl}
-                        alt={employee.fullName}
-                        className="employee-profile-avatar employee-profile-avatar-image"
-                    />
-                ) : (
-                    <div className="employee-profile-avatar">
-                        {initials(employee.fullName)}
-                    </div>
-                )}
+            {/* Navigation Bar - Back & Edit in same row */}
+            <div className="employee-detail-nav">
+                <button
+                    type="button"
+                    className="back-employees-btn"
+                    onClick={() =>
+                        navigate("/dashboard/employees")
+                    }
+                >
+                    <i className="bi bi-arrow-left"></i>
+                    <span>Employees</span>
+                </button>
 
-                <div className="employee-profile-info">
-                    <div className="employee-name-row">
-                        <h1>
-                            {employee.fullName || "—"}
-                        </h1>
+                <button
+                    type="button"
+                    className="employee-edit-detail-btn"
+                    onClick={openEditModal}
+                    disabled={isSaving}
+                >
+                    <i className="bi bi-pencil"></i>
+                    <span>Edit Employee</span>
+                </button>
+            </div>
 
-                        <span
-                            className={
-                                employee.active
-                                    ? "employee-status-badge-detail active"
-                                    : "employee-status-badge-detail inactive"
-                            }
-                        >
-                            <span></span>
-                            {employee.active ? "Active" : "Inactive"}
-                        </span>
-                    </div>
+            {/* Profile Header - Enhanced */}
+            <div className="employee-profile-header">
 
-                    <p>
-                        {employee.designation || "—"}
-                        {" · "}
-                        {employee.employeeCode || "—"}
-                    </p>
+                <div className="employee-profile-left">
 
-                    {employee.officialEmail && (
-                        <div className="employee-profile-email">
-                            <i className="bi bi-envelope"></i>
-                            <span>{employee.officialEmail}</span>
+                    {employee.photoUrl ? (
+                        <img
+                            src={employee.photoUrl}
+                            alt={employee.fullName}
+                            className="employee-profile-avatar employee-profile-avatar-image"
+                        />
+                    ) : (
+                        <div className="employee-profile-avatar">
+                            {initials(employee.fullName)}
                         </div>
                     )}
+
+                    <div className="employee-profile-info">
+
+                        <div className="employee-name-row">
+
+                            <h1>
+                                {employee.fullName || "—"}
+                            </h1>
+
+                            <span
+                                className={
+                                    employee.active
+                                        ? "employee-status-badge-detail active"
+                                        : "employee-status-badge-detail inactive"
+                                }
+                            >
+                                <span></span>
+
+                                {employee.active
+                                    ? "Active"
+                                    : "Inactive"}
+                            </span>
+
+                        </div>
+
+                        <p className="employee-designation-text">
+                            {employee.designation || "—"}
+                            {" · "}
+                            <span className="employee-code-text">ID: {employee.employeeCode || "—"}</span>
+                        </p>
+
+                        {employee.officialEmail && (
+                            <div className="employee-profile-email">
+                                <i className="bi bi-envelope"></i>
+
+                                <span>
+                                    {employee.officialEmail}
+                                </span>
+                            </div>
+                        )}
+
+                    </div>
+
                 </div>
+
             </div>
-        </div>
 
-        <div className="employee-detail-tabs">
-            {["Overview", "Roles"].map((tab) => (
-                <button
-                    key={tab}
-                    type="button"
-                    className={activeTab === tab ? "active" : ""}
-                    onClick={() => setActiveTab(tab)}
-                >
-                    {tab}
-                </button>
-            ))}
-        </div>
+            {/* Tabs */}
+            <div className="employee-detail-tabs">
 
-        {activeTab === "Overview" && (
-            <div className="employee-overview">
+                {["Overview", "Roles"].map((tab) => (
+                    <button
+                        key={tab}
+                        type="button"
+                        className={
+                            activeTab === tab
+                                ? "active"
+                                : ""
+                        }
+                        onClick={() =>
+                            setActiveTab(tab)
+                        }
+                    >
+                        {tab}
+                    </button>
+                ))}
 
-                <div className="employee-information-grid">
-                    <div className="employee-info-card">
+            </div>
+
+            {activeTab === "Overview" && (
+                <div className="employee-overview">
+
+                    <div className="employee-information-grid">
+
+                        <div className="employee-info-card">
+
+                            <div className="employee-info-card-header">
+
+                                <div className="employee-info-icon">
+                                    <i className="bi bi-person"></i>
+                                </div>
+
+                                <div>
+                                    <h3>
+                                        Personal Information
+                                    </h3>
+
+                                    <p>
+                                        Personal details of the employee
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div className="employee-info-table">
+
+                                <div className="employee-info-row">
+                                    <span>Full Name</span>
+
+                                    <strong>
+                                        {employee.fullName || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Employee ID</span>
+
+                                    <strong>
+                                        {employee.employeeCode || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Personal Email</span>
+
+                                    <strong>
+                                        {employee.personalEmail || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Contact Number</span>
+
+                                    <strong>
+                                        {employee.phone || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>WhatsApp Number</span>
+
+                                    <strong>
+                                        {employee.whatsapp || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Country</span>
+
+                                    <strong>
+                                        {employee.country?.name ||
+                                            employee.country?.code ||
+                                            "—"}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div className="employee-info-card">
+
+                            <div className="employee-info-card-header">
+
+                                <div className="employee-info-icon">
+                                    <i className="bi bi-briefcase"></i>
+                                </div>
+
+                                <div>
+                                    <h3>
+                                        Professional Information
+                                    </h3>
+
+                                    <p>
+                                        Current professional details
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div className="employee-info-table">
+
+                                <div className="employee-info-row">
+                                    <span>Designation</span>
+
+                                    <strong>
+                                        {employee.designation || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Official Email</span>
+
+                                    <strong>
+                                        {employee.officialEmail || "—"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Employment Status</span>
+
+                                    <strong
+                                        className={
+                                            employee.active
+                                                ? "employee-status-text-active"
+                                                : "employee-status-text-inactive"
+                                        }
+                                    >
+                                        {employee.active
+                                            ? "Active"
+                                            : "Inactive"}
+                                    </strong>
+                                </div>
+
+                                <div className="employee-info-row">
+                                    <span>Employee ID</span>
+
+                                    <strong>
+                                        {employee.employeeCode || "—"}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div className="employee-contact-card">
+
                         <div className="employee-info-card-header">
+
                             <div className="employee-info-icon">
-                                <i className="bi bi-person"></i>
-                            </div>
-
-                            <div>
-                                <h3>Personal Information</h3>
-                                <p>
-                                    Personal details of the employee
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="employee-info-table">
-                            <div className="employee-info-row">
-                                <span>Full Name</span>
-                                <strong>
-                                    {employee.fullName || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Employee ID</span>
-                                <strong>
-                                    {employee.employeeCode || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Personal Email</span>
-                                <strong>
-                                    {employee.personalEmail || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Contact Number</span>
-                                <strong>
-                                    {employee.phone || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>WhatsApp Number</span>
-                                <strong>
-                                    {employee.whatsapp || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Country</span>
-                                <strong>
-                                    {employee.country?.name ||
-                                        employee.country?.code ||
-                                        "—"}
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="employee-info-card">
-                        <div className="employee-info-card-header">
-                            <div className="employee-info-icon">
-                                <i className="bi bi-briefcase"></i>
-                            </div>
-
-                            <div>
-                                <h3>Professional Information</h3>
-                                <p>
-                                    Current professional details
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="employee-info-table">
-                            <div className="employee-info-row">
-                                <span>Designation</span>
-                                <strong>
-                                    {employee.designation || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Official Email</span>
-                                <strong>
-                                    {employee.officialEmail || "—"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Employment Status</span>
-                                <strong
-                                    className={
-                                        employee.active
-                                            ? "employee-status-text-active"
-                                            : "employee-status-text-inactive"
-                                    }
-                                >
-                                    {employee.active
-                                        ? "Active"
-                                        : "Inactive"}
-                                </strong>
-                            </div>
-
-                            <div className="employee-info-row">
-                                <span>Employee ID</span>
-                                <strong>
-                                    {employee.employeeCode || "—"}
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="employee-contact-card">
-                    <div className="employee-info-card-header">
-                        <div className="employee-info-icon">
-                            <i className="bi bi-telephone"></i>
-                        </div>
-
-                        <div>
-                            <h3>Contact Information</h3>
-                            <p>
-                                Employee communication details
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="employee-contact-grid">
-                        <div className="employee-contact-item">
-                            <div className="employee-contact-item-icon">
                                 <i className="bi bi-telephone"></i>
                             </div>
 
                             <div>
-                                <span>Phone</span>
-                                <strong>
-                                    {employee.phone || "—"}
-                                </strong>
+                                <h3>
+                                    Contact Information
+                                </h3>
+
+                                <p>
+                                    Employee communication details
+                                </p>
                             </div>
+
                         </div>
 
-                        <div className="employee-contact-item">
-                            <div className="employee-contact-item-icon">
-                                <i className="bi bi-whatsapp"></i>
+                        <div className="employee-contact-grid">
+
+                            <div className="employee-contact-item">
+
+                                <div className="employee-contact-item-icon">
+                                    <i className="bi bi-telephone"></i>
+                                </div>
+
+                                <div>
+                                    <span>Phone</span>
+
+                                    <strong>
+                                        {employee.phone || "—"}
+                                    </strong>
+                                </div>
+
                             </div>
 
-                            <div>
-                                <span>WhatsApp</span>
-                                <strong>
-                                    {employee.whatsapp || "—"}
-                                </strong>
+                            <div className="employee-contact-item">
+
+                                <div className="employee-contact-item-icon">
+                                    <i className="bi bi-whatsapp"></i>
+                                </div>
+
+                                <div>
+                                    <span>WhatsApp</span>
+
+                                    <strong>
+                                        {employee.whatsapp || "—"}
+                                    </strong>
+                                </div>
+
                             </div>
+
+                            <div className="employee-contact-item">
+
+                                <div className="employee-contact-item-icon">
+                                    <i className="bi bi-envelope"></i>
+                                </div>
+
+                                <div>
+                                    <span>Official Email</span>
+
+                                    <strong>
+                                        {employee.officialEmail || "—"}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                            <div className="employee-contact-item">
+
+                                <div className="employee-contact-item-icon">
+                                    <i className="bi bi-envelope-at"></i>
+                                </div>
+
+                                <div>
+                                    <span>Personal Email</span>
+
+                                    <strong>
+                                        {employee.personalEmail || "—"}
+                                    </strong>
+                                </div>
+
+                            </div>
+
                         </div>
 
-                        <div className="employee-contact-item">
-                            <div className="employee-contact-item-icon">
-                                <i className="bi bi-envelope"></i>
-                            </div>
-
-                            <div>
-                                <span>Official Email</span>
-                                <strong>
-                                    {employee.officialEmail || "—"}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div className="employee-contact-item">
-                            <div className="employee-contact-item-icon">
-                                <i className="bi bi-envelope-at"></i>
-                            </div>
-
-                            <div>
-                                <span>Personal Email</span>
-                                <strong>
-                                    {employee.personalEmail || "—"}
-                                </strong>
-                            </div>
-                        </div>
                     </div>
+
                 </div>
-            </div>
-        )}
+            )}
 
-        {activeTab === "Roles" && (
-            <div className="employee-roles-card">
-                <div className="employee-roles-header">
-                    <div className="employee-info-card-header">
-                        <div className="employee-info-icon">
-                            <i className="bi bi-shield-check"></i>
+            {activeTab === "Roles" && (
+                <div className="employee-roles-card">
+
+                    <div className="employee-roles-header">
+
+                        <div className="employee-info-card-header">
+
+                            <div className="employee-info-icon">
+                                <i className="bi bi-shield-check"></i>
+                            </div>
+
+                            <div>
+                                <h3>
+                                    Assigned Roles
+                                </h3>
+
+                                <p>
+                                    Roles currently assigned to this employee
+                                </p>
+                            </div>
+
                         </div>
 
-                        <div>
-                            <h3>Assigned Roles</h3>
-                            <p>
-                                Roles currently assigned to this employee
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="employee-primary-btn"
-                        onClick={openRoleAssignmentModal}
-                    >
-                        <i className="bi bi-person-plus"></i>
-                        Assign Role
-                    </button>
-                </div>
-
-                {rolesLoading ? (
-                    <div className="employee-roles-state">
-                        <i className="bi bi-arrow-repeat"></i>
-                        <span>Loading roles...</span>
-                    </div>
-                ) : employeeRoles.length === 0 ? (
-                    <div className="employee-roles-state employee-no-roles">
-                        <i className="bi bi-shield-x"></i>
-                        <strong>
-                            No roles assigned
-                        </strong>
-                        <span>
-                            This employee does not have any roles yet.
-                        </span>
                         <button
                             type="button"
-                            className="employee-outline-btn"
+                            className="employee-primary-btn"
                             onClick={openRoleAssignmentModal}
                         >
+                            <i className="bi bi-person-plus"></i>
                             Assign Role
                         </button>
+
                     </div>
-                ) : (
-                    <div className="employee-role-list">
-                        {employeeRoles.map((role, index) => {
-                            const roleId = getRoleId(role);
-                            const roleName = getRoleName(role);
 
-                            return (
-                                <div
-                                    key={roleId || index}
-                                    className="employee-role-item"
-                                >
-                                    <div className="employee-role-left">
-                                        <div className="employee-role-icon">
-                                            <i className="bi bi-shield-check"></i>
+                    {rolesLoading ? (
+                        <div className="employee-roles-state">
+
+                            <i className="bi bi-arrow-repeat"></i>
+
+                            <span>
+                                Loading roles...
+                            </span>
+
+                        </div>
+                    ) : employeeRoles.length === 0 ? (
+                        <div className="employee-roles-state employee-no-roles">
+
+                            <i className="bi bi-shield-x"></i>
+
+                            <strong>
+                                No roles assigned
+                            </strong>
+
+                            <span>
+                                This employee does not have any roles yet.
+                            </span>
+
+                            <button
+                                type="button"
+                                className="employee-outline-btn"
+                                onClick={openRoleAssignmentModal}
+                            >
+                                Assign Role
+                            </button>
+
+                        </div>
+                    ) : (
+                        <div className="employee-role-list">
+
+                            {employeeRoles.map(
+                                (role, index) => {
+
+                                    const roleId =
+                                        getRoleId(role);
+
+                                    const roleName =
+                                        getRoleName(role);
+
+                                    return (
+                                        <div
+                                            key={
+                                                roleId ||
+                                                index
+                                            }
+                                            className="employee-role-item"
+                                        >
+
+                                            <div className="employee-role-left">
+
+                                                <div className="employee-role-icon">
+                                                    <i className="bi bi-shield-check"></i>
+                                                </div>
+
+                                                <div className="employee-role-content">
+
+                                                    <strong>
+                                                        {capitalizeRole(
+                                                            roleName
+                                                        )}
+                                                    </strong>
+
+                                                    {role.description && (
+                                                        <p>
+                                                            {role.description}
+                                                        </p>
+                                                    )}
+
+                                                </div>
+
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="employee-role-remove"
+                                                title={`Remove ${roleName}`}
+                                                onClick={() =>
+                                                    openRemoveRoleConfirmation(
+                                                        role
+                                                    )
+                                                }
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+
                                         </div>
+                                    );
+                                }
+                            )}
 
-                                        <div className="employee-role-content">
-                                            <strong>
-                                                {capitalizeRole(roleName)}
-                                            </strong>
-
-                                            {role.description && (
-                                                <p>
-                                                    {role.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        className="employee-role-remove"
-                                        title={`Remove ${roleName}`}
-                                        onClick={() =>
-                                            openRemoveRoleConfirmation(role)
-                                        }
-                                    >
-                                        <i className="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        )}
-
-        {notification.show && (
-            <div
-                className={`employee-notification employee-notification-${notification.type}`}
-            >
-                <div className="employee-notification-icon">
-                    {notification.type === "success" && (
-                        <i className="bi bi-check-lg"></i>
+                        </div>
                     )}
 
-                    {notification.type === "error" && (
-                        <i className="bi bi-x-lg"></i>
-                    )}
                 </div>
+            )}
 
-                <span>{notification.message}</span>
+<Toast
+    show={toast.show}
+    type={toast.type}
+    message={toast.message}
+    duration={3000}
+    onClose={() =>
+        setToast({
+            show: false,
+            type: "success",
+            message: "",
+        })
+    }
+/>
 
-                <button
-                    type="button"
-                    onClick={() =>
-                        setNotification({
-                            show: false,
-                            type: "",
-                            message: "",
-                        })
+            {showEditModal && (
+                <EmployeeModal
+                    employee={employee}
+                    countries={countries}
+                    countriesLoading={countriesLoading}
+                    onClose={closeEditModal}
+                    onSave={handleUpdateEmployee}
+                    isSubmitting={isSaving}
+                    error={error}
+                    onClearError={() =>
+                        dispatch(clearEmployeeError())
                     }
-                >
-                    <i className="bi bi-x"></i>
-                </button>
-            </div>
-        )}
+                />
+            )}
 
-        {showRoleAssignmentModal && (
-            <RoleAssignmentModal
-                employee={employee}
-                roles={roles}
-                assignedRoles={employeeRoles}
-                onClose={closeRoleAssignmentModal}
-                onAssign={handleAssignRoles}
-                isSubmitting={roleAssignmentLoading}
-            />
-        )}
+            {showRoleAssignmentModal && (
+                <RoleAssignmentModal
+                    employee={employee}
+                    roles={roles}
+                    assignedRoles={employeeRoles}
+                    onClose={closeRoleAssignmentModal}
+                    onAssign={handleAssignRoles}
+                    isSubmitting={roleAssignmentLoading}
+                />
+            )}
 
-        <DeleteConfirmationModal
-            isOpen={!!roleToRemove}
-            onClose={() => {
-                if (!removingRole) {
-                    setRoleToRemove(null);
+            <DeleteConfirmationModal
+                isOpen={!!roleToRemove}
+                onClose={() => {
+                    if (!removingRole) {
+                        setRoleToRemove(null);
+                    }
+                }}
+                onConfirm={handleRemoveRole}
+                title="Remove role"
+                itemName={
+                    roleToRemove
+                        ? getRoleName(
+                            roleToRemove.role
+                        )
+                        : ""
                 }
-            }}
-            onConfirm={handleRemoveRole}
-            title="Remove role"
-            itemName={
-                roleToRemove
-                    ? getRoleName(roleToRemove.role)
-                    : ""
-            }
-            message={
-                roleToRemove
-                    ? `Are you sure you want to remove the role "${getRoleName(
-                        roleToRemove.role
-                    )}" from ${roleToRemove.employee.fullName}?`
-                    : ""
-            }
-            deleteText={
-                removingRole
-                    ? "Removing..."
-                    : "Remove Role"
-            }
-            cancelText="Cancel"
-        />
-    </div>
-);
+                message={
+                    roleToRemove
+                        ? `Are you sure you want to remove the role "${getRoleName(
+                            roleToRemove.role
+                        )}" from ${roleToRemove.employee.fullName}?`
+                        : ""
+                }
+                deleteText={
+                    removingRole
+                        ? "Removing..."
+                        : "Remove Role"
+                }
+                cancelText="Cancel"
+            />
+
+        </div>
+    );
 }
 
 export default EmployeeDetails;
