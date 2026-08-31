@@ -1781,3 +1781,306 @@
 
     box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
 }
+
+/* =========================================================
+   CANDIDATE FILTER BUTTON
+========================================================= */
+
+.candidates-filter-btn {
+    position: relative;
+    height: 44px;
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    background: #ffffff;
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+
+    color: #343a40;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.candidates-filter-btn:hover {
+    background: #f8f9fb;
+    border-color: #bfc6d1;
+}
+
+.candidates-filter-btn i {
+    font-size: 13px;
+}
+
+.candidate-filter-active-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #138f67;
+
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+
+/* =========================================================
+   FILTER MODAL OVERLAY
+========================================================= */
+
+.candidate-filter-modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(15, 23, 42, 0.45);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 9999;
+
+    padding: 20px;
+}
+
+
+/* =========================================================
+   FILTER MODAL
+========================================================= */
+
+.candidate-filter-modal {
+    width: 100%;
+    max-width: 480px;
+
+    background: #ffffff;
+    border-radius: 12px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.18);
+
+    overflow: hidden;
+
+    animation: candidateFilterModalIn 0.18s ease-out;
+}
+
+@keyframes candidateFilterModalIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   FILTER MODAL HEADER
+========================================================= */
+
+.candidate-filter-modal-header {
+    padding: 20px 22px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #edf0f4;
+}
+
+.candidate-filter-modal-header h3 {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #20242b;
+}
+
+.candidate-filter-modal-header p {
+    margin: 5px 0 0;
+
+    font-size: 13px;
+    color: #737985;
+}
+
+.candidate-filter-close-btn {
+    width: 32px;
+    height: 32px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #f5f6f8;
+    color: #626873;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.candidate-filter-close-btn:hover {
+    background: #eceef2;
+    color: #20242b;
+}
+
+
+/* =========================================================
+   FILTER MODAL BODY
+========================================================= */
+
+.candidate-filter-modal-body {
+    padding: 22px;
+}
+
+.candidate-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.candidate-filter-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.candidate-filter-field select {
+    width: 100%;
+    height: 44px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #343a40;
+    font-size: 14px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.candidate-filter-field select:focus {
+    border-color: #138f67;
+
+    box-shadow:
+        0 0 0 3px rgba(19, 143, 103, 0.10);
+}
+
+
+/* =========================================================
+   FILTER MODAL FOOTER
+========================================================= */
+
+.candidate-filter-modal-footer {
+    padding: 16px 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    border-top: 1px solid #edf0f4;
+}
+
+.candidate-filter-clear-btn,
+.candidate-filter-cancel-btn,
+.candidate-filter-apply-btn {
+    height: 40px;
+
+    padding: 0 16px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.candidate-filter-clear-btn {
+    margin-right: auto;
+
+    background: transparent;
+    border: none;
+
+    color: #c33443;
+}
+
+.candidate-filter-clear-btn:hover {
+    background: #fff0f2;
+}
+
+.candidate-filter-cancel-btn {
+    background: #ffffff;
+
+    border: 1px solid #d9dee7;
+
+    color: #4f5661;
+}
+
+.candidate-filter-cancel-btn:hover {
+    background: #f7f8fa;
+}
+
+.candidate-filter-apply-btn {
+    background: #138f67;
+
+    border: 1px solid #138f67;
+
+    color: #ffffff;
+}
+
+.candidate-filter-apply-btn:hover {
+    background: #0f7d5a;
+    border-color: #0f7d5a;
+}
+
+.candidate-filter-field input {
+    width: 100%;
+    height: 44px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #343a40;
+    font-size: 14px;
+
+    outline: none;
+
+    box-sizing: border-box;
+}
+
+.candidate-filter-field input:focus {
+    border-color: #138f67;
+
+    box-shadow:
+        0 0 0 3px rgba(19, 143, 103, 0.10);
+}
