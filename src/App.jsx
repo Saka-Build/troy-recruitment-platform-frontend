@@ -40,7 +40,7 @@ function ProtectedRoute({ children }) {
 function App() {
 
     return (
-        <BrowserRouter>
+        <BrowserRouter basename="/ats">
 
             <Routes>
 

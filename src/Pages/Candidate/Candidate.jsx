@@ -9,7 +9,7 @@ import {
     useSelector,
 } from "react-redux";
 
-import "./candidate.css";
+import "./Candidate.css";
 
 import CandidateModal from "../Candidate/CandidateModal";
 

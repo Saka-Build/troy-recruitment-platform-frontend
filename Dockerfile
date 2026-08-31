@@ -1,40 +1,38 @@
-# syntax=docker/dockerfile:1
+# ============================================================
+# Stage 1: Build React/Vite frontend
+# ============================================================
+FROM node:20-alpine AS build
 
-# ---------- stage 1: build the frontend ----------
-FROM node:20-alpine AS client
+WORKDIR /app
 
-WORKDIR /build/client
-COPY client/package.json client/package-lock.json* ./
+# Copy dependency files first for Docker layer caching
+COPY package.json package-lock.json ./
+
 RUN npm ci --no-audit --no-fund
 
-COPY client/ ./
+COPY . .
+
+# Vite is configured with base "/ats/", so the build emits /ats/-prefixed URLs
 RUN npm run build
 
 
-# ---------- stage 2: runtime ----------
-FROM node:20-alpine AS runtime
+# ============================================================
+# Stage 2: Nginx production runtime
+# ============================================================
+FROM nginx:alpine
 
-# dumb-init gives us correct signal handling so the platform can stop the
-# container cleanly instead of killing it mid-request.
-RUN apk add --no-cache dumb-init
+RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/default.conf
 
-ENV NODE_ENV=production
-WORKDIR /app
+# Served under /ats/, so the build lands in an /ats subdirectory and plain
+# `root` resolves it - no alias/try_files interaction to get wrong.
+COPY --from=build /app/dist /usr/share/nginx/html/ats
 
-COPY server/package.json server/package-lock.json* ./server/
-RUN cd server && npm ci --omit=dev --no-audit --no-fund
+# The entrypoint runs envsubst over templates into /etc/nginx/conf.d
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-COPY server/src ./server/src
-COPY --from=client /build/client/dist ./client/dist
+# Backend the /api proxy forwards to; override at run time
+ENV API_UPSTREAM="http://13.233.44.12:8080"
 
-# Run unprivileged.
-USER node
+EXPOSE 80
 
-EXPOSE 5050
-ENV PORT=5050
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||5050)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server/src/index.js"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "./Job.css";
 import {deleteJob,getAllJobs,getJobById,} from "../../Redux/Slice/jobSlice";
-import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import CommonPagination from "../../components/CommonPagination";
 import ManualCreationModal from "./ManualCreationModal";
 import ExcelJS from "exceljs";
 import Toast from "../../Components/Toast";
+import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
+import CommonPagination from "../../Components/CommonPagination";
 
 function JobPage() {
   const navigate = useNavigate();

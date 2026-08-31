@@ -1,9 +1,11 @@
 services:
-  saka-websites:
+  frontend:
+    build:
+      context: .
     image: troy-ats-frontend:1.2
     container_name: troy-ats-frontend
     ports:
-      - "5050:5050"
-    env_file:
-      
+      - "3000:80"
+    environment:
+      API_UPSTREAM: "http://13.233.44.12:8080"
     restart: unless-stopped
