@@ -1994,10 +1994,10 @@ const {
     ] = useState("");
 
 
-    const [
-        statusFilter,
-        setStatusFilter,
-    ] = useState("Active");
+const [
+    statusFilter,
+    setStatusFilter,
+] = useState("All statuses");
 
 
     /* =========================================================
@@ -2864,15 +2864,10 @@ useEffect(() => {
                             Clients
                         </h1>
 
-                        <p className="page-subtitle">
-
-                            {totalElements} client{" "}
-
-                            {totalElements === 1
-                                ? "company"
-                                : "companies"}
-
-                        </p>
+<p className="page-subtitle">
+    {totalClients} client{" "}
+    {totalClients === 1 ? "company" : "companies"}
+</p>
 
                     </div>
 

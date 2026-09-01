@@ -619,7 +619,9 @@ import {
 } from "react-icons/fi";
 
 import { getAllSubmissions } from "../../Redux/Slice/employeeSlice";
-import { getSubmissionStatuses } from "../../Redux/Slice/recruitmentWorkflowSlice";
+import {
+    getSubmissionFilters,
+} from "../../Redux/Slice/reportSlice";
 
 import "./JobRoleReport.css";
 import ExcelJS from "exceljs";
@@ -637,8 +639,8 @@ function JobRoleReport() {
     } = useSelector((state) => state.employees || {});
 
     const {
-        submissionStatuses = [],
-    } = useSelector((state) => state.recruitmentWorkflow || {});
+        submissionFilters = {},
+    } = useSelector((state) => state.report || {});
 
 
     // =========================================================
@@ -677,7 +679,7 @@ function JobRoleReport() {
 
     useEffect(() => {
         dispatch(getAllSubmissions());
-        dispatch(getSubmissionStatuses());
+        dispatch(getSubmissionFilters());
     }, [dispatch]);
 
 
@@ -686,21 +688,8 @@ function JobRoleReport() {
     // =========================================================
 
     const jobs = useMemo(() => {
-        const uniqueJobs = {};
-
-        submissions.forEach((item) => {
-            if (item.jobId && !uniqueJobs[item.jobId]) {
-                uniqueJobs[item.jobId] = {
-                    id: item.jobId,
-                    name: item.jobName || "Unnamed Job",
-                };
-            }
-        });
-
-        return Object.values(uniqueJobs).sort((a, b) =>
-            a.name.localeCompare(b.name)
-        );
-    }, [submissions]);
+        return submissionFilters?.jobs || [];
+    }, [submissionFilters]);
 
 
     // =========================================================
@@ -708,18 +697,8 @@ function JobRoleReport() {
     // =========================================================
 
     const clients = useMemo(() => {
-        const uniqueClients = new Set();
-
-        submissions.forEach((item) => {
-            if (item.clientName?.trim()) {
-                uniqueClients.add(item.clientName.trim());
-            }
-        });
-
-        return Array.from(uniqueClients).sort((a, b) =>
-            a.localeCompare(b)
-        );
-    }, [submissions]);
+        return submissionFilters?.clients || [];
+    }, [submissionFilters]);
 
 
     // =========================================================
@@ -727,13 +706,15 @@ function JobRoleReport() {
     // =========================================================
 
     const applicationStatuses = useMemo(() => {
-        return submissionStatuses.map((status) => ({
+        return (
+            submissionFilters?.applicationStatusList || []
+        ).map((status) => ({
             value: status.name,
             label: status.name?.replace(/_/g, " "),
             id: status.id,
             colourHex: status.colourHex,
         }));
-    }, [submissionStatuses]);
+    }, [submissionFilters]);
 
 
     // =========================================================
@@ -780,7 +761,7 @@ function JobRoleReport() {
 
             const matchesClient =
                 !clientFilter ||
-                item.clientName?.trim() === clientFilter;
+                item.clientId === clientFilter;
 
             const matchesApplicationStatus =
                 !applicationStatusFilter ||
@@ -1041,67 +1022,28 @@ function JobRoleReport() {
 
 
     // =========================================================
-    // STATUS COUNTS
+    // STATUS CARDS
     // =========================================================
-
-    const statusCounts = useMemo(() => {
-        const counts = {
-            Applied: 0,
-            Submitted: 0,
-            Interview: 0,
-            Onboarded: 0,
-        };
-
-
-        filteredSubmissions.forEach((item) => {
-            const status =
-                item.statusName?.trim()?.toLowerCase();
-
-
-            if (status === "applied") {
-                counts.Applied++;
-            }
-
-
-            if (status === "submitted") {
-                counts.Submitted++;
-            }
-
-
-            if (
-                status === "interview" ||
-                status === "interviewing"
-            ) {
-                counts.Interview++;
-            }
-
-
-            if (status === "onboarded") {
-                counts.Onboarded++;
-            }
-        });
-
-
-        return counts;
-    }, [filteredSubmissions]);
-
 
     const statusCards = [
         {
             label: "Submitted",
-            value: statusCounts.Submitted,
+            value:
+                submissionFilters?.totalSubmittedApplications || 0,
             icon: FiUserPlus,
             color: "#8B5CF6",
         },
         {
             label: "Interview",
-            value: statusCounts.Interview,
+            value:
+                submissionFilters?.totalInterviewApplications || 0,
             icon: FiUsers,
             color: "#F59E0B",
         },
         {
             label: "Onboarded",
-            value: statusCounts.Onboarded,
+            value:
+                submissionFilters?.totalOnboardedApplications || 0,
             icon: FiCheckCircle,
             color: "#16A34A",
         },
@@ -1687,16 +1629,14 @@ function JobRoleReport() {
                             All Clients
                         </option>
 
-                        {clients.map(
-                            (client) => (
-                                <option
-                                    key={client}
-                                    value={client}
-                                >
-                                    {client}
-                                </option>
-                            )
-                        )}
+                        {clients.map((client) => (
+                            <option
+                                key={client.id}
+                                value={client.id}
+                            >
+                                {client.name}
+                            </option>
+                        ))}
 
                     </select>
 
@@ -1758,6 +1698,7 @@ function JobRoleReport() {
                     <span>
                         Reset
                     </span>
+
                 </button>
 
             </div>
@@ -2626,4 +2567,3 @@ function JobRoleReport() {
 
 
 export default JobRoleReport;
-

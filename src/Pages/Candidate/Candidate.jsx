@@ -1561,6 +1561,8 @@ import {
     addCandidate,
     updateCandidate,
     deleteCandidate,
+    getCandidateFilters,
+    exportCandidates,
 } from "../../Redux/Slice/candidateSlice";
 
 import * as XLSX from "xlsx";
@@ -1580,18 +1582,28 @@ const Candidates = () => {
        REDUX
     ========================================================= */
 
-    const {
-        candidates = [],
-        employees = [],
-        loading,
-        employeesLoading,
-        adding,
-        error,
-        employeeError,
-        pagination = {},
-    } = useSelector(
-        (state) => state.candidate
-    );
+const {
+    candidates = [],
+    employees = [],
+    loading,
+    employeesLoading,
+    adding,
+    error,
+    employeeError,
+    pagination = {},
+        exportingCandidates,
+    exportCandidatesError,
+
+    candidateFilters = {
+        totalCandidates: 0,
+        totalActiveCandidates: 0,
+        totalInActiveCandidates: 0,
+        totalBackListedCandidates: 0,
+        statusList: [],
+    },
+} = useSelector(
+    (state) => state.candidate
+);
 
 
     /* =========================================================
@@ -1600,7 +1612,7 @@ const Candidates = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    const itemsPerPage = 10;
+    const itemsPerPage = 20;
 
     const totalPages =
         pagination?.totalPages || 0;
@@ -1697,20 +1709,22 @@ const Candidates = () => {
        INITIAL LOAD
     ========================================================= */
 
-    useEffect(() => {
+useEffect(() => {
+    dispatch(
+        getAllCandidates({
+            page: 0,
+            size: itemsPerPage,
+        })
+    );
 
-        dispatch(
-            getAllCandidates({
-                page: 0,
-                size: itemsPerPage,
-            })
-        );
+    dispatch(
+        getAllEmployees()
+    );
 
-        dispatch(
-            getAllEmployees()
-        );
-
-    }, [dispatch]);
+    dispatch(
+        getCandidateFilters()
+    );
+}, [dispatch]);
 
 
     /* =========================================================
@@ -1718,30 +1732,28 @@ const Candidates = () => {
        BACKEND HANDLES PAGINATION
     ========================================================= */
 
-    useEffect(() => {
+useEffect(() => {
 
-        const active =
-            statusFilter === "Active"
-                ? true
-                : statusFilter === "Inactive"
-                    ? false
-                    : undefined;
+    const status =
+        statusFilter === "All statuses"
+            ? undefined
+            : statusFilter;
 
-        dispatch(
-            getAllCandidates({
-                page: currentPage - 1,
-                size: itemsPerPage,
-                search: searchTerm,
-                active,
-            })
-        );
+    dispatch(
+        getAllCandidates({
+            page: currentPage - 1,
+            size: itemsPerPage,
+            search: searchTerm,
+            status,
+        })
+    );
 
-    }, [
-        dispatch,
-        currentPage,
-        searchTerm,
-        statusFilter,
-    ]);
+}, [
+    dispatch,
+    currentPage,
+    searchTerm,
+    statusFilter,
+]);
 
 
     /* =========================================================
@@ -1912,21 +1924,19 @@ const Candidates = () => {
             /*
              * Refresh the current backend page.
              */
-            const active =
-                statusFilter === "Active"
-                    ? true
-                    : statusFilter === "Inactive"
-                        ? false
-                        : undefined;
+const status =
+    statusFilter === "All statuses"
+        ? undefined
+        : statusFilter;
 
-            await dispatch(
-                getAllCandidates({
-                    page: currentPage - 1,
-                    size: itemsPerPage,
-                    search: searchTerm,
-                    active,
-                })
-            ).unwrap();
+await dispatch(
+    getAllCandidates({
+        page: currentPage - 1,
+        size: itemsPerPage,
+        search: searchTerm,
+        status,
+    })
+).unwrap();
 
         } catch (error) {
 
@@ -2031,21 +2041,19 @@ const Candidates = () => {
             /*
              * Refresh current backend page.
              */
-            const active =
-                statusFilter === "Active"
-                    ? true
-                    : statusFilter === "Inactive"
-                        ? false
-                        : undefined;
+const status =
+    statusFilter === "All statuses"
+        ? undefined
+        : statusFilter;
 
-            await dispatch(
-                getAllCandidates({
-                    page: currentPage - 1,
-                    size: itemsPerPage,
-                    search: searchTerm,
-                    active,
-                })
-            ).unwrap();
+await dispatch(
+    getAllCandidates({
+        page: currentPage - 1,
+        size: itemsPerPage,
+        search: searchTerm,
+        status,
+    })
+).unwrap();
 
 
             showNotification(
@@ -2327,21 +2335,19 @@ const Candidates = () => {
             /*
              * Refresh the same backend page.
              */
-            const active =
-                statusFilter === "Active"
-                    ? true
-                    : statusFilter === "Inactive"
-                        ? false
-                        : undefined;
+const status =
+    statusFilter === "All statuses"
+        ? undefined
+        : statusFilter;
 
-            dispatch(
-                getAllCandidates({
-                    page: currentPage - 1,
-                    size: itemsPerPage,
-                    search: searchTerm,
-                    active,
-                })
-            );
+dispatch(
+    getAllCandidates({
+        page: currentPage - 1,
+        size: itemsPerPage,
+        search: searchTerm,
+        status,
+    })
+);
 
         } catch (error) {
 
@@ -2390,362 +2396,125 @@ const Candidates = () => {
        separately provides global counts.
     ========================================================= */
 
-    const total =
-        totalItems;
+const total =
+    candidateFilters?.totalCandidates ?? 0;
 
-    const active =
-        candidates.filter(
-            (candidate) =>
-                getCandidateStatus(
-                    candidate
-                ) === "Active"
-        ).length;
+const active =
+    candidateFilters?.totalActiveCandidates ?? 0;
 
-    const inactive =
-        candidates.filter(
-            (candidate) =>
-                getCandidateStatus(
-                    candidate
-                ) === "Inactive"
-        ).length;
+const inactive =
+    candidateFilters?.totalInActiveCandidates ?? 0;
 
-    const blacklisted =
-        candidates.filter(
-            (candidate) =>
-                getCandidateStatus(
-                    candidate
-                ) === "Blacklisted"
-        ).length;
+const blacklisted =
+    candidateFilters?.totalBackListedCandidates ?? 0;
 
 
     /* =========================================================
        EXPORT
     ========================================================= */
 
-    const handleExportCandidates = () => {
-
-        try {
-
-            let exportData =
-                [...candidates];
-
-
-            /*
-             * NOTE:
-             * candidates contains only the current backend page.
-             *
-             * If exportCandidates API already exports all records,
-             * use that thunk instead for complete export.
-             */
-
-
-            if (exportStatus) {
-
-                exportData =
-                    exportData.filter(
-                        (candidate) => {
-
-                            const status =
-                                getCandidateStatus(
-                                    candidate
-                                );
-
-                            return (
-                                status ===
-                                exportStatus
-                            );
-                        }
-                    );
-            }
-
-
-            if (
-                exportFromDate ||
-                exportToDate
-            ) {
-
-                exportData =
-                    exportData.filter(
-                        (candidate) => {
-
-                            const candidateDate =
-                                candidate.createdAt ||
-                                candidate.createdDate ||
-                                candidate.createdOn;
-
-
-                            if (
-                                !candidateDate
-                            ) {
-                                return false;
-                            }
-
-
-                            const date =
-                                new Date(
-                                    candidateDate
-                                );
-
-
-                            if (
-                                Number.isNaN(
-                                    date.getTime()
-                                )
-                            ) {
-                                return false;
-                            }
-
-
-                            if (
-                                exportFromDate
-                            ) {
-
-                                const fromDate =
-                                    new Date(
-                                        `${exportFromDate}T00:00:00`
-                                    );
-
-
-                                if (
-                                    date <
-                                    fromDate
-                                ) {
-                                    return false;
-                                }
-                            }
-
-
-                            if (
-                                exportToDate
-                            ) {
-
-                                const toDate =
-                                    new Date(
-                                        `${exportToDate}T23:59:59`
-                                    );
-
-
-                                if (
-                                    date >
-                                    toDate
-                                ) {
-                                    return false;
-                                }
-                            }
-
-
-                            return true;
-                        }
-                    );
-            }
-
-
-            if (
-                exportData.length === 0
-            ) {
-
-                showNotification(
-                    "error",
-                    "No candidates found for the selected filters"
-                );
-
-                return;
-            }
-
-
-            const excelData =
-                exportData.map(
-                    (candidate) => ({
-
-                        "CV ID":
-                            candidate.cvId ||
-                            "-",
-
-                        "Candidate Name":
-                            candidate.fullName ||
-                            "-",
-
-                        "Designation":
-                            candidate.currentDesignation ||
-                            "-",
-
-                        "Status":
-                            getCandidateStatus(
-                                candidate
-                            ),
-
-                        "Owner / Recruiter":
-                            candidate.cvOwnerName ||
-                            "-",
-
-                        "Email":
-                            candidate.email ||
-                            "-",
-
-                        "Phone":
-                            candidate.phone ||
-                            "-",
-
-                        "WhatsApp":
-                            candidate.whatsapp ||
-                            "-",
-
-                        "Location":
-                            candidate.location ||
-                            "-",
-
-                        "Nationality":
-                            candidate.nationality ||
-                            "-",
-
-                        "Current Employer":
-                            candidate.currentEmployer ||
-                            "-",
-
-                        "Experience (Years)":
-                            candidate.experienceYears ??
-                            "-",
-
-                        "Skills":
-                            Array.isArray(
-                                candidate.skills
-                            )
-                                ? candidate.skills.join(
-                                    ", "
-                                )
-                                : "-",
-
-                        "Notice Period (Days)":
-                            candidate.noticePeriodDays ??
-                            "-",
-
-                        "Visa Status":
-                            candidate.visaStatus ||
-                            "-",
-
-                        "Source":
-                            candidate.source ||
-                            "-",
-
-                        "LinkedIn":
-                            candidate.linkedinUrl ||
-                            "-",
-
-                        "Education":
-                            candidate.education ||
-                            "-",
-
-                        "Current Salary":
-                            candidate.currentSalaryAmount ??
-                            "-",
-
-                        "Current Salary Currency":
-                            candidate.currentSalaryCurrency ||
-                            "-",
-
-                        "Current Salary Period":
-                            candidate.currentSalaryPeriod ||
-                            "-",
-
-                        "Expected Salary":
-                            candidate.expectedSalaryAmount ??
-                            "-",
-
-                        "Expected Salary Currency":
-                            candidate.expectedSalaryCurrency ||
-                            "-",
-
-                        "Expected Salary Period":
-                            candidate.expectedSalaryPeriod ||
-                            "-",
-
-                        "Created Date":
-                            candidate.createdAt
-                                ? new Date(
-                                    candidate.createdAt
-                                ).toLocaleDateString()
-                                : "-",
-                    })
-                );
-
-
-            const worksheet =
-                XLSX.utils.json_to_sheet(
-                    excelData
-                );
-
-
-            const columnWidths =
-                Object.keys(
-                    excelData[0]
-                ).map(
-                    (key) => ({
-
-                        wch:
-                            Math.max(
-                                key.length,
-                                ...excelData.map(
-                                    (row) =>
-                                        String(
-                                            row[key] ??
-                                            ""
-                                        ).length
-                                )
-                            ) + 2,
-                    })
-                );
-
-
-            worksheet["!cols"] =
-                columnWidths;
-
-
-            const workbook =
-                XLSX.utils.book_new();
-
-
-            XLSX.utils.book_append_sheet(
-                workbook,
-                worksheet,
-                "Candidates"
-            );
-
-
-            const today =
-                new Date()
-                    .toISOString()
-                    .split("T")[0];
-
-
-            XLSX.writeFile(
-                workbook,
-                `Candidates_${today}.xlsx`
-            );
-
-
-            showNotification(
-                "success",
-                `${exportData.length} candidate${exportData.length !== 1 ? "s" : ""} exported successfully`
-            );
-
-
-            setShowExportModal(
-                false
-            );
-
-        } catch (error) {
-
-            console.error(
-                "FRONTEND EXPORT ERROR:",
-                error
-            );
-
-            showNotification(
-                "error",
-                "Failed to export candidates"
+const handleExportCandidates = async () => {
+    try {
+        /*
+         * Call backend export API.
+         *
+         * If filters are empty, an empty object is sent
+         * and backend exports all candidates.
+         */
+        const result = await dispatch(
+            exportCandidates({
+                fromDate:
+                    exportFromDate || null,
+
+                toDate:
+                    exportToDate || null,
+
+                status:
+                    exportStatus || null,
+            })
+        ).unwrap();
+
+        /*
+         * Backend returns:
+         *
+         * {
+         *     blob,
+         *     fileName
+         * }
+         */
+
+        if (!result?.blob) {
+            throw new Error(
+                "Export file was not returned by the server"
             );
         }
-    };
+
+        /*
+         * Create temporary browser URL
+         * for the Excel blob.
+         */
+        const url =
+            window.URL.createObjectURL(
+                result.blob
+            );
+
+        /*
+         * Create temporary download link.
+         */
+        const link =
+            document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            result.fileName ||
+            "candidates.xlsx";
+
+        document.body.appendChild(
+            link
+        );
+
+        /*
+         * Start download.
+         */
+        link.click();
+
+        /*
+         * Cleanup.
+         */
+        link.remove();
+
+        window.URL.revokeObjectURL(
+            url
+        );
+
+        /*
+         * Close export modal.
+         */
+        setShowExportModal(false);
+
+        /*
+         * Success notification.
+         */
+        showNotification(
+            "success",
+            "Candidates exported successfully"
+        );
+
+    } catch (error) {
+        console.error(
+            "EXPORT CANDIDATES ERROR:",
+            error
+        );
+
+        showNotification(
+            "error",
+            typeof error === "string"
+                ? error
+                : "Failed to export candidates"
+        );
+    }
+};
 
 
     /* =========================================================
@@ -2831,24 +2600,19 @@ const Candidates = () => {
                     }}
                     onClick={() => {
 
-                        const active =
-                            statusFilter === "Active"
-                                ? true
-                                : statusFilter === "Inactive"
-                                    ? false
-                                    : undefined;
+const status =
+    statusFilter === "All statuses"
+        ? undefined
+        : statusFilter;
 
-                        dispatch(
-                            getAllCandidates({
-                                page:
-                                    currentPage - 1,
-                                size:
-                                    itemsPerPage,
-                                search:
-                                    searchTerm,
-                                active,
-                            })
-                        );
+dispatch(
+    getAllCandidates({
+        page: currentPage - 1,
+        size: itemsPerPage,
+        search: searchTerm,
+        status,
+    })
+);
                     }}
                 >
                     Retry
@@ -2998,35 +2762,26 @@ const Candidates = () => {
 
 
                 <div className="candidates-filter-wrapper">
+<select
+    className="candidates-status-filter"
+    value={statusFilter}
+    onChange={(e) =>
+        handleStatusFilterChange(e.target.value)
+    }
+>
+    <option value="All statuses">
+        All statuses
+    </option>
 
-                    <select
-                        className="candidates-status-filter"
-                        value={statusFilter}
-                        onChange={(e) =>
-                            handleStatusFilterChange(
-                                e.target.value
-                            )
-                        }
-                    >
-
-                        <option value="All statuses">
-                            All statuses
-                        </option>
-
-                        <option value="Active">
-                            Active
-                        </option>
-
-                        <option value="Inactive">
-                            Inactive
-                        </option>
-
-                        <option value="Blacklisted">
-                            Blacklisted
-                        </option>
-
-                    </select>
-
+    {candidateFilters?.statusList?.map((status) => (
+        <option
+            key={status}
+            value={status}
+        >
+            {status}
+        </option>
+    ))}
+</select>
 
                     <i className="fas fa-chevron-down filter-arrow"></i>
 

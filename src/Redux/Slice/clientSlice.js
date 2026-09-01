@@ -610,6 +610,10 @@ export const exportClients = createAsyncThunk(
    GET CLIENT HEADER / FILTER COUNTS
 ========================================================= */
 
+/* =========================================================
+   GET CLIENT HEADER / FILTER COUNTS
+========================================================= */
+
 export const fetchClientHeaderFilters = createAsyncThunk(
     "clients/fetchClientHeaderFilters",
 
@@ -617,66 +621,226 @@ export const fetchClientHeaderFilters = createAsyncThunk(
 
         try {
 
+            /* =====================================================
+               GET TOKEN
+            ===================================================== */
+
             const token =
-                getAccessToken(getState());
+                getAccessToken(getState);
 
 
-            const response = await fetch(
-                `${API_BASE_URL}/api/v1/clients/clientheader/clientfilters`,
-                {
-                    method: "GET",
+            /* =====================================================
+               BUILD URL
+            ===================================================== */
 
-                    headers: getHeaders(token),
-                }
+            const url =
+                `${API_BASE_URL}/api/v1/clients/clientheader/clientfilters`;
+
+
+            /* =====================================================
+               DEBUG - REQUEST
+            ===================================================== */
+
+            console.log(
+                "========== CLIENT HEADER FILTER DEBUG =========="
             );
 
+            console.log(
+                "API BASE URL:",
+                API_BASE_URL
+            );
+
+            console.log(
+                "FULL URL:",
+                url
+            );
+
+            console.log(
+                "TOKEN EXISTS:",
+                !!token
+            );
+
+            console.log(
+                "TOKEN:",
+                token
+                    ? `${token.substring(0, 20)}...`
+                    : "NO TOKEN"
+            );
+
+
+            /* =====================================================
+               API CALL
+            ===================================================== */
+
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method: "GET",
+
+                        headers:
+                            getHeaders(token),
+                    }
+                );
+
+
+            /* =====================================================
+               DEBUG - RESPONSE STATUS
+            ===================================================== */
+
+            console.log(
+                "RESPONSE STATUS:",
+                response.status
+            );
+
+            console.log(
+                "RESPONSE OK:",
+                response.ok
+            );
+
+
+            /* =====================================================
+               HANDLE API ERROR
+            ===================================================== */
 
             if (!response.ok) {
 
                 const errorText =
                     await response.text();
 
+
+                console.error(
+                    "CLIENT HEADER FILTER API ERROR:",
+                    errorText
+                );
+
+
                 throw new Error(
                     errorText ||
-                    "Failed to fetch client header filters"
+                    `Request failed with status ${response.status}`
                 );
 
             }
 
 
+            /* =====================================================
+               READ RESPONSE
+            ===================================================== */
+
             const data =
                 await response.json();
 
 
-            /*
-                Backend response:
+            /* =====================================================
+               DEBUG - RAW RESPONSE
+            ===================================================== */
 
-                {
-                    totalClients: 13,
-                    totalActiveClients: 12,
-                    totalInActiveClients: 1
-                }
-            */
+            console.log(
+                "CLIENT HEADER FILTER RAW RESPONSE:",
+                data
+            );
 
-            return {
+
+            console.log(
+                "totalClients:",
+                data?.totalClients
+            );
+
+            console.log(
+                "totalActiveClients:",
+                data?.totalActiveClients
+            );
+
+            console.log(
+                "totalInActiveClients:",
+                data?.totalInActiveClients
+            );
+
+
+            /* =====================================================
+               VALIDATE RESPONSE
+            ===================================================== */
+
+            if (
+                !data ||
+                typeof data !== "object"
+            ) {
+
+                throw new Error(
+                    "Invalid client header filter response"
+                );
+
+            }
+
+
+            /* =====================================================
+               PREPARE REDUX PAYLOAD
+            ===================================================== */
+
+            const result = {
 
                 totalClients:
-                    data.totalClients ?? 0,
+                    Number(
+                        data.totalClients ?? 0
+                    ),
 
                 totalActiveClients:
-                    data.totalActiveClients ?? 0,
+                    Number(
+                        data.totalActiveClients ?? 0
+                    ),
 
                 totalInActiveClients:
-                    data.totalInActiveClients ?? 0,
+                    Number(
+                        data.totalInActiveClients ?? 0
+                    ),
 
             };
 
-        }
 
-        catch (error) {
+            /* =====================================================
+               DEBUG - REDUX PAYLOAD
+            ===================================================== */
+
+            console.log(
+                "CLIENT HEADER FILTER REDUX PAYLOAD:",
+                result
+            );
+
+            console.log(
+                "=============================================="
+            );
+
+
+            return result;
+
+
+        } catch (error) {
+
+            /* =====================================================
+               DEBUG - THUNK ERROR
+            ===================================================== */
+
+            console.error(
+                "========== CLIENT HEADER FILTER THUNK ERROR =========="
+            );
+
+            console.error(
+                "ERROR:",
+                error
+            );
+
+            console.error(
+                "ERROR MESSAGE:",
+                error?.message
+            );
+
+            console.error(
+                "======================================================="
+            );
+
 
             return rejectWithValue(
-                error.message ||
+                error?.message ||
                 "Failed to fetch client header filters"
             );
 
@@ -1008,11 +1172,19 @@ builder
    CLIENT HEADER / FILTER COUNTS
 ===================================================== */
 
+/* =====================================================
+   CLIENT HEADER / FILTER COUNTS
+===================================================== */
+
 builder
 
     .addCase(
         fetchClientHeaderFilters.pending,
         (state) => {
+
+            console.log(
+                "REDUX: fetchClientHeaderFilters PENDING"
+            );
 
             state.clientHeaderLoading = true;
 
@@ -1021,29 +1193,72 @@ builder
         }
     )
 
+
     .addCase(
         fetchClientHeaderFilters.fulfilled,
         (state, action) => {
 
+            console.log(
+                "REDUX: fetchClientHeaderFilters FULFILLED"
+            );
+
+            console.log(
+                "REDUX PAYLOAD:",
+                action.payload
+            );
+
+
             state.clientHeaderLoading = false;
 
+            state.clientHeaderError = null;
+
+
             state.totalClients =
-                action.payload.totalClients ?? 0;
+                action.payload?.totalClients ?? 0;
+
 
             state.totalActiveClients =
-                action.payload.totalActiveClients ?? 0;
+                action.payload?.totalActiveClients ?? 0;
+
 
             state.totalInActiveClients =
-                action.payload.totalInActiveClients ?? 0;
+                action.payload?.totalInActiveClients ?? 0;
+
+
+            console.log(
+                "REDUX UPDATED COUNTS:",
+                {
+                    totalClients:
+                        state.totalClients,
+
+                    totalActiveClients:
+                        state.totalActiveClients,
+
+                    totalInActiveClients:
+                        state.totalInActiveClients,
+                }
+            );
 
         }
     )
+
 
     .addCase(
         fetchClientHeaderFilters.rejected,
         (state, action) => {
 
+            console.error(
+                "REDUX: fetchClientHeaderFilters REJECTED"
+            );
+
+            console.error(
+                "REDUX ERROR:",
+                action.payload
+            );
+
+
             state.clientHeaderLoading = false;
+
 
             state.clientHeaderError =
                 action.payload ||
