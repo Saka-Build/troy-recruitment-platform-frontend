@@ -110,63 +110,7 @@ export const fetchCountries = createAsyncThunk(
    GET ALL CLIENTS
 ========================================================= */
 
-export const fetchClients = createAsyncThunk(
-    "clients/fetchClients",
-
-    async (_, { getState, rejectWithValue }) => {
-
-        try {
-
-            const token =
-                getAccessToken(getState);
-
-
-            const response = await fetch(
-                `${API_BASE_URL}/api/v1/clients`,
-                {
-                    method: "GET",
-
-                    headers: getHeaders(token),
-                }
-            );
-
-
-            if (!response.ok) {
-
-                const errorText =
-                    await response.text();
-
-                throw new Error(
-                    errorText ||
-                    "Failed to fetch clients"
-                );
-            }
-
-
-            const data =
-                await response.json();
-
-
-            /*
-                Expected:
-
-                {
-                    content: [...]
-                }
-            */
-
-            return data.content || [];
-
-
-        } catch (error) {
-
-            return rejectWithValue(
-                error.message ||
-                "Failed to fetch clients"
-            );
-        }
-    }
-);
+export const fetchClients = createAsyncThunk( "clients/fetchClients", async ( { page = 0, size = 10, search = "", active, } = {}, { getState, rejectWithValue } ) => { try { const token = getAccessToken(getState); /* ===================================================== BUILD QUERY PARAMS ===================================================== */ const params = new URLSearchParams(); /* Backend uses ZERO-BASED page numbers. */ params.set( "page", page ); params.set( "size", size ); /* Only send search when user actually searched. */ if (search?.trim()) { params.set( "search", search.trim() ); } /* Active status: Active -> active=true Inactive -> active=false All -> don't send active */ if (active !== undefined) { params.set( "active", String(active) ); } const url = `${API_BASE_URL}/api/v1/clients?${params.toString()}`; console.log( "FETCH CLIENTS URL:", url ); /* ===================================================== API CALL ===================================================== */ const response = await fetch( url, { method: "GET", headers: getHeaders(token), } ); if (!response.ok) { const errorText = await response.text(); throw new Error( errorText || "Failed to fetch clients" ); } const data = await response.json(); /* Backend response: { content: [], totalPages: 5, totalElements: 42, size: 10, number: 0, first: true, last: false, ... } */ return { content: Array.isArray(data.content) ? data.content : [], totalPages: data.totalPages ?? 0, totalElements: data.totalElements ?? 0, pageSize: data.size ?? size, currentPage: data.number ?? page, numberOfElements: data.numberOfElements ?? data.content?.length ?? 0, first: data.first ?? true, last: data.last ?? true, empty: data.empty ?? data.content?.length === 0, }; } catch (error) { return rejectWithValue( error.message || "Failed to fetch clients" ); } } );
 
 
 /* =========================================================
@@ -663,6 +607,84 @@ export const exportClients = createAsyncThunk(
 
 );
 /* =========================================================
+   GET CLIENT HEADER / FILTER COUNTS
+========================================================= */
+
+export const fetchClientHeaderFilters = createAsyncThunk(
+    "clients/fetchClientHeaderFilters",
+
+    async (_, { getState, rejectWithValue }) => {
+
+        try {
+
+            const token =
+                getAccessToken(getState());
+
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/clients/clientheader/clientfilters`,
+                {
+                    method: "GET",
+
+                    headers: getHeaders(token),
+                }
+            );
+
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    errorText ||
+                    "Failed to fetch client header filters"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+                Backend response:
+
+                {
+                    totalClients: 13,
+                    totalActiveClients: 12,
+                    totalInActiveClients: 1
+                }
+            */
+
+            return {
+
+                totalClients:
+                    data.totalClients ?? 0,
+
+                totalActiveClients:
+                    data.totalActiveClients ?? 0,
+
+                totalInActiveClients:
+                    data.totalInActiveClients ?? 0,
+
+            };
+
+        }
+
+        catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch client header filters"
+            );
+
+        }
+
+    }
+);
+/* =========================================================
    SLICE
 ========================================================= */
 
@@ -670,31 +692,15 @@ const clientSlice = createSlice({
 
     name: "clients",
 
-    initialState: {
+initialState: { /* ===================================================== CURRENT BACKEND PAGE ONLY ===================================================== */ items: [], /* ===================================================== PAGINATION METADATA FROM BACKEND ===================================================== */ totalPages: 0, totalElements: 0, pageSize: 10, currentPage: 0, numberOfElements: 0, first: true, last: true, empty: true, /* ===================================================== COUNTRIES ===================================================== */ countries: [], selectedClient: null, /* ===================================================== LOADING STATES ===================================================== */ loading: false, countriesLoading: false, fetchingById: false, creating: false, updating: false, deleting: false, exporting: false, /* ===================================================== ERRORS ===================================================== */ error: null, countriesError: null,totalClients: 0,
 
-        items: [],
+totalActiveClients: 0,
 
-        countries: [],
+totalInActiveClients: 0,
 
-        selectedClient: null,
+clientHeaderLoading: false,
 
-        loading: false,
-
-        countriesLoading: false,
-
-        fetchingById: false,
-
-        creating: false,
-
-        updating: false,
-
-        deleting: false,
-        exporting: false,
-
-        error: null,
-
-        countriesError: null,
-    },
+clientHeaderError: null, },
 
 
     reducers: {
@@ -761,40 +767,9 @@ const clientSlice = createSlice({
            FETCH ALL
         ===================================================== */
 
-        builder
 
-            .addCase(
-                fetchClients.pending,
-                (state) => {
+ builder .addCase( fetchClients.pending, (state) => { state.loading = true; state.error = null; } ) .addCase( fetchClients.fulfilled, (state, action) => { state.loading = false; /* Replace current page completely. No append. No filter. No slice. */ state.items = action.payload.content || []; /* Store backend pagination metadata. */ state.totalPages = action.payload.totalPages ?? 0; state.totalElements = action.payload.totalElements ?? 0; state.pageSize = action.payload.pageSize ?? 10; state.currentPage = action.payload.currentPage ?? 0; state.numberOfElements = action.payload.numberOfElements ?? state.items.length; state.first = action.payload.first ?? true; state.last = action.payload.last ?? true; state.empty = action.payload.empty ?? state.items.length === 0; } ) .addCase( fetchClients.rejected, (state, action) => { state.loading = false; state.error = action.payload || "Failed to fetch clients"; } )
 
-                    state.loading = true;
-
-                    state.error = null;
-                }
-            )
-
-            .addCase(
-                fetchClients.fulfilled,
-                (state, action) => {
-
-                    state.loading = false;
-
-                    state.items =
-                        action.payload || [];
-                }
-            )
-
-            .addCase(
-                fetchClients.rejected,
-                (state, action) => {
-
-                    state.loading = false;
-
-                    state.error =
-                        action.payload ||
-                        "Failed to fetch clients";
-                }
-            );
 
 
         /* =====================================================
@@ -1026,6 +1001,53 @@ builder
             state.error =
                 action.payload ||
                 "Failed to export clients";
+
+        }
+    )
+    /* =====================================================
+   CLIENT HEADER / FILTER COUNTS
+===================================================== */
+
+builder
+
+    .addCase(
+        fetchClientHeaderFilters.pending,
+        (state) => {
+
+            state.clientHeaderLoading = true;
+
+            state.clientHeaderError = null;
+
+        }
+    )
+
+    .addCase(
+        fetchClientHeaderFilters.fulfilled,
+        (state, action) => {
+
+            state.clientHeaderLoading = false;
+
+            state.totalClients =
+                action.payload.totalClients ?? 0;
+
+            state.totalActiveClients =
+                action.payload.totalActiveClients ?? 0;
+
+            state.totalInActiveClients =
+                action.payload.totalInActiveClients ?? 0;
+
+        }
+    )
+
+    .addCase(
+        fetchClientHeaderFilters.rejected,
+        (state, action) => {
+
+            state.clientHeaderLoading = false;
+
+            state.clientHeaderError =
+                action.payload ||
+                "Failed to fetch client header filters";
 
         }
     );

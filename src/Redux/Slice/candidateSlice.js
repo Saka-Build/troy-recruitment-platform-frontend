@@ -3,12 +3,34 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     " ";
+
 export const getAllCandidates = createAsyncThunk(
     "candidates/getAllCandidates",
-    async (_, { rejectWithValue }) => {
+    async (
+        {
+            page = 0,
+            size = 20,
+            search = "",
+            active = undefined,
+        } = {},
+        { rejectWithValue }
+    ) => {
         try {
+            const params = new URLSearchParams();
+
+            params.append("page", page);
+            params.append("size", size);
+
+            if (search?.trim()) {
+                params.append("search", search.trim());
+            }
+
+            if (active !== undefined && active !== null) {
+                params.append("active", active);
+            }
+
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/candidates`,
+                `${API_BASE_URL}/api/v1/candidates?${params.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -25,27 +47,44 @@ export const getAllCandidates = createAsyncThunk(
                 );
             }
 
-            if (Array.isArray(data)) {
-                return data;
-            }
+            /*
+             * Backend returns Spring Page response:
+             *
+             * {
+             *   content: [],
+             *   totalPages: 130,
+             *   totalElements: 2590,
+             *   number: 0,
+             *   size: 20,
+             *   first: true,
+             *   last: false
+             * }
+             */
 
-            if (Array.isArray(data?.content)) {
-                return data.content;
-            }
+            return {
+                candidates: Array.isArray(data?.content)
+                    ? data.content
+                    : [],
 
-            if (Array.isArray(data?.data)) {
-                return data.data;
-            }
-
-            return [];
+                pagination: {
+                    page: data?.number ?? page,
+                    size: data?.size ?? size,
+                    totalPages: data?.totalPages ?? 0,
+                    totalElements: data?.totalElements ?? 0,
+                    numberOfElements: data?.numberOfElements ?? 0,
+                    first: data?.first ?? true,
+                    last: data?.last ?? true,
+                },
+            };
         } catch (error) {
             return rejectWithValue(
                 error.message ||
-                "Something went wrong while fetching candidates"
+                    "Something went wrong while fetching candidates"
             );
         }
     }
 );
+
 
 export const getCandidateById = createAsyncThunk(
     "candidates/getCandidateById",
@@ -1833,67 +1872,120 @@ export const deleteSubmission = createAsyncThunk(
     }
 );
 
+
 const initialState = {
     candidates: [],
-    employees: [],
-
-    selectedCandidate: null,
-
-    candidateActivity: [],
 
     loading: false,
-    employeesLoading: false,
-    adding: false,
-    candidateDetailsLoading: false,
-    candidateActivityLoading: false,
-
     error: null,
+
+    /*
+     * SERVER-SIDE PAGINATION
+     */
+    pagination: {
+        page: 0,
+        size: 10,
+        totalPages: 0,
+        totalElements: 0,
+        numberOfElements: 0,
+        first: true,
+        last: true,
+    },
+
+    /*
+     * Existing employee data
+     */
+    employees: [],
+    employeesLoading: false,
     employeeError: null,
+
+    /*
+     * Candidate details
+     */
+    selectedCandidate: null,
+    candidateDetailsLoading: false,
     candidateDetailsError: null,
+
+    /*
+     * Candidate activity
+     */
+    candidateActivity: [],
+    candidateActivityLoading: false,
     candidateActivityError: null,
+
+    /*
+     * Candidate applications
+     */
     candidateApplications: [],
     candidateApplicationsLoading: false,
     candidateApplicationsError: null,
+
+    /*
+     * Submission activities
+     */
     submissionActivities: [],
     submissionActivitiesLoading: false,
     submissionActivitiesError: null,
+
+    /*
+     * Submission statuses
+     */
     submissionStatuses: [],
     submissionStatusesLoading: false,
     submissionStatusesError: null,
 
-    creatingSubmission: false,
-    createSubmissionError: null,
-
-    deletingSubmission: false,
-    deleteSubmissionError: null,
-
+    /*
+     * Submission sub-statuses
+     */
     submissionSubStatuses: {},
     submissionSubStatusesLoading: {},
     submissionSubStatusesError: {},
 
-    updatingSubmission: false,
-    updateSubmissionError: null,
-
-    updatingSubmissionRates: false,
-    updateSubmissionRatesError: null,
-    creatingInterview: false,
-    createInterviewError: null,
+    /*
+     * Interviews
+     */
     interviewsBySubmission: {},
     interviewsBySubmissionLoading: {},
     interviewsBySubmissionError: {},
+
+    /*
+     * Notes
+     */
     notes: [],
     notesLoading: false,
     notesError: null,
 
-    creatingNote: false,
-    createNoteError: null,
-
+    /*
+     * Create / update states
+     */
+    adding: false,
+    creatingSubmission: false,
+    updatingSubmission: false,
+    updatingSubmissionRates: false,
+    creatingInterview: false,
     updatingInterview: false,
-    updateInterviewError: null,
+    creatingNote: false,
+    deletingSubmission: false,
 
+    /*
+     * Errors
+     */
+    createSubmissionError: null,
+    updateSubmissionError: null,
+    updateSubmissionRatesError: null,
+    createInterviewError: null,
+    updateInterviewError: null,
+    createNoteError: null,
+    deleteSubmissionError: null,
+
+    /*
+     * Export
+     */
     exportingCandidates: false,
     exportCandidatesError: null,
 };
+
+
 
 const candidateSlice = createSlice({
     name: "candidates",
@@ -1932,31 +2024,42 @@ const candidateSlice = createSlice({
     extraReducers: (builder) => {
 
         builder
-            .addCase(
-                getAllCandidates.pending,
-                (state) => {
-                    state.loading = true;
-                    state.error = null;
-                }
-            )
+.addCase(
+    getAllCandidates.pending,
+    (state) => {
+        state.loading = true;
+        state.error = null;
+    }
+)
 
-            .addCase(
-                getAllCandidates.fulfilled,
-                (state, action) => {
-                    state.loading = false;
-                    state.candidates = action.payload;
-                }
-            )
+.addCase(
+    getAllCandidates.fulfilled,
+    (state, action) => {
+        state.loading = false;
 
-            .addCase(
-                getAllCandidates.rejected,
-                (state, action) => {
-                    state.loading = false;
-                    state.error =
-                        action.payload ||
-                        "Failed to fetch candidates";
-                }
-            )
+        /*
+         * Backend already paginated the data.
+         * Store only the current page returned by backend.
+         */
+        state.candidates = action.payload.candidates;
+
+        /*
+         * Store backend pagination metadata.
+         */
+        state.pagination = action.payload.pagination;
+    }
+)
+
+.addCase(
+    getAllCandidates.rejected,
+    (state, action) => {
+        state.loading = false;
+        state.error =
+            action.payload ||
+            "Failed to fetch candidates";
+    }
+)
+
             .addCase(
                 getCandidateById.pending,
                 (state) => {
@@ -2016,15 +2119,16 @@ const candidateSlice = createSlice({
                 }
             )
 
-            .addCase(
-                addCandidate.fulfilled,
-                (state, action) => {
-                    state.adding = false;
-                    state.candidates.unshift(
-                        action.payload
-                    );
-                }
-            )
+            // .addCase(
+            //     addCandidate.fulfilled,
+            //     (state, action) => {
+            //         state.adding = false;
+            //         state.candidates.unshift(
+            //             action.payload
+            //         );
+            //     }
+            // )
+            .addCase( addCandidate.fulfilled, (state) => { state.adding = false; state.error = null; } )
 
             .addCase(
                 addCandidate.rejected,
@@ -2043,24 +2147,25 @@ const candidateSlice = createSlice({
                 }
             )
 
-            .addCase(
-                updateCandidate.fulfilled,
-                (state, action) => {
-                    state.loading = false;
+            // .addCase(
+            //     updateCandidate.fulfilled,
+            //     (state, action) => {
+            //         state.loading = false;
 
-                    const index =
-                        state.candidates.findIndex(
-                            (candidate) =>
-                                candidate.id ===
-                                action.payload.id
-                        );
+            //         const index =
+            //             state.candidates.findIndex(
+            //                 (candidate) =>
+            //                     candidate.id ===
+            //                     action.payload.id
+            //             );
 
-                    if (index !== -1) {
-                        state.candidates[index] =
-                            action.payload;
-                    }
-                }
-            )
+            //         if (index !== -1) {
+            //             state.candidates[index] =
+            //                 action.payload;
+            //         }
+            //     }
+            // )
+            .addCase( updateCandidate.fulfilled, (state) => { state.loading = false; state.error = null; } )
 
             .addCase(
                 updateCandidate.rejected,
@@ -2080,19 +2185,20 @@ const candidateSlice = createSlice({
                 }
             )
 
-            .addCase(
-                deleteCandidate.fulfilled,
-                (state, action) => {
-                    state.loading = false;
+            // .addCase(
+            //     deleteCandidate.fulfilled,
+            //     (state, action) => {
+            //         state.loading = false;
 
-                    state.candidates =
-                        state.candidates.filter(
-                            (candidate) =>
-                                candidate.id !==
-                                action.payload
-                        );
-                }
-            )
+            //         state.candidates =
+            //             state.candidates.filter(
+            //                 (candidate) =>
+            //                     candidate.id !==
+            //                     action.payload
+            //             );
+            //     }
+            // )
+            .addCase( deleteCandidate.fulfilled, (state) => { state.loading = false; state.error = null; } )
 
             .addCase(
                 deleteCandidate.rejected,
