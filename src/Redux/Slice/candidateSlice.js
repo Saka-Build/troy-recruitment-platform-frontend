@@ -11,7 +11,7 @@ export const getAllCandidates = createAsyncThunk(
             page = 0,
             size = 20,
             search = "",
-            active = undefined,
+            status = undefined,
         } = {},
         { rejectWithValue }
     ) => {
@@ -25,8 +25,12 @@ export const getAllCandidates = createAsyncThunk(
                 params.append("search", search.trim());
             }
 
-            if (active !== undefined && active !== null) {
-                params.append("active", active);
+            if (
+                status !== undefined &&
+                status !== null &&
+                status !== ""
+            ) {
+                params.append("status", status);
             }
 
             const response = await fetch(
@@ -43,7 +47,8 @@ export const getAllCandidates = createAsyncThunk(
 
             if (!response.ok) {
                 return rejectWithValue(
-                    data?.message || "Failed to fetch candidates"
+                    data?.message ||
+                    "Failed to fetch candidates"
                 );
             }
 
@@ -71,7 +76,8 @@ export const getAllCandidates = createAsyncThunk(
                     size: data?.size ?? size,
                     totalPages: data?.totalPages ?? 0,
                     totalElements: data?.totalElements ?? 0,
-                    numberOfElements: data?.numberOfElements ?? 0,
+                    numberOfElements:
+                        data?.numberOfElements ?? 0,
                     first: data?.first ?? true,
                     last: data?.last ?? true,
                 },
@@ -79,11 +85,12 @@ export const getAllCandidates = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(
                 error.message ||
-                    "Something went wrong while fetching candidates"
+                "Something went wrong while fetching candidates"
             );
         }
     }
 );
+
 
 
 export const getCandidateById = createAsyncThunk(
@@ -503,154 +510,6 @@ export const deleteCandidate = createAsyncThunk(
     }
 );
 
-export const exportCandidates = createAsyncThunk(
-    "candidates/exportCandidates",
-    async (
-        {
-            fromDate = null,
-            toDate = null,
-            status = null,
-        } = {},
-        { rejectWithValue }
-    ) => {
-        try {
-            const accessToken =
-                localStorage.getItem("accessToken");
-
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
-            const requestBody = {};
-
-            if (fromDate) {
-                requestBody.fromDate = fromDate;
-            }
-
-            if (toDate) {
-                requestBody.toDate = toDate;
-            }
-
-            if (status) {
-                requestBody.status = status;
-            }
-
-            console.log(
-                "========== EXPORT CANDIDATES =========="
-            );
-
-            console.log(
-                "Export Request Body:",
-                requestBody
-            );
-
-            const response = await fetch(
-                `${API_BASE_URL}/api/v1/candidates/export`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                            `Bearer ${cleanToken}`,
-                    },
-
-                    body: JSON.stringify(requestBody),
-                }
-            );
-
-            console.log(
-                "Export Candidates Status:",
-                response.status
-            );
-            if (!response.ok) {
-                const contentType =
-                    response.headers.get("content-type");
-
-                let errorMessage =
-                    "Failed to export candidates";
-
-                if (
-                    contentType &&
-                    contentType.includes(
-                        "application/json"
-                    )
-                ) {
-                    const data =
-                        await response.json().catch(
-                            () => null
-                        );
-
-                    errorMessage =
-                        data?.message ||
-                        data?.error ||
-                        errorMessage;
-                } else {
-                    const text =
-                        await response.text().catch(
-                            () => ""
-                        );
-
-                    if (text) {
-                        errorMessage = text;
-                    }
-                }
-
-                if (response.status === 401) {
-                    errorMessage =
-                        "User is not authenticated. Please login again.";
-                }
-
-                return rejectWithValue(
-                    errorMessage
-                );
-            }
-            const blob =
-                await response.blob();
-            const contentDisposition =
-                response.headers.get(
-                    "Content-Disposition"
-                );
-
-            let fileName =
-                "candidates.xlsx";
-
-            if (contentDisposition) {
-                const fileNameMatch =
-                    contentDisposition.match(
-                        /filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i
-                    );
-
-                if (fileNameMatch?.[1]) {
-                    fileName =
-                        decodeURIComponent(
-                            fileNameMatch[1]
-                        );
-                }
-            }
-            return {
-                blob,
-                fileName,
-            };
-
-        } catch (error) {
-            console.error(
-                "EXPORT CANDIDATES ERROR:",
-                error
-            );
-
-            return rejectWithValue(
-                error.message ||
-                "Something went wrong while exporting candidates"
-            );
-        }
-    }
-);
 
 export const getCandidateActivity = createAsyncThunk(
     "candidates/getCandidateActivity",
@@ -1871,8 +1730,234 @@ export const deleteSubmission = createAsyncThunk(
         }
     }
 );
+export const getCandidateFilters = createAsyncThunk(
+    "candidates/getCandidateFilters",
+    async (_, { rejectWithValue }) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
 
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
 
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/candidates/candidatefilters`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${cleanToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(
+                "Candidate Filters API Response:",
+                data
+            );
+
+            if (!response.ok) {
+                return rejectWithValue(
+                    data?.message ||
+                    data?.error ||
+                    "Failed to fetch candidate filters"
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+            console.error(
+                "GET CANDIDATE FILTERS ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while fetching candidate filters"
+            );
+        }
+    }
+);
+export const exportCandidates = createAsyncThunk(
+    "candidates/exportCandidates",
+    async (
+        {
+            fromDate = null,
+            toDate = null,
+            status = null,
+        } = {},
+        { rejectWithValue }
+    ) => {
+        try {
+            const accessToken =
+                localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
+            const cleanToken = accessToken
+                .replace(/^Bearer\s+/i, "")
+                .trim();
+
+            const requestBody = {};
+
+            /*
+             * Add only values provided by the user.
+             */
+            if (fromDate) {
+                requestBody.fromDate = fromDate;
+            }
+
+            if (toDate) {
+                requestBody.toDate = toDate;
+            }
+
+            if (status) {
+                requestBody.status = status;
+            }
+
+            console.log(
+                "========== EXPORT CANDIDATES =========="
+            );
+
+            console.log(
+                "Export Request Body:",
+                requestBody
+            );
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/candidates/export`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                            `Bearer ${cleanToken}`,
+                    },
+
+                    body: JSON.stringify(requestBody),
+                }
+            );
+
+            console.log(
+                "Export Candidates Status:",
+                response.status
+            );
+
+            /*
+             * Handle API errors.
+             */
+            if (!response.ok) {
+                const contentType =
+                    response.headers.get("content-type");
+
+                let errorMessage =
+                    "Failed to export candidates";
+
+                if (
+                    contentType &&
+                    contentType.includes(
+                        "application/json"
+                    )
+                ) {
+                    const data =
+                        await response.json().catch(
+                            () => null
+                        );
+
+                    errorMessage =
+                        data?.message ||
+                        data?.error ||
+                        errorMessage;
+                } else {
+                    const text =
+                        await response.text().catch(
+                            () => ""
+                        );
+
+                    if (text) {
+                        errorMessage = text;
+                    }
+                }
+
+                if (response.status === 401) {
+                    errorMessage =
+                        "User is not authenticated. Please login again.";
+                }
+
+                return rejectWithValue(
+                    errorMessage
+                );
+            }
+
+            /*
+             * Successful response is an Excel file.
+             */
+            const blob =
+                await response.blob();
+
+            /*
+             * Get filename from Content-Disposition.
+             */
+            const contentDisposition =
+                response.headers.get(
+                    "Content-Disposition"
+                );
+
+            let fileName =
+                "candidates.xlsx";
+
+            if (contentDisposition) {
+                const fileNameMatch =
+                    contentDisposition.match(
+                        /filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i
+                    );
+
+                if (fileNameMatch?.[1]) {
+                    fileName =
+                        decodeURIComponent(
+                            fileNameMatch[1]
+                        );
+                }
+            }
+
+            console.log(
+                "Export File Name:",
+                fileName
+            );
+
+            return {
+                blob,
+                fileName,
+            };
+
+        } catch (error) {
+            console.error(
+                "EXPORT CANDIDATES ERROR:",
+                error
+            );
+
+            return rejectWithValue(
+                error.message ||
+                "Something went wrong while exporting candidates"
+            );
+        }
+    }
+);
 const initialState = {
     candidates: [],
 
@@ -1884,7 +1969,7 @@ const initialState = {
      */
     pagination: {
         page: 0,
-        size: 10,
+        size: 20,
         totalPages: 0,
         totalElements: 0,
         numberOfElements: 0,
@@ -1983,6 +2068,20 @@ const initialState = {
      */
     exportingCandidates: false,
     exportCandidatesError: null,
+
+    candidateFilters: {
+    totalCandidates: 0,
+    totalActiveCandidates: 0,
+    totalInActiveCandidates: 0,
+    totalBackListedCandidates: 0,
+    statusList: [],
+
+    exportingCandidates: false,
+exportCandidatesError: null,
+},
+
+candidateFiltersLoading: false,
+candidateFiltersError: null,
 };
 
 
@@ -2670,31 +2769,76 @@ const candidateSlice = createSlice({
                 }
             )
 
-            .addCase(
-                exportCandidates.pending,
-                (state) => {
-                    state.exportingCandidates = true;
-                    state.exportCandidatesError = null;
-                }
-            )
 
             .addCase(
-                exportCandidates.fulfilled,
-                (state) => {
-                    state.exportingCandidates = false;
-                    state.exportCandidatesError = null;
-                }
-            )
+    getCandidateFilters.pending,
+    (state) => {
+        state.candidateFiltersLoading = true;
+        state.candidateFiltersError = null;
+    }
+)
 
-            .addCase(
-                exportCandidates.rejected,
-                (state, action) => {
-                    state.exportingCandidates = false;
-                    state.exportCandidatesError =
-                        action.payload ||
-                        "Failed to export candidates";
-                }
-            )
+.addCase(
+    getCandidateFilters.fulfilled,
+    (state, action) => {
+        state.candidateFiltersLoading = false;
+
+        state.candidateFilters = {
+            totalCandidates:
+                action.payload?.totalCandidates ?? 0,
+
+            totalActiveCandidates:
+                action.payload?.totalActiveCandidates ?? 0,
+
+            totalInActiveCandidates:
+                action.payload?.totalInActiveCandidates ?? 0,
+
+            totalBackListedCandidates:
+                action.payload?.totalBackListedCandidates ?? 0,
+
+            statusList:
+                Array.isArray(action.payload?.statusList)
+                    ? action.payload.statusList
+                    : [],
+        };
+    }
+)
+
+.addCase(
+    getCandidateFilters.rejected,
+    (state, action) => {
+        state.candidateFiltersLoading = false;
+
+        state.candidateFiltersError =
+            action.payload ||
+            "Failed to fetch candidate filters";
+    }
+)
+.addCase(
+    exportCandidates.pending,
+    (state) => {
+        state.exportingCandidates = true;
+        state.exportCandidatesError = null;
+    }
+)
+
+.addCase(
+    exportCandidates.fulfilled,
+    (state) => {
+        state.exportingCandidates = false;
+        state.exportCandidatesError = null;
+    }
+)
+
+.addCase(
+    exportCandidates.rejected,
+    (state, action) => {
+        state.exportingCandidates = false;
+        state.exportCandidatesError =
+            action.payload ||
+            "Failed to export candidates";
+    }
+)
     },
 });
 
