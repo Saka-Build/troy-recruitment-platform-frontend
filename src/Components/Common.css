@@ -443,3 +443,12 @@
         font-size: 14px;
     }
 }
+.pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    font-size: 14px;
+    color: #6c757d;
+}

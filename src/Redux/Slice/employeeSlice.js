@@ -5,39 +5,68 @@ const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     " ";
 
-
 /*
 |--------------------------------------------------------------------------
 | GET ALL EMPLOYEES
+|
+| Backend handles pagination, search and status filtering.
+|
+| GET /api/v1/employees?page=0&size=10
+| GET /api/v1/employees?page=0&size=10&active=true
+| GET /api/v1/employees?page=0&size=10&search=anitha
 |--------------------------------------------------------------------------
 */
 export const getAllEmployees = createAsyncThunk(
     "employees/getAllEmployees",
-    async (_, { rejectWithValue }) => {
-
+    async (
+        {
+            page = 0,
+            size = 20,
+            search = "",
+            active,
+        } = {},
+        { rejectWithValue }
+    ) => {
         try {
+            const params = new URLSearchParams();
+
+            params.append("page", page);
+            params.append("size", size);
+
+            if (search?.trim()) {
+                params.append(
+                    "search",
+                    search.trim()
+                );
+            }
+
+            if (
+                active !== undefined &&
+                active !== null
+            ) {
+                params.append(
+                    "active",
+                    active
+                );
+            }
 
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/employees`
+                `${API_BASE_URL}/api/v1/employees?${params.toString()}`
             );
 
-
-            const data = await response.json();
-
+            const data =
+                await response.json();
 
             if (!response.ok) {
-
                 throw new Error(
                     data?.message ||
                     "Failed to fetch employees."
                 );
             }
 
-
             return data;
 
         } catch (error) {
-
             return rejectWithValue(
                 error.message ||
                 "Failed to fetch employees."
@@ -467,6 +496,37 @@ export const getAllSubmissions = createAsyncThunk(
     }
 );
 
+export const getEmployeeFilters = createAsyncThunk(
+    "employees/getEmployeeFilters",
+    async (_, { rejectWithValue }) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/employees/employeefilters`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data?.message ||
+                    "Failed to fetch employee filters."
+                );
+            }
+
+            return data;
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to fetch employee filters."
+            );
+        }
+    }
+);
 /*
 |--------------------------------------------------------------------------
 | SLICE
@@ -477,50 +537,62 @@ const employeeSlice =
 
         name: "employees",
 
-        initialState: {
+initialState: {
+    employees: [],
 
-            employees: [],
+    employeePagination: {
+        pageNumber: 0,
+        pageSize: 20,
+        totalPages: 0,
+        totalElements: 0,
+        numberOfElements: 0,
+        first: true,
+        last: true,
+        empty: true,
+    },
 
-            countries: [],
+    countries: [],
 
-            selectedEmployee: null,
+    selectedEmployee: null,
 
-            isLoading: false,
+    isLoading: false,
 
-            isSaving: false,
+    isSaving: false,
 
-            countriesLoading: false,
+    countriesLoading: false,
 
-            error: null,
+    error: null,
 
-            countriesError: null,
-            deleteLoading: false,
-            submissions: [],
+    countriesError: null,
 
-            submissionsPagination: {
+    deleteLoading: false,
 
-                pageNumber: 0,
+    submissions: [],
 
-                pageSize: 20,
+    submissionsPagination: {
+        pageNumber: 0,
+        pageSize: 20,
+        totalPages: 0,
+        totalElements: 0,
+        numberOfElements: 0,
+        first: true,
+        last: true,
+        empty: true,
+    },
 
-                totalPages: 0,
+    submissionsLoading: false,
 
-                totalElements: 0,
+    submissionsError: null,
+    employeeFilters: {
+    totalEmployees: 0,
+    totalActiveEmployees: 0,
+    totalInActiveEmployees: 0,
+},
 
-                numberOfElements: 0,
+employeeFiltersLoading: false,
 
-                first: true,
-
-                last: true,
-
-                empty: true,
-            },
-
-            submissionsLoading: false,
-
-            submissionsError: null,
-
-        },
+employeeFiltersError: null,
+},
 
 
         reducers: {
@@ -598,31 +670,58 @@ const employeeSlice =
                 )
 
 
-                .addCase(
-                    getAllEmployees.fulfilled,
-                    (
-                        state,
-                        action
-                    ) => {
+.addCase(
+    getAllEmployees.fulfilled,
+    (
+        state,
+        action
+    ) => {
 
-                        state.isLoading =
-                            false;
+        state.isLoading = false;
 
+        const data =
+            action.payload;
 
-                        /*
-                         * API returns:
-                         *
-                         * {
-                         *   content: []
-                         * }
-                         */
+        state.employees =
+            data?.content || [];
 
-                        state.employees =
-                            action.payload
-                                ?.content ||
-                            [];
-                    }
-                )
+        state.employeePagination = {
+            pageNumber:
+                data?.number ??
+                data?.pageable?.pageNumber ??
+                0,
+
+            pageSize:
+                data?.size ??
+                data?.pageable?.pageSize ??
+                20,
+
+            totalPages:
+                data?.totalPages ??
+                0,
+
+            totalElements:
+                data?.totalElements ??
+                0,
+
+            numberOfElements:
+                data?.numberOfElements ??
+                0,
+
+            first:
+                data?.first ??
+                true,
+
+            last:
+                data?.last ??
+                true,
+
+            empty:
+                data?.empty ??
+                true,
+        };
+    }
+)
 
 
                 .addCase(
@@ -1055,8 +1154,59 @@ builder
                             action.payload ||
                             "Failed to fetch submissions.";
                     }
-                );
+                )
 
+builder
+
+    .addCase(
+        getEmployeeFilters.pending,
+        (state) => {
+
+            state.employeeFiltersLoading = true;
+
+            state.employeeFiltersError = null;
+        }
+    )
+
+    .addCase(
+        getEmployeeFilters.fulfilled,
+        (
+            state,
+            action
+        ) => {
+
+            state.employeeFiltersLoading = false;
+
+            const data = action.payload || {};
+
+            state.employeeFilters = {
+
+                totalEmployees:
+                    data?.totalEmployees ?? 0,
+
+                totalActiveEmployees:
+                    data?.totalActiveEmployees ?? 0,
+
+                totalInActiveEmployees:
+                    data?.totalInActiveEmployees ?? 0,
+            };
+        }
+    )
+
+    .addCase(
+        getEmployeeFilters.rejected,
+        (
+            state,
+            action
+        ) => {
+
+            state.employeeFiltersLoading = false;
+
+            state.employeeFiltersError =
+                action.payload ||
+                "Failed to fetch employee filters.";
+        }
+    );
         },
     });
 

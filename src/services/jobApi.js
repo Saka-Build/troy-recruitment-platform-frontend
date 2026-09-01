@@ -126,6 +126,34 @@ const jobApi = {
         );
         return response.data;
     },
+    /* =========================================================
+   JOB FILTERS / HEADER COUNTS
+========================================================= */
+
+getJobFilters: async () => {
+  const response = await api.get(
+    "/api/v1/jobs/jobheader/jobfilters"
+  );
+
+  return response.data;
+},
+
+
+/* =========================================================
+   EXPORT JOBS
+========================================================= */
+
+exportJobs: async (params = {}) => {
+  const response = await api.get(
+    "/api/v1/jobs/export",
+    {
+      params,
+      responseType: "blob",
+    }
+  );
+
+  return response;
+},
 };
 
 
