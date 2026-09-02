@@ -461,14 +461,56 @@ export const deleteEmployee = createAsyncThunk(
 | GET /api/v1/submissions
 |--------------------------------------------------------------------------
 */
+
 export const getAllSubmissions = createAsyncThunk(
     "employees/getAllSubmissions",
-    async (_, { rejectWithValue }) => {
+    async (
+        {
+            page = 0,
+            size = 20,
+            statusId = "",
+            jobId = "",
+            clientId = "",
+            search = "",
+        } = {},
+        { rejectWithValue }
+    ) => {
 
         try {
 
+            const params = new URLSearchParams();
+
+            /* -------------------------------------------------------
+             * PAGINATION
+             * ------------------------------------------------------- */
+
+            params.append("page", page);
+            params.append("size", size);
+
+
+            /* -------------------------------------------------------
+             * OPTIONAL FILTERS
+             * ------------------------------------------------------- */
+
+            if (statusId) {
+                params.append("statusId", statusId);
+            }
+
+            if (jobId) {
+                params.append("jobId", jobId);
+            }
+
+            if (clientId) {
+                params.append("clientId", clientId);
+            }
+            if (search) { params.append("search", search); }
+
+            /* -------------------------------------------------------
+             * API CALL
+             * ------------------------------------------------------- */
+
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/submissions`
+                `${API_BASE_URL}/api/v1/submissions?${params.toString()}`
             );
 
 
