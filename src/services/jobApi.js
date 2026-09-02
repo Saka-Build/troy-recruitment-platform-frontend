@@ -170,72 +170,49 @@ const jobApi = {
     },
 
 
-    /* =========================================================
-       EXPORT JOBS
-    ========================================================= */
+exportJobs: async (params = {}) => {
+    const accessToken = localStorage.getItem("accessToken");
 
-    exportJobs: async (params = {}) => {
-        const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+        throw new Error("Authentication token not found.");
+    }
 
-        if (!accessToken) {
-            throw new Error("Authentication token not found.");
+    const requestParams = {
+        ...(params.fromDate && {
+            fromDate: params.fromDate,
+        }),
+
+        ...(params.toDate && {
+            toDate: params.toDate,
+        }),
+
+        ...(params.statusId && {
+            statusId: params.statusId,
+        }),
+
+        ...(params.priorityId && {
+            priorityId: params.priorityId,
+        }),
+    };
+
+    console.log(
+        "Export Jobs request params:",
+        requestParams
+    );
+
+    const response = await axios.post(
+        `${API_BASE_URL}/api/v1/jobs/export`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            params: requestParams,
+            responseType: "blob",
         }
+    );
 
-        const response = await axios.get(
-            `${API_BASE_URL}/api/v1/jobs/export`,
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-                params,
-                responseType: "blob",
-            }
-        );
-
-        return response;
-    },
-
-
-    /* =========================================================
-       EXPORT EMPLOYEES
-    ========================================================= */
-
-    exportEmployees: async (params = {}) => {
-        const accessToken = localStorage.getItem("accessToken");
-
-        if (!accessToken) {
-            throw new Error("Authentication token not found.");
-        }
-
-        console.log("Export request body:", params);
-
-        const response = await axios.post(
-            `${API_BASE_URL}/api/v1/employees/export`,
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    "Content-Type": "application/json",
-                },
-                data: {
-                    ...(params.fromDate && {
-                        fromDate: params.fromDate,
-                    }),
-                    ...(params.toDate && {
-                        toDate: params.toDate,
-                    }),
-                    ...(params.role && {
-                        role: params.role,
-                    }),
-                    ...(params.active !== undefined && {
-                        active: params.active,
-                    }),
-                },
-                responseType: "blob",
-            }
-        );
-
-        return response;
-    },
+    return response;
+},
 };
 
 export default jobApi;

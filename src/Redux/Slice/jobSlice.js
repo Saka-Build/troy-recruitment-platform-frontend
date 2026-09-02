@@ -188,64 +188,31 @@ export const getJobFilters = createAsyncThunk(
 ========================================================= */
 
 export const exportJobs = createAsyncThunk(
-  "jobs/exportJobs",
+    "jobs/exportJobs",
 
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const response =
-        await jobApi.exportJobs(params);
+    async (params = {}, { rejectWithValue }) => {
+        try {
+            const response =
+                await jobApi.exportJobs(params);
 
-      return response;
+            return response;
 
-    } catch (error) {
-      console.error(
-        "Export Jobs API Error:",
-        error
-      );
+        } catch (error) {
+            console.error(
+                "Export Jobs API Error:",
+                error
+            );
 
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Unable to export jobs.";
+            const message =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Unable to export jobs.";
 
-      return rejectWithValue(message);
+            return rejectWithValue(message);
+        }
     }
-  }
 );
 
-
-/* =========================================================
-   EXPORT EMPLOYEES
-========================================================= */
-
-export const exportEmployees = createAsyncThunk(
-  "jobs/exportEmployees",
-
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const response =
-        await jobApi.exportEmployees(params);
-
-      return {
-        data: response.data,
-        headers: response.headers,
-      };
-
-    } catch (error) {
-      console.error(
-        "Export Employees API Error:",
-        error
-      );
-
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Unable to export employees.";
-
-      return rejectWithValue(message);
-    }
-  }
-);
 
 const initialState = {
   jobs: [],
@@ -651,32 +618,6 @@ const jobSlice = createSlice({
           state.exportError =
             action.payload ||
             "Unable to export jobs.";
-        }
-      )
-      .addCase(
-        exportEmployees.pending,
-        (state) => {
-          state.isEmployeeExporting = true;
-          state.employeeExportError = null;
-        }
-      )
-
-      .addCase(
-        exportEmployees.fulfilled,
-        (state) => {
-          state.isEmployeeExporting = false;
-          state.employeeExportError = null;
-        }
-      )
-
-      .addCase(
-        exportEmployees.rejected,
-        (state, action) => {
-          state.isEmployeeExporting = false;
-
-          state.employeeExportError =
-            action.payload ||
-            "Unable to export employees.";
         }
       );
 

@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import "./Employees.css";
+import { useDispatch } from "react-redux";
 
-function EmployeeExportModal({
+import "./EmployeeExportModal.css";
+
+import {
+    exportEmployees,
+} from "../../Redux/Slice/employeeSlice";
+
+
+const EmployeeExportModal = ({
+    isOpen,
     onClose,
-    onExport,
-    isExporting,
-}) {
+}) => {
+
+    const dispatch = useDispatch();
+
 
     const [fromDate, setFromDate] =
         useState("");
@@ -13,40 +22,316 @@ function EmployeeExportModal({
     const [toDate, setToDate] =
         useState("");
 
-    const [status, setStatus] =
-        useState("all");
+    const [active, setActive] =
+        useState("");
+
+    const [isExporting, setIsExporting] =
+        useState(false);
 
 
-    const handleExport = () => {
+    if (!isOpen) {
+        return null;
+    }
 
-        let active;
 
-        if (status === "active") {
-            active = true;
+    /*
+    |--------------------------------------------------------------------------
+    | EXPORT EMPLOYEES
+    |--------------------------------------------------------------------------
+    */
+
+    const handleExport = async () => {
+
+        try {
+
+            setIsExporting(true);
+
+
+            const exportParams = {};
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FROM DATE
+            |--------------------------------------------------------------------------
+            */
+
+            if (fromDate) {
+
+                exportParams.fromDate =
+                    `${fromDate}T00:00:00`;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | TO DATE
+            |--------------------------------------------------------------------------
+            */
+
+            if (toDate) {
+
+                exportParams.toDate =
+                    `${toDate}T23:59:59`;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ACTIVE / INACTIVE
+            |--------------------------------------------------------------------------
+            */
+
+            if (active !== "") {
+
+                exportParams.active =
+                    active === "true";
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CALL EXPORT API
+            |--------------------------------------------------------------------------
+            */
+
+            const result =
+                await dispatch(
+                    exportEmployees(
+                        exportParams
+                    )
+                ).unwrap();
+
+
+            const contentType =
+                result?.headers?.[
+                    "content-type"
+                ] || "";
+
+            if (
+                contentType.includes(
+                    "application/json"
+                ) ||
+                contentType.includes(
+                    "text/plain"
+                )
+            ) {
+
+                const text =
+                    await result.data.text();
+
+
+                console.error(
+                    "EXPORT API ERROR:",
+                    text
+                );
+
+
+                let errorMessage =
+                    text;
+
+
+                try {
+
+                    const json =
+                        JSON.parse(text);
+
+
+                    errorMessage =
+                        json.message ||
+                        json.error ||
+                        text;
+
+                } catch {
+
+                    // Not JSON
+                }
+
+
+                alert(
+                    errorMessage ||
+                    "Failed to export employees."
+                );
+
+
+                return;
+            }
+            if (
+                !result?.data ||
+                result.data.size === 0
+            ) {
+
+                alert(
+                    "Export returned an empty file."
+                );
+
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | USE BACKEND BLOB DIRECTLY
+            |--------------------------------------------------------------------------
+            */
+
+            const blob =
+                result.data;
+
+            let fileName =
+                "troy-employees.xls";
+
+
+            const contentDisposition =
+                result?.headers?.[
+                    "content-disposition"
+                ] || "";
+
+
+            const fileNameMatch =
+                contentDisposition.match(
+                    /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                );
+
+
+            if (fileNameMatch?.[1]) {
+
+                fileName =
+                    fileNameMatch[1]
+                        .replace(
+                            /['"]/g,
+                            ""
+                        )
+                        .trim();
+            }
+
+            const url =
+                window.URL.createObjectURL(
+                    blob
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CREATE DOWNLOAD LINK
+            |--------------------------------------------------------------------------
+            */
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                url;
+
+
+            link.download =
+                fileName;
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            document.body.removeChild(
+                link
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CLEANUP
+            |--------------------------------------------------------------------------
+            */
+
+            setTimeout(() => {
+
+                window.URL.revokeObjectURL(
+                    url
+                );
+
+            }, 100);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | RESET FILTERS
+            |--------------------------------------------------------------------------
+            */
+
+            setFromDate("");
+            setToDate("");
+            setActive("");
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CLOSE MODAL
+            |--------------------------------------------------------------------------
+            */
+
+            onClose();
+
+
+        } catch (error) {
+
+            console.error(
+                "EMPLOYEE EXPORT FAILED:",
+                error
+            );
+
+
+            alert(
+                typeof error === "string"
+                    ? error
+                    : error?.message ||
+                      "Failed to export employees."
+            );
+
+
+        } finally {
+
+            setIsExporting(false);
+        }
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLOSE MODAL
+    |--------------------------------------------------------------------------
+    */
+
+    const handleClose = () => {
+
+        if (isExporting) {
+            return;
         }
 
-        if (status === "inactive") {
-            active = false;
-        }
 
-        onExport({
-            fromDate: fromDate
-                ? `${fromDate}T00:00:00`
-                : undefined,
+        setFromDate("");
+        setToDate("");
+        setActive("");
 
-            toDate: toDate
-                ? `${toDate}T23:59:59`
-                : undefined,
 
-            active,
-        });
+        onClose();
     };
 
 
     return (
+
         <div className="employee-export-overlay">
 
             <div className="employee-export-modal">
+
+
+                {/* HEADER */}
 
                 <div className="employee-export-header">
 
@@ -57,7 +342,7 @@ function EmployeeExportModal({
                         </h2>
 
                         <p>
-                            Select the filters for the employee export.
+                            Choose optional filters for your export
                         </p>
 
                     </div>
@@ -66,7 +351,7 @@ function EmployeeExportModal({
                     <button
                         type="button"
                         className="employee-export-close"
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={isExporting}
                     >
                         ×
@@ -75,76 +360,114 @@ function EmployeeExportModal({
                 </div>
 
 
+                {/* BODY */}
+
                 <div className="employee-export-body">
 
-                    {/* FROM DATE */}
 
-                    <div className="employee-export-field">
+                    {/* DATE FILTERS */}
 
-                        <label>
-                            From Date
-                        </label>
-
-                        <input
-                            type="date"
-                            value={fromDate}
-                            onChange={(event) =>
-                                setFromDate(
-                                    event.target.value
-                                )
-                            }
-                        />
-
-                    </div>
+                    <div className="employee-export-date-row">
 
 
-                    {/* TO DATE */}
+                        {/* FROM DATE */}
 
-                    <div className="employee-export-field">
+                        <div className="employee-export-field">
 
-                        <label>
-                            To Date
-                        </label>
+                            <label>
+                                From date
+                            </label>
 
-                        <input
-                            type="date"
-                            value={toDate}
-                            onChange={(event) =>
-                                setToDate(
-                                    event.target.value
-                                )
-                            }
-                        />
+
+                            <div className="employee-export-date-wrapper">
+
+                                <input
+                                    type="date"
+                                    value={fromDate}
+                                    max={
+                                        toDate ||
+                                        undefined
+                                    }
+                                    onChange={(e) =>
+                                        setFromDate(
+                                            e.target.value
+                                        )
+                                    }
+                                    disabled={
+                                        isExporting
+                                    }
+                                />
+
+                            </div>
+
+                        </div>
+
+
+                        {/* TO DATE */}
+
+                        <div className="employee-export-field">
+
+                            <label>
+                                To date
+                            </label>
+
+
+                            <div className="employee-export-date-wrapper">
+
+                                <input
+                                    type="date"
+                                    value={toDate}
+                                    min={
+                                        fromDate ||
+                                        undefined
+                                    }
+                                    onChange={(e) =>
+                                        setToDate(
+                                            e.target.value
+                                        )
+                                    }
+                                    disabled={
+                                        isExporting
+                                    }
+                                />
+
+                            </div>
+
+                        </div>
 
                     </div>
 
 
                     {/* STATUS */}
 
-                    <div className="employee-export-field">
+                    <div className="employee-export-field employee-export-status-field">
 
                         <label>
                             Status
                         </label>
 
+
                         <select
-                            value={status}
-                            onChange={(event) =>
-                                setStatus(
-                                    event.target.value
+                            value={active}
+                            onChange={(e) =>
+                                setActive(
+                                    e.target.value
                                 )
+                            }
+                            disabled={
+                                isExporting
                             }
                         >
 
-                            <option value="all">
-                                All Employees
+                            <option value="">
+                                All statuses
                             </option>
 
-                            <option value="active">
+                            <option value="true">
                                 Active
                             </option>
 
-                            <option value="inactive">
+                            <option value="false">
                                 Inactive
                             </option>
 
@@ -152,15 +475,33 @@ function EmployeeExportModal({
 
                     </div>
 
+
+                    {/* INFO */}
+
+                    <div className="employee-export-info">
+
+                        <span className="employee-export-info-icon">
+                            i
+                        </span>
+
+                        <span>
+                            Leave all filters empty to export all employees.
+                        </span>
+
+                    </div>
+
                 </div>
 
 
+                {/* FOOTER */}
+
                 <div className="employee-export-footer">
+
 
                     <button
                         type="button"
                         className="employee-export-cancel-btn"
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={isExporting}
                     >
                         Cancel
@@ -169,14 +510,14 @@ function EmployeeExportModal({
 
                     <button
                         type="button"
-                        className="employee-export-confirm-btn"
+                        className="employee-export-btn"
                         onClick={handleExport}
                         disabled={isExporting}
                     >
 
                         {isExporting
                             ? "Exporting..."
-                            : "Export Employees"}
+                            : "Export"}
 
                     </button>
 
@@ -186,6 +527,7 @@ function EmployeeExportModal({
 
         </div>
     );
-}
+};
+
 
 export default EmployeeExportModal;
