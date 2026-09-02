@@ -736,6 +736,7 @@ import CommonPagination from "../../components/CommonPagination";
 import ManualCreationModal from "./ManualCreationModal";
 import ExcelJS from "exceljs";
 import Toast from "../../Components/Toast";
+import JobExportModal from "./JobExportModal";
 
 function JobPage() {
   const navigate = useNavigate();
@@ -764,6 +765,7 @@ function JobPage() {
   const [showManualModal, setShowManualModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [isLoadingJob, setIsLoadingJob] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const [toast, setToast] = useState({
     show: false,
@@ -1162,14 +1164,14 @@ function JobPage() {
 
         <div className="page-header-actions">
 
-          <button
-            className="outline-btn"
-            onClick={handleExport}
-            disabled={isFetching}
-          >
-            <i className="bi bi-download"></i>
-            Export Jobs
-          </button>
+<button
+  className="outline-btn"
+  onClick={() => setShowExportModal(true)}
+  disabled={isFetching}
+>
+  <i className="bi bi-download"></i>
+  Export Jobs
+</button>
 
           <button
             className="primary-btn"
@@ -1647,7 +1649,10 @@ function JobPage() {
         message={toast.message}
         onClose={closeToast}
       />
-
+<JobExportModal
+  isOpen={showExportModal}
+  onClose={() => setShowExportModal(false)}
+/>
     </div>
   );
 }

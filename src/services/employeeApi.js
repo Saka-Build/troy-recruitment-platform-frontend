@@ -154,6 +154,82 @@ const employeeApi = {
 
         return response.data;
     },
+
+exportEmployees: async (params = {}) => {
+
+    const accessToken =
+        localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+        throw new Error(
+            "Authentication token not found."
+        );
+    }
+
+    const requestBody = {
+        ...(params.fromDate && {
+            fromDate: params.fromDate,
+        }),
+
+        ...(params.toDate && {
+            toDate: params.toDate,
+        }),
+
+        ...(params.role && {
+            role: params.role,
+        }),
+
+        ...(params.active !== undefined && {
+            active: params.active,
+        }),
+    };
+
+    console.log(
+        "EXPORT EMPLOYEES REQUEST BODY:",
+        requestBody
+    );
+
+    const response = await axios.post(
+        `${API_BASE_URL}/api/v1/employees/export`,
+        requestBody,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${accessToken}`,
+
+                "Content-Type":
+                    "application/json",
+
+                Accept:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+
+            responseType: "blob",
+        }
+    );
+
+    console.log(
+        "EXPORT STATUS:",
+        response.status
+    );
+
+    console.log(
+        "EXPORT CONTENT TYPE:",
+        response.headers["content-type"]
+    );
+
+    console.log(
+        "EXPORT CONTENT DISPOSITION:",
+        response.headers["content-disposition"]
+    );
+
+    console.log(
+        "EXPORT BLOB SIZE:",
+        response.data?.size
+    );
+
+    return response;
+},
 };
 
 export default employeeApi;

@@ -1186,8 +1186,6 @@ import {
     assignRoleToEmployee,
 } from "../../Redux/Slice/roleSlice";
 
-import { exportEmployees, } from "../../Redux/Slice/jobSlice"
-
 import { useNavigate } from "react-router-dom";
 import Toast from "../../Components/Toast";
 
@@ -1294,15 +1292,10 @@ function Employees() {
         message: "",
     });
 
-    const [
-        showExportModal,
-        setShowExportModal,
-    ] = useState(false);
-
-    const [
-        isExporting,
-        setIsExporting,
-    ] = useState(false);
+const [
+    showExportModal,
+    setShowExportModal,
+] = useState(false);
     /*
     |--------------------------------------------------------------------------
     | TOAST
@@ -2036,105 +2029,6 @@ function Employees() {
         };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | EXPORT CURRENT BACKEND PAGE
-    |--------------------------------------------------------------------------
-    */
-
-    const handleExport = async (exportParams) => {
-
-        try {
-
-            setIsExporting(true);
-
-            const result =
-                await dispatch(
-                    exportEmployees(
-                        exportParams
-                    )
-                ).unwrap();
-
-
-            const blob =
-                new Blob(
-                    [result.data],
-                    {
-                        type:
-                            result.headers?.["content-type"] ||
-                            "application/octet-stream",
-                    }
-                );
-
-
-            const url =
-                window.URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement("a");
-
-
-            link.href = url;
-
-
-            /*
-             * You can change this filename
-             * if backend sends a specific filename.
-             */
-            link.download =
-                "troy-employees.xlsx";
-
-
-            document.body.appendChild(
-                link
-            );
-
-
-            link.click();
-
-
-            document.body.removeChild(
-                link
-            );
-
-
-            window.URL.revokeObjectURL(
-                url
-            );
-
-
-            setShowExportModal(false);
-
-
-            showToast(
-                "Employees exported successfully."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Employee export failed:",
-                error
-            );
-
-
-            showToast(
-                typeof error === "string"
-                    ? error
-                    : "Failed to export employees.",
-                "error"
-            );
-
-        } finally {
-
-            setIsExporting(false);
-
-        }
-    };
-
 
     /*
     |--------------------------------------------------------------------------
@@ -2198,20 +2092,13 @@ function Employees() {
 
 
                 <div className="employees-header-actions">
-                    <button
-                        type="button"
-                        className="employee-export-btn"
-                        onClick={() =>
-                            setShowExportModal(true)
-                        }
-                    >
-
-                        <i className="bi bi-download"></i>
-
-                        {" "}
-                        Export Employees
-
-                    </button>
+<button
+    type="button"
+    className="employee-export-btn"
+    onClick={() => setShowExportModal(true)}
+>
+    Export Employees
+</button>
 
 
                     <button
@@ -2924,16 +2811,20 @@ function Employees() {
                 }
 
             />
-
-            {showExportModal && (
-                <EmployeeExportModal
-                    onClose={() =>
-                        setShowExportModal(false)
-                    }
-                    onExport={handleExport}
-                    isExporting={isExporting}
-                />
-            )}
+<EmployeeExportModal
+    isOpen={showExportModal}
+    onClose={() => setShowExportModal(false)}
+    statusOptions={[
+        {
+            value: "Active",
+            label: "Active",
+        },
+        {
+            value: "Inactive",
+            label: "Inactive",
+        },
+    ]}
+/>
 
         </div>
     );

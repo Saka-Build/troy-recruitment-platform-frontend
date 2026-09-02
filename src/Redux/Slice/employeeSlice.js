@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import employeeApi from "../../services/employeeApi";
 
 
 const API_BASE_URL =
@@ -569,6 +570,136 @@ export const getEmployeeFilters = createAsyncThunk(
         }
     }
 );
+
+export const exportEmployees =
+    createAsyncThunk(
+        "employees/exportEmployees",
+
+        async (
+            {
+                fromDate = "",
+                toDate = "",
+                role = "",
+                active,
+            } = {},
+            { rejectWithValue }
+        ) => {
+
+            try {
+
+                const params = {};
+
+                /*
+                 * -------------------------------------------------------
+                 * FROM DATE
+                 * -------------------------------------------------------
+                 */
+
+                if (fromDate) {
+                    params.fromDate =
+                        fromDate;
+                }
+
+
+                /*
+                 * -------------------------------------------------------
+                 * TO DATE
+                 * -------------------------------------------------------
+                 */
+
+                if (toDate) {
+                    params.toDate =
+                        toDate;
+                }
+
+
+                /*
+                 * -------------------------------------------------------
+                 * ROLE
+                 * -------------------------------------------------------
+                 */
+
+                if (role) {
+                    params.role =
+                        role;
+                }
+
+
+                /*
+                 * -------------------------------------------------------
+                 * ACTIVE
+                 *
+                 * Important:
+                 *
+                 * false must also be sent.
+                 *
+                 * So don't use:
+                 *
+                 * if (active)
+                 *
+                 * because false would be ignored.
+                 * -------------------------------------------------------
+                 */
+
+                if (
+                    active !== undefined &&
+                    active !== null
+                ) {
+
+                    params.active =
+                        active;
+                }
+
+
+                console.log(
+                    "EXPORT EMPLOYEE THUNK PARAMS:",
+                    params
+                );
+
+
+                const response =
+                    await employeeApi.exportEmployees(
+                        params
+                    );
+
+
+                return {
+                    data:
+                        response.data,
+
+                    headers:
+                        response.headers,
+                };
+
+            } catch (error) {
+
+                console.error(
+                    "EXPORT EMPLOYEES ERROR:",
+                    error
+                );
+
+
+                /*
+                 * Because responseType is blob,
+                 * backend errors may sometimes
+                 * also come back as Blob.
+                 *
+                 * We can improve this later if needed.
+                 */
+
+                const message =
+                    error.response?.data?.message ||
+                    error.response?.data?.error ||
+                    error.message ||
+                    "Failed to export employees.";
+
+
+                return rejectWithValue(
+                    message
+                );
+            }
+        }
+    );
 /*
 |--------------------------------------------------------------------------
 | SLICE
@@ -634,6 +765,9 @@ initialState: {
 employeeFiltersLoading: false,
 
 employeeFiltersError: null,
+isEmployeeExporting: false,
+
+employeeExportError: null,
 },
 
 
@@ -1247,6 +1381,53 @@ builder
             state.employeeFiltersError =
                 action.payload ||
                 "Failed to fetch employee filters.";
+        }
+    )
+    /*
+|--------------------------------------------------------------------------
+| EXPORT EMPLOYEES
+|--------------------------------------------------------------------------
+*/
+
+builder
+
+    .addCase(
+        exportEmployees.pending,
+        (state) => {
+
+            state.isEmployeeExporting =
+                true;
+
+            state.employeeExportError =
+                null;
+        }
+    )
+
+    .addCase(
+        exportEmployees.fulfilled,
+        (state) => {
+
+            state.isEmployeeExporting =
+                false;
+
+            state.employeeExportError =
+                null;
+        }
+    )
+
+    .addCase(
+        exportEmployees.rejected,
+        (
+            state,
+            action
+        ) => {
+
+            state.isEmployeeExporting =
+                false;
+
+            state.employeeExportError =
+                action.payload ||
+                "Failed to export employees.";
         }
     );
         },
