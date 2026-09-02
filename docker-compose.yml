@@ -2,7 +2,7 @@ services:
   frontend:
     build:
       context: .
-    image: troy-ats-frontend:1.2
+    image: troy-ats-frontend:2.9
     container_name: troy-ats-frontend
     ports:
       - "3000:80"
