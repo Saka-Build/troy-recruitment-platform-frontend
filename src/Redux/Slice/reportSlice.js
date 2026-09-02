@@ -80,7 +80,164 @@ export const getSubmissionFilters = createAsyncThunk(
     }
 );
 
+/* =========================================================
+   EXPORT SUBMISSIONS
+   API:
+   POST /api/v1/submissions/export
+========================================================= */
 
+export const exportSubmissions = createAsyncThunk(
+    "report/exportSubmissions",
+
+    async (
+        {
+            createdFrom,
+            createdTo,
+            statusId = "",
+            jobId = "",
+            clientId = "",
+        },
+        { rejectWithValue }
+    ) => {
+
+        try {
+
+            const token = getAccessToken();
+
+            if (!token) {
+                return rejectWithValue(
+                    "User not authenticated. Access token not found."
+                );
+            }
+
+
+            /* -------------------------------------------------
+               REQUEST BODY
+            ------------------------------------------------- */
+
+            const body = {
+                createdFrom,
+                createdTo,
+            };
+
+
+            /* -------------------------------------------------
+               OPTIONAL FILTERS
+            ------------------------------------------------- */
+
+            if (statusId) {
+                body.statusId = statusId;
+            }
+
+            if (jobId) {
+                body.jobId = jobId;
+            }
+
+            if (clientId) {
+                body.clientId = clientId;
+            }
+
+
+            /* -------------------------------------------------
+               API CALL
+            ------------------------------------------------- */
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/submissions/export`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+
+                    body: JSON.stringify(body),
+                }
+            );
+
+
+            /* -------------------------------------------------
+               RESPONSE
+            ------------------------------------------------- */
+
+            if (!response.ok) {
+
+                let errorMessage =
+                    "Failed to export submissions";
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    errorMessage =
+                        errorData?.message ||
+                        errorData?.error ||
+                        errorMessage;
+
+                } catch {
+                    // Ignore JSON parsing error
+                }
+
+                return rejectWithValue(
+                    errorMessage
+                );
+            }
+
+
+            /* -------------------------------------------------
+               EXCEL / FILE RESPONSE
+            ------------------------------------------------- */
+
+            const blob =
+                await response.blob();
+
+
+            /* -------------------------------------------------
+               FILE NAME
+            ------------------------------------------------- */
+
+            const contentDisposition =
+                response.headers.get(
+                    "Content-Disposition"
+                );
+
+            let fileName =
+                "submission-report.xlsx";
+
+
+            if (contentDisposition) {
+
+                const match =
+                    contentDisposition.match(
+                        /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                    );
+
+                if (match?.[1]) {
+
+                    fileName =
+                        match[1]
+                            .replace(/['"]/g, "")
+                            .trim();
+                }
+            }
+
+
+            return {
+                blob,
+                fileName,
+            };
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error?.message ||
+                "Something went wrong while exporting submissions"
+            );
+        }
+    }
+);
 /* =========================================================
    INITIAL STATE
 ========================================================= */
@@ -109,6 +266,8 @@ const initialState = {
 
     loading: false,
     error: null,
+    exportLoading: false,
+exportError: null,
 };
 
 
@@ -130,6 +289,7 @@ const reportSlice = createSlice({
 
         clearReportError: (state) => {
             state.error = null;
+            state.exportError = null;
         },
 
 
@@ -168,6 +328,8 @@ const reportSlice = createSlice({
 
             state.loading = false;
             state.error = null;
+            state.exportLoading = false;
+state.exportError = null;
         },
     },
 
@@ -249,7 +411,51 @@ const reportSlice = createSlice({
                         action.payload ||
                         "Failed to fetch submission filters";
                 }
-            );
+            )
+
+            /* =================================================
+   EXPORT SUBMISSIONS - PENDING
+================================================= */
+
+.addCase(
+    exportSubmissions.pending,
+    (state) => {
+
+        state.exportLoading = true;
+        state.exportError = null;
+    }
+)
+
+
+/* =================================================
+   EXPORT SUBMISSIONS - FULFILLED
+================================================= */
+
+.addCase(
+    exportSubmissions.fulfilled,
+    (state) => {
+
+        state.exportLoading = false;
+        state.exportError = null;
+    }
+)
+
+
+/* =================================================
+   EXPORT SUBMISSIONS - REJECTED
+================================================= */
+
+.addCase(
+    exportSubmissions.rejected,
+    (state, action) => {
+
+        state.exportLoading = false;
+
+        state.exportError =
+            action.payload ||
+            "Failed to export submissions";
+    }
+)
     },
 });
 
@@ -280,7 +486,12 @@ export const selectReportLoading = (state) =>
 export const selectReportError = (state) =>
     state.report.error;
 
+export const selectExportLoading = (state) =>
+    state.report.exportLoading;
 
+
+export const selectExportError = (state) =>
+    state.report.exportError;
 /* =========================================================
    INDIVIDUAL SELECTORS
 ========================================================= */

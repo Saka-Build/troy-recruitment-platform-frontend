@@ -15,6 +15,7 @@ import {
 } from "react-router-dom";
 
 import {
+  getAllJobsName,
   getSubmissionCounts,
   getSubmissionsByStage,
   getSubmissionStatuses,
@@ -26,6 +27,7 @@ import {
   getInterviewsBySubmission,
 } from "../../Redux/Slice/candidateSlice";
 import Toast from "../../Components/Toast";
+import CommonPagination from "../../Components/CommonPagination";
 
 import "./RecruitmentWorkflow.css";
 
@@ -141,25 +143,58 @@ function RecruitmentWorkflowDetails() {
   |--------------------------------------------------------------------------
   */
 
+  // const {
+  //   submissions = [],
+  //   submissionsLoading,
+  //   submissionsError,
+
+  //   submissionCounts,
+
+  //   submissionStatuses = [],
+  //   workflowStages = [],
+
+  //   submissionStatusesLoading,
+
+  //   updatingSubmission,
+  //   updateSubmissionError,
+  // } = useSelector(
+  //   (state) =>
+  //     state.recruitmentWorkflow
+  // );
+
   const {
-    submissions = [],
-    submissionsLoading,
-    submissionsError,
+  submissions = [],
+  submissionsLoading,
+  submissionsError,
 
-    submissionCounts,
+  submissionCounts,
 
-    submissionStatuses = [],
-    workflowStages = [],
+  submissionStatuses = [],
+  workflowStages = [],
 
-    submissionStatusesLoading,
+  submissionStatusesLoading,
 
-    updatingSubmission,
-    updateSubmissionError,
-  } = useSelector(
-    (state) =>
-      state.recruitmentWorkflow
-  );
+  updatingSubmission,
+  updateSubmissionError,
 
+  submissionsPagination = {
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+    numberOfElements: 0,
+    first: true,
+    last: true,
+    empty: true,
+  },
+    allJobsName = [],
+  allJobsNameLoading,
+  allJobsNameError,
+
+} = useSelector(
+  (state) =>
+    state.recruitmentWorkflow
+);
 const {
   interviewsBySubmission = {},
   interviewsBySubmissionLoading = {},
@@ -180,6 +215,8 @@ const {
     useState("All roles");
 
 const [toast, setToast] = useState(null);
+const [currentPage, setCurrentPage] =
+  useState(1);
 
   const stages = useMemo(() => {
     if (
@@ -276,16 +313,28 @@ const [toast, setToast] = useState(null);
   | LOAD STATUS LIST + COUNTS
   |--------------------------------------------------------------------------
   */
+useEffect(() => {
+  dispatch(getSubmissionStatuses());
+  dispatch(getSubmissionCounts());
+}, [dispatch]);
 
-  useEffect(() => {
-    dispatch(
-      getSubmissionStatuses()
-    );
+useEffect(() => {
+  if (!currentStage?.apiStage) {
+    return;
+  }
 
-    dispatch(
-      getSubmissionCounts()
-    );
-  }, [dispatch]);
+  console.log(
+    "Fetching job names for pipeline stage:",
+    currentStage.apiStage
+  );
+
+  dispatch(
+    getAllJobsName(currentStage.apiStage)
+  );
+}, [
+  dispatch,
+  currentStage?.apiStage,
+]);
 
 
   /*
@@ -294,24 +343,54 @@ const [toast, setToast] = useState(null);
   |--------------------------------------------------------------------------
   */
 
+  // useEffect(() => {
+  //   if (
+  //     !currentStage?.apiStage
+  //   ) {
+  //     return;
+  //   }
+
+  //   dispatch(
+  //     getSubmissionsByStage(
+  //       currentStage.apiStage
+  //     )
+  //   );
+
+  // }, [
+  //   dispatch,
+  //   currentStage?.apiStage,
+  // ]);
+
+
   useEffect(() => {
-    if (
-      !currentStage?.apiStage
-    ) {
-      return;
-    }
+  if (
+    !currentStage?.apiStage
+  ) {
+    return;
+  }
 
-    dispatch(
-      getSubmissionsByStage(
-        currentStage.apiStage
-      )
-    );
+  dispatch(
+    getSubmissionsByStage({
+      pipelineStage:
+        currentStage.apiStage,
 
-  }, [
-    dispatch,
-    currentStage?.apiStage,
-  ]);
+      page:
+        currentPage - 1,
 
+      size: 20,
+    })
+  );
+
+}, [
+  dispatch,
+  currentStage?.apiStage,
+  currentPage,
+]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [
+  currentStage?.apiStage,
+]);
   /*
 |--------------------------------------------------------------------------
 | LOAD INTERVIEWS FOR EACH SUBMISSION
@@ -705,22 +784,47 @@ interviewTime:
   |--------------------------------------------------------------------------
   */
 
+  // const roles =
+  //   useMemo(() => {
+
+  //     return [
+  //       "All roles",
+  //       ...new Set(
+  //         candidates.map(
+  //           (candidate) =>
+  //             candidate.role
+  //         )
+  //       ),
+  //     ];
+
+  //   }, [
+  //     candidates,
+  //   ]);
+
   const roles =
-    useMemo(() => {
+  useMemo(() => {
 
-      return [
-        "All roles",
-        ...new Set(
-          candidates.map(
-            (candidate) =>
-              candidate.role
+    const uniqueJobs = [
+      ...new Set(
+        allJobsName
+          .filter(Boolean)
+          .map((job) =>
+            job
+              .toString()
+              .trim()
           )
-        ),
-      ];
+          .filter(Boolean)
+      ),
+    ];
 
-    }, [
-      candidates,
-    ]);
+    return [
+      "All roles",
+      ...uniqueJobs,
+    ];
+
+  }, [
+    allJobsName,
+  ]);
 
 
   /*
@@ -963,11 +1067,23 @@ const showToast = (
         getSubmissionCounts()
       ),
 
+      // dispatch(
+      //   getSubmissionsByStage(
+      //     currentStage.apiStage
+      //   )
+      // ),
+
       dispatch(
-        getSubmissionsByStage(
-          currentStage.apiStage
-        )
-      ),
+  getSubmissionsByStage({
+    pipelineStage:
+      currentStage.apiStage,
+
+    page:
+      currentPage - 1,
+
+    size: 20,
+  })
+)
     ]);
 
     /*
@@ -1721,7 +1837,22 @@ const showToast = (
     duration={3000}
   />
 )}
-
+<CommonPagination
+        currentPage={currentPage}
+        totalPages={
+          submissionsPagination.totalPages
+        }
+        totalItems={
+          submissionsPagination.totalElements
+        }
+        itemsPerPage={
+          submissionsPagination.size
+        }
+        onPageChange={(page) =>
+          setCurrentPage(page)
+        }
+        itemLabel="applications"
+      />
 
     </div>
   );
