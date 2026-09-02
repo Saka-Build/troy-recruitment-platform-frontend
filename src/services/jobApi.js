@@ -21,20 +21,40 @@ const jobApi = {
         return response.data;
     },
 
-    getAllJobs: async () => {
+    getAllJobs: async (params = {}) => {
         const accessToken = localStorage.getItem("accessToken");
 
         if (!accessToken) {
             throw new Error("Authentication token not found.");
         }
 
-        const response = await axios.get(`${API_BASE_URL}/api/v1/jobs`,
+        const response = await axios.get(
+            `${API_BASE_URL}/api/v1/jobs`,
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
+                params: {
+                    page: params.page ?? 0,
+                    size: params.size ?? 10,
+
+                    ...(params.search?.trim() && {
+                        search: params.search.trim(),
+                    }),
+
+                    ...(params.status &&
+                        params.status !== "All statuses" && {
+                        status: params.status,
+                    }),
+
+                    ...(params.priority &&
+                        params.priority !== "All priorities" && {
+                        priority: params.priority,
+                    }),
+                },
             }
         );
+
         return response.data;
     },
     getOpenJobs: async () => {
@@ -130,31 +150,92 @@ const jobApi = {
    JOB FILTERS / HEADER COUNTS
 ========================================================= */
 
-getJobFilters: async () => {
-  const response = await api.get(
-    "/api/v1/jobs/jobheader/jobfilters"
-  );
+    getJobFilters: async () => {
+        const accessToken = localStorage.getItem("accessToken");
 
-  return response.data;
-},
+        if (!accessToken) {
+            throw new Error("Authentication token not found.");
+        }
+
+        const response = await axios.get(
+            `${API_BASE_URL}/api/v1/jobs/jobheader/jobfilters`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        );
+
+        return response.data;
+    },
 
 
-/* =========================================================
-   EXPORT JOBS
-========================================================= */
+    /* =========================================================
+       EXPORT JOBS
+    ========================================================= */
 
-exportJobs: async (params = {}) => {
-  const response = await api.get(
-    "/api/v1/jobs/export",
-    {
-      params,
-      responseType: "blob",
-    }
-  );
+    exportJobs: async (params = {}) => {
+        const accessToken = localStorage.getItem("accessToken");
 
-  return response;
-},
+        if (!accessToken) {
+            throw new Error("Authentication token not found.");
+        }
+
+        const response = await axios.get(
+            `${API_BASE_URL}/api/v1/jobs/export`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return response;
+    },
+
+
+    /* =========================================================
+       EXPORT EMPLOYEES
+    ========================================================= */
+
+    exportEmployees: async (params = {}) => {
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!accessToken) {
+            throw new Error("Authentication token not found.");
+        }
+
+        console.log("Export request body:", params);
+
+        const response = await axios.post(
+            `${API_BASE_URL}/api/v1/employees/export`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    ...(params.fromDate && {
+                        fromDate: params.fromDate,
+                    }),
+                    ...(params.toDate && {
+                        toDate: params.toDate,
+                    }),
+                    ...(params.role && {
+                        role: params.role,
+                    }),
+                    ...(params.active !== undefined && {
+                        active: params.active,
+                    }),
+                },
+                responseType: "blob",
+            }
+        );
+
+        return response;
+    },
 };
-
 
 export default jobApi;

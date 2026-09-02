@@ -4,7 +4,7 @@
 
 .job-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin-bottom: 24px;
 }
@@ -1096,7 +1096,7 @@
   font-size: 13px;
 }
 
-.activity-state > div {
+.activity-state>div {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -2081,6 +2081,7 @@
     width: 100%;
   }
 }
+
 /* =========================================================
    ACTIVITY FILTERS
 ========================================================= */
@@ -2616,5 +2617,3 @@
     width: 170px;
   }
 }
-
-

@@ -719,12 +719,18 @@
 
 
 
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "./Job.css";
-import { deleteJob, getAllJobs, getJobById } from "../../Redux/Slice/jobSlice";
+
+import {
+  deleteJob,
+  getAllJobs,
+  getJobById,
+  getJobFilters,
+} from "../../Redux/Slice/jobSlice";
+
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CommonPagination from "../../components/CommonPagination";
 import ManualCreationModal from "./ManualCreationModal";
@@ -741,6 +747,11 @@ function JobPage() {
     isDeleting,
     error,
     pagination,
+
+    // Job filter/header API
+    jobFilters,
+    isJobFiltersLoading,
+    jobFiltersError,
   } = useSelector((state) => state.jobs);
 
   const [search, setSearch] = useState("");
@@ -776,22 +787,27 @@ function JobPage() {
   };
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(0); // Backend uses 0-based indexing
+  const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10;
 
-  // Fetch jobs with backend pagination
+  /*
+   * =========================================================
+   * FETCH JOBS
+   * =========================================================
+   */
+
   const fetchJobs = (page = 0) => {
     const params = {
       page: page,
       size: itemsPerPage,
     };
 
-    // Add search if present
+    // Search
     if (search.trim()) {
       params.search = search.trim();
     }
 
-    // Add status filter
+    // Status
     if (statusFilter !== "All statuses") {
       if (statusFilter === "on_hold") {
         params.status = "ON_HOLD";
@@ -800,7 +816,7 @@ function JobPage() {
       }
     }
 
-    // Add priority filter
+    // Priority
     if (priorityFilter !== "All priorities") {
       params.priority = priorityFilter.toUpperCase();
     }
@@ -808,39 +824,105 @@ function JobPage() {
     dispatch(getAllJobs(params));
   };
 
-  // Initial load
+  /*
+   * =========================================================
+   * INITIAL LOAD
+   * =========================================================
+   */
+
   useEffect(() => {
     fetchJobs(0);
+
+    // Get total/header counts + available filters
+    dispatch(getJobFilters());
   }, []);
 
-  // Fetch when filters change
+  /*
+   * =========================================================
+   * FETCH WHEN SEARCH / FILTER CHANGES
+   * =========================================================
+   */
+
   useEffect(() => {
     setCurrentPage(0);
     fetchJobs(0);
   }, [search, statusFilter, priorityFilter]);
 
-  // Handle page change
+  /*
+   * =========================================================
+   * PAGE CHANGE
+   * =========================================================
+   */
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
     fetchJobs(page);
   };
 
-  // Use jobs directly from Redux (already paginated by backend)
+  /*
+   * =========================================================
+   * JOB DATA
+   * =========================================================
+   *
+   * Jobs are already paginated/filtered by backend.
+   */
+
   const filteredJobs = useMemo(() => {
-    // If backend already filtered, just return jobs
     return jobs;
   }, [jobs]);
 
-  const openJobs = jobs.filter((job) => job.status === "Open").length;
-  const closedJobs = jobs.filter((job) => job.status === "Closed").length;
-  const holdJobs = jobs.filter((job) => job.status?.toLowerCase() === "on_hold").length;
+  /*
+   * =========================================================
+   * HEADER COUNTS
+   * =========================================================
+   *
+   * IMPORTANT:
+   * Do NOT calculate these from `jobs`, because `jobs`
+   * contains only the current page.
+   *
+   * Use the jobheader/jobfilters API instead.
+   */
+
+  const totalJobs = jobFilters?.totalJobs ?? 0;
+  const openJobs = jobFilters?.totalOpenJobs ?? 0;
+  const closedJobs = jobFilters?.totalClosedJobs ?? 0;
+  const holdJobs = jobFilters?.totalOnHoldJobs ?? 0;
+
+  /*
+   * =========================================================
+   * FORMAT RATE
+   * =========================================================
+   */
 
   const formatRate = (amount, currency, period) => {
     if (amount === null || amount === undefined) {
       return "—";
     }
+
     return `${currency || ""} ${amount}/${period || ""}`;
   };
+
+  /*
+   * =========================================================
+   * FORMAT STATUS
+   * =========================================================
+   */
+
+  const formatStatus = (status) => {
+    if (!status) return "—";
+
+    if (status.toLowerCase() === "on_hold") {
+      return "On hold";
+    }
+
+    return status;
+  };
+
+  /*
+   * =========================================================
+   * EXPORT
+   * =========================================================
+   */
 
   const handleExport = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -872,35 +954,82 @@ function JobPage() {
     headerRow.height = 25;
 
     headerRow.eachCell((cell) => {
-      cell.font = { name: "Calibri", size: 11, bold: true, color: { argb: "FF263B57" } };
-      cell.fill = { type: "pattern", pattern: "none" };
-      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.font = {
+        name: "Calibri",
+        size: 11,
+        bold: true,
+        color: { argb: "FF263B57" },
+      };
+
+      cell.fill = {
+        type: "pattern",
+        pattern: "none",
+      };
+
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+
       cell.border = {
-        top: { style: "thin", color: { argb: "FFD9E1EB" } },
-        bottom: { style: "thin", color: { argb: "FFD9E1EB" } },
-        left: { style: "thin", color: { argb: "FFD9E1EB" } },
-        right: { style: "thin", color: { argb: "FFD9E1EB" } },
+        top: {
+          style: "thin",
+          color: { argb: "FFD9E1EB" },
+        },
+        bottom: {
+          style: "thin",
+          color: { argb: "FFD9E1EB" },
+        },
+        left: {
+          style: "thin",
+          color: { argb: "FFD9E1EB" },
+        },
+        right: {
+          style: "thin",
+          color: { argb: "FFD9E1EB" },
+        },
       };
     });
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
+
       row.height = 22;
+
       row.eachCell((cell, columnNumber) => {
         cell.font = {
           name: "Calibri",
           size: 11,
           color: { argb: "FF263B57" },
         };
+
         cell.alignment = {
           vertical: "middle",
-          horizontal: columnNumber === 1 || columnNumber === 6 || columnNumber === 7 ? "center" : "left",
+          horizontal:
+            columnNumber === 1 ||
+              columnNumber === 6 ||
+              columnNumber === 7
+              ? "center"
+              : "left",
         };
+
         cell.border = {
-          top: { style: "thin", color: { argb: "FFE2E6ED" } },
-          bottom: { style: "thin", color: { argb: "FFE2E6ED" } },
-          left: { style: "thin", color: { argb: "FFE2E6ED" } },
-          right: { style: "thin", color: { argb: "FFE2E6ED" } },
+          top: {
+            style: "thin",
+            color: { argb: "FFE2E6ED" },
+          },
+          bottom: {
+            style: "thin",
+            color: { argb: "FFE2E6ED" },
+          },
+          left: {
+            style: "thin",
+            color: { argb: "FFE2E6ED" },
+          },
+          right: {
+            style: "thin",
+            color: { argb: "FFE2E6ED" },
+          },
         };
       });
     });
@@ -908,16 +1037,29 @@ function JobPage() {
     worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
     link.href = url;
     link.download = "jobs.xlsx";
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
     URL.revokeObjectURL(url);
   };
+
+  /*
+   * =========================================================
+   * DELETE
+   * =========================================================
+   */
 
   const handleDeleteClick = (job) => {
     setSelectedJob(job);
@@ -929,14 +1071,28 @@ function JobPage() {
 
     try {
       await dispatch(deleteJob(selectedJob.id)).unwrap();
+
       setShowDeleteModal(false);
       setSelectedJob(null);
-      showToast("success", "Job deleted successfully.");
-      // Refresh current page after deletion
+
+      showToast(
+        "success",
+        "Job deleted successfully."
+      );
+
+      // Refresh jobs
       fetchJobs(currentPage);
+
+      // Refresh header counts
+      dispatch(getJobFilters());
+
     } catch (error) {
       console.error("Delete Job Error:", error);
-      showToast("error", error || "Unable to delete job. Please try again.");
+
+      showToast(
+        "error",
+        error || "Unable to delete job. Please try again."
+      );
     }
   };
 
@@ -945,93 +1101,260 @@ function JobPage() {
     setSelectedJob(null);
   };
 
+  /*
+   * =========================================================
+   * EDIT JOB
+   * =========================================================
+   */
+
   const handleEditJob = async (job) => {
     try {
       setIsLoadingJob(true);
-      const response = await dispatch(getJobById(job.id)).unwrap();
+
+      const response =
+        await dispatch(getJobById(job.id)).unwrap();
+
       setEditingJob(response);
       setShowManualModal(true);
+
     } catch (error) {
-      console.error("Get Job By ID Error:", error);
-      showToast("error", error || "Unable to load job. Please try again.");
+      console.error(
+        "Get Job By ID Error:",
+        error
+      );
+
+      showToast(
+        "error",
+        error || "Unable to load job. Please try again."
+      );
+
     } finally {
       setIsLoadingJob(false);
     }
   };
 
-  const formatStatus = (status) => {
-    if (!status) return "—";
-    if (status.toLowerCase() === "on_hold") {
-      return "On hold";
-    }
-    return status;
-  };
+  /*
+   * =========================================================
+   * UI
+   * =========================================================
+   */
 
   return (
     <div className="page job-page">
+
+      {/* =====================================================
+          PAGE HEADER
+      ===================================================== */}
+
       <div className="page-header">
+
         <div>
-          <h1 className="page-title">Jobs</h1>
-          <p className="page-subtitle">{openJobs} open roles</p>
+          <h1 className="page-title">
+            Jobs
+          </h1>
+
+          <p className="page-subtitle">
+            {isJobFiltersLoading
+              ? "Loading..."
+              : `${openJobs} open roles`}
+          </p>
         </div>
 
         <div className="page-header-actions">
-          <button className="outline-btn" onClick={handleExport} disabled={isFetching}>
+
+          <button
+            className="outline-btn"
+            onClick={handleExport}
+            disabled={isFetching}
+          >
             <i className="bi bi-download"></i>
             Export Jobs
           </button>
 
-          <button className="primary-btn" onClick={() => navigate("/dashboard/jobs/new")}>
+          <button
+            className="primary-btn"
+            onClick={() =>
+              navigate("/dashboard/jobs/new")
+            }
+          >
             <i className="bi bi-plus-lg"></i>
             Add job
           </button>
+
         </div>
+
       </div>
+
+
+      {/* =====================================================
+          JOB STATS
+      ===================================================== */}
 
       <div className="job-stats">
-        <JobStatCard number={openJobs} label="Open" highlight />
-        <JobStatCard number={closedJobs} label="Closed" />
-        <JobStatCard number={holdJobs} label="Hold" />
+
+        {/* NEW TOTAL CARD */}
+        <JobStatCard
+          number={
+            isJobFiltersLoading
+              ? "..."
+              : totalJobs
+          }
+          label="Total"
+        />
+
+        <JobStatCard
+          number={
+            isJobFiltersLoading
+              ? "..."
+              : openJobs
+          }
+          label="Open"
+          highlight
+        />
+
+        <JobStatCard
+          number={
+            isJobFiltersLoading
+              ? "..."
+              : closedJobs
+          }
+          label="Closed"
+        />
+
+        <JobStatCard
+          number={
+            isJobFiltersLoading
+              ? "..."
+              : holdJobs
+          }
+          label="Hold"
+        />
+
       </div>
 
+
+      {/* =====================================================
+          FILTER ROW
+      ===================================================== */}
+
       <div className="job-filter-row">
+
+        {/* SEARCH */}
+
         <div className="job-search-box">
-          <span className="job-search-icon">⌕</span>
+
+          <span className="job-search-icon">
+            ⌕
+          </span>
+
           <input
             type="text"
             placeholder="Search job title, Role ID, skills..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
+
         </div>
+
+
+        {/* STATUS */}
 
         <select
           className="job-filter-select"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) =>
+            setStatusFilter(e.target.value)
+          }
         >
-          <option value="All statuses">All statuses</option>
-          <option value="Open">Open</option>
-          <option value="Closed">Closed</option>
-          <option value="on_hold">On hold</option>
+
+          <option value="All statuses">
+            All statuses
+          </option>
+
+          {Array.isArray(jobFilters?.statuses) &&
+            jobFilters.statuses.map((status) => (
+
+              <option
+                key={status}
+                value={
+                  status === "On_hold"
+                    ? "on_hold"
+                    : status
+                }
+              >
+                {status === "On_hold"
+                  ? "On hold"
+                  : status}
+              </option>
+
+            ))}
+
         </select>
+
+
+        {/* PRIORITY */}
 
         <select
           className="job-filter-select priority-select"
           value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
+          onChange={(e) =>
+            setPriorityFilter(e.target.value)
+          }
         >
-          <option>All priorities</option>
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
+
+          <option value="All priorities">
+            All priorities
+          </option>
+
+          {Array.isArray(jobFilters?.priorities) &&
+            jobFilters.priorities.map((priority) => (
+
+              <option
+                key={priority}
+                value={priority}
+              >
+                {priority}
+              </option>
+
+            ))}
+
         </select>
+
       </div>
 
-      {error && <div className="job-error">{error}</div>}
+
+      {/* =====================================================
+          FILTER API ERROR
+      ===================================================== */}
+
+      {jobFiltersError && (
+        <div className="job-error">
+          {jobFiltersError}
+        </div>
+      )}
+
+
+      {/* =====================================================
+          JOB API ERROR
+      ===================================================== */}
+
+      {error && (
+        <div className="job-error">
+          {error}
+        </div>
+      )}
+
+
+      {/* =====================================================
+          JOB TABLE
+      ===================================================== */}
 
       <div className="job-table-wrapper">
+
         <table className="job-table">
+
           <thead>
             <tr>
               <th>ROLE ID</th>
@@ -1041,96 +1364,220 @@ function JobPage() {
               <th>LOCATION</th>
               <th>PRIORITY</th>
               <th>STATUS</th>
-              <th className="actions-heading">ACTIONS</th>
+              <th className="actions-heading">
+                ACTIONS
+              </th>
             </tr>
           </thead>
 
           <tbody>
+
             {isFetching ? (
+
               <tr>
-                <td colSpan="8" className="no-jobs">
+                <td
+                  colSpan="8"
+                  className="no-jobs"
+                >
                   Loading jobs...
                 </td>
               </tr>
+
             ) : (
+
               filteredJobs.map((job) => (
+
                 <tr key={job.id}>
-                  <td>
-                    <button className="role-id" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
-                      {job.jobId}
-                    </button>
-                  </td>
+
+                  {/* ROLE ID */}
 
                   <td>
+
+                    <button
+                      className="role-id"
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/jobs/${job.id}`
+                        )
+                      }
+                    >
+                      {job.jobId}
+                    </button>
+
+                  </td>
+
+
+                  {/* JOB */}
+
+                  <td>
+
                     <div className="job-info">
-                      <div className="job-title">{job.title}</div>
+
+                      <div className="job-title">
+                        {job.title}
+                      </div>
+
                       <div className="job-meta">
                         {job.jobType}
                         {" · "}
                         {job.workMode}
                         {" · "}
-                        {formatRate(job.clientRateAmount, job.clientRateCurrency, job.clientRatePeriod)}
+                        {formatRate(
+                          job.clientRateAmount,
+                          job.clientRateCurrency,
+                          job.clientRatePeriod
+                        )}
                       </div>
+
+                    </div>
+
+                  </td>
+
+
+                  {/* CLIENT */}
+
+                  <td>
+                    <div className="job-client">
+                      {job.clientName}
                     </div>
                   </td>
 
-                  <td>
-                    <div className="job-client">{job.clientName}</div>
-                  </td>
+
+                  {/* END CLIENT */}
 
                   <td>
-                    <div className="job-client">{job.endClientName || "—"}</div>
+                    <div className="job-client">
+                      {job.endClientName || "—"}
+                    </div>
                   </td>
 
-                  <td>
-                    <div className="job-location">{job.location}</div>
-                  </td>
+
+                  {/* LOCATION */}
 
                   <td>
-                    <span className={`priority-badge priority-${job.priority?.toLowerCase()}`}>
+                    <div className="job-location">
+                      {job.location}
+                    </div>
+                  </td>
+
+
+                  {/* PRIORITY */}
+
+                  <td>
+
+                    <span
+                      className={`priority-badge priority-${job.priority?.toLowerCase()}`}
+                    >
                       {job.priority}
                     </span>
+
                   </td>
 
+
+                  {/* STATUS */}
+
                   <td>
-                    <span className={`status-badge status-${job.status?.toLowerCase().replace("_", "-")}`}>
+
+                    <span
+                      className={`status-badge status-${job.status
+                        ?.toLowerCase()
+                        .replace("_", "-")}`}
+                    >
                       {formatStatus(job.status)}
                     </span>
+
                   </td>
+
+
+                  {/* ACTIONS */}
 
                   <td>
+
                     <div className="job-actions">
-                      <button className="edit-btn" disabled={isLoadingJob} onClick={() => handleEditJob(job)}>
-                        {isLoadingJob ? "Loading..." : "Edit"}
+
+                      <button
+                        className="edit-btn"
+                        disabled={isLoadingJob}
+                        onClick={() =>
+                          handleEditJob(job)
+                        }
+                      >
+                        {isLoadingJob
+                          ? "Loading..."
+                          : "Edit"}
                       </button>
-                      <button className="delete-btn" disabled={isDeleting} onClick={() => handleDeleteClick(job)}>
+
+                      <button
+                        className="delete-btn"
+                        disabled={isDeleting}
+                        onClick={() =>
+                          handleDeleteClick(job)
+                        }
+                      >
                         Delete
                       </button>
+
                     </div>
+
                   </td>
+
                 </tr>
+
               ))
+
             )}
 
-            {!isFetching && filteredJobs.length === 0 && (
-              <tr>
-                <td colSpan="8" className="no-jobs">
-                  No jobs found.
-                </td>
-              </tr>
-            )}
+
+            {/* NO JOBS */}
+
+            {!isFetching &&
+              filteredJobs.length === 0 && (
+
+                <tr>
+
+                  <td
+                    colSpan="8"
+                    className="no-jobs"
+                  >
+                    No jobs found.
+                  </td>
+
+                </tr>
+
+              )}
+
           </tbody>
+
         </table>
+
       </div>
 
+
+      {/* =====================================================
+          PAGINATION
+      ===================================================== */}
+
       <CommonPagination
-        currentPage={pagination.currentPage + 1 || 1} // Convert 0-based to 1-based for display
-        totalPages={pagination.totalPages || 0}
-        totalItems={pagination.totalElements || 0}
+        currentPage={
+          pagination.currentPage + 1 || 1
+        }
+        totalPages={
+          pagination.totalPages || 0
+        }
+        totalItems={
+          pagination.totalElements || 0
+        }
         itemsPerPage={itemsPerPage}
-        onPageChange={(page) => handlePageChange(page - 1)} // Convert 1-based to 0-based for API
+        onPageChange={(page) =>
+          handlePageChange(page - 1)
+        }
         itemLabel="jobs"
       />
+
+
+      {/* =====================================================
+          DELETE MODAL
+      ===================================================== */}
 
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
@@ -1138,41 +1585,104 @@ function JobPage() {
         onConfirm={handleDeleteConfirm}
         title="Delete job"
         itemName={selectedJob?.title}
-        deleteText={isDeleting ? "Deleting..." : "Delete"}
+        deleteText={
+          isDeleting
+            ? "Deleting..."
+            : "Delete"
+        }
       />
 
+
+      {/* =====================================================
+          EDIT MODAL
+      ===================================================== */}
+
       {showManualModal && (
+
         <ManualCreationModal
           title="Edit job"
           initialData={editingJob}
           isEdit={true}
+
           onClose={() => {
             setShowManualModal(false);
             setEditingJob(null);
           }}
+
           onSave={(updatedJob) => {
-            console.log("Updated job:", updatedJob);
+
+            console.log(
+              "Updated job:",
+              updatedJob
+            );
+
             setShowManualModal(false);
             setEditingJob(null);
-            showToast("success", "Job updated successfully.");
+
+            showToast(
+              "success",
+              "Job updated successfully."
+            );
+
+            // Refresh jobs
             fetchJobs(currentPage);
+
+            // Refresh header counts
+            dispatch(getJobFilters());
+
           }}
+
         />
+
       )}
-      <Toast show={toast.show} type={toast.type} message={toast.message} onClose={closeToast} />
+
+
+      {/* =====================================================
+          TOAST
+      ===================================================== */}
+
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={closeToast}
+      />
+
     </div>
   );
 }
 
-function JobStatCard({ number, label, highlight = false }) {
+
+/*
+ * =========================================================
+ * JOB STAT CARD
+ * =========================================================
+ */
+
+function JobStatCard({
+  number,
+  label,
+  highlight = false,
+}) {
   return (
     <div className="job-stat-card">
-      <div className={`job-stat-number ${highlight ? "job-stat-number-highlight" : ""}`}>
+
+      <div
+        className={`job-stat-number ${highlight
+            ? "job-stat-number-highlight"
+            : ""
+          }`}
+      >
         {number}
       </div>
-      <div className="job-stat-label">{label}</div>
+
+      <div className="job-stat-label">
+        {label}
+      </div>
+
     </div>
   );
 }
 
 export default JobPage;
+
