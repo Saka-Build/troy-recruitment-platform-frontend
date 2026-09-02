@@ -214,6 +214,39 @@ export const exportJobs = createAsyncThunk(
 );
 
 
+/* =========================================================
+   EXPORT EMPLOYEES
+========================================================= */
+
+export const exportEmployees = createAsyncThunk(
+  "jobs/exportEmployees",
+
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response =
+        await jobApi.exportEmployees(params);
+
+      return {
+        data: response.data,
+        headers: response.headers,
+      };
+
+    } catch (error) {
+      console.error(
+        "Export Employees API Error:",
+        error
+      );
+
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Unable to export employees.";
+
+      return rejectWithValue(message);
+    }
+  }
+);
+
 const initialState = {
   jobs: [],
   openJobs: [],
@@ -231,7 +264,7 @@ const initialState = {
   isDeleting: false,
   error: null,
   success: false,
-    jobFilters: {
+  jobFilters: {
     totalJobs: 0,
     totalOpenJobs: 0,
     totalClosedJobs: 0,
@@ -250,6 +283,8 @@ const initialState = {
 
   isExporting: false,
   exportError: null,
+  isEmployeeExporting: false,
+  employeeExportError: null,
   // Add pagination state
   pagination: {
     currentPage: 0,
@@ -318,7 +353,7 @@ const jobSlice = createSlice({
       }
       )
 
-           .addCase(getAllJobs.pending, (state) => {
+      .addCase(getAllJobs.pending, (state) => {
         state.isFetching = true;
         state.error = null;
       })
@@ -498,126 +533,152 @@ const jobSlice = createSlice({
    GET JOB FILTERS / HEADER COUNTS
 ========================================================= */
 
-.addCase(
-  getJobFilters.pending,
-  (state) => {
-    state.isJobFiltersLoading = true;
-    state.jobFiltersError = null;
-  }
-)
+      .addCase(
+        getJobFilters.pending,
+        (state) => {
+          state.isJobFiltersLoading = true;
+          state.jobFiltersError = null;
+        }
+      )
 
-.addCase(
-  getJobFilters.fulfilled,
-  (state, action) => {
-    state.isJobFiltersLoading = false;
-    state.jobFiltersError = null;
+      .addCase(
+        getJobFilters.fulfilled,
+        (state, action) => {
+          state.isJobFiltersLoading = false;
+          state.jobFiltersError = null;
 
-    const data = action.payload || {};
+          const data = action.payload || {};
 
-    state.jobFilters = {
-      totalJobs: data.totalJobs || 0,
+          state.jobFilters = {
+            totalJobs: data.totalJobs || 0,
 
-      totalOpenJobs:
-        data.totalOpenJobs || 0,
+            totalOpenJobs:
+              data.totalOpenJobs || 0,
 
-      totalClosedJobs:
-        data.totalClosedJobs || 0,
+            totalClosedJobs:
+              data.totalClosedJobs || 0,
 
-      totalOnHoldJobs:
-        data.totalOnHoldJobs || 0,
+            totalOnHoldJobs:
+              data.totalOnHoldJobs || 0,
 
-      /*
-       * Backend returns:
-       * Open
-       * Closed
-       * On_hold
-       * Filled
-       * Cancelled
-       *
-       * But frontend should only show:
-       * Open
-       * Closed
-       * On hold
-       */
+            /*
+             * Backend returns:
+             * Open
+             * Closed
+             * On_hold
+             * Filled
+             * Cancelled
+             *
+             * But frontend should only show:
+             * Open
+             * Closed
+             * On hold
+             */
 
-      statuses: Array.isArray(data.statuses)
-        ? data.statuses.filter(
-            (status) =>
-              [
-                "Open",
-                "Closed",
-                "On_hold",
-              ].includes(status)
-          )
-        : [],
+            statuses: Array.isArray(data.statuses)
+              ? data.statuses.filter(
+                (status) =>
+                  [
+                    "Open",
+                    "Closed",
+                    "On_hold",
+                  ].includes(status)
+              )
+              : [],
 
-      /*
-       * Backend returns:
-       * Low
-       * Medium
-       * High
-       * Urgent
-       *
-       * But frontend should only show:
-       * High
-       * Medium
-       * Low
-       */
+            /*
+             * Backend returns:
+             * Low
+             * Medium
+             * High
+             * Urgent
+             *
+             * But frontend should only show:
+             * High
+             * Medium
+             * Low
+             */
 
-      priorities: Array.isArray(data.priorities)
-        ? data.priorities.filter(
-            (priority) =>
-              [
-                "High",
-                "Medium",
-                "Low",
-              ].includes(priority)
-          )
-        : [],
-    };
-  }
-)
+            priorities: Array.isArray(data.priorities)
+              ? data.priorities.filter(
+                (priority) =>
+                  [
+                    "High",
+                    "Medium",
+                    "Low",
+                  ].includes(priority)
+              )
+              : [],
+          };
+        }
+      )
 
-.addCase(
-  getJobFilters.rejected,
-  (state, action) => {
-    state.isJobFiltersLoading = false;
+      .addCase(
+        getJobFilters.rejected,
+        (state, action) => {
+          state.isJobFiltersLoading = false;
 
-    state.jobFiltersError =
-      action.payload ||
-      "Unable to load job filters.";
-  }
-)
-/* =========================================================
-   EXPORT JOBS
-========================================================= */
+          state.jobFiltersError =
+            action.payload ||
+            "Unable to load job filters.";
+        }
+      )
+      /* =========================================================
+         EXPORT JOBS
+      ========================================================= */
 
-.addCase(
-  exportJobs.pending,
-  (state) => {
-    state.isExporting = true;
-    state.exportError = null;
-  }
-)
+      .addCase(
+        exportJobs.pending,
+        (state) => {
+          state.isExporting = true;
+          state.exportError = null;
+        }
+      )
 
-.addCase(
-  exportJobs.fulfilled,
-  (state) => {
-    state.isExporting = false;
-    state.exportError = null;
-  }
-)
+      .addCase(
+        exportJobs.fulfilled,
+        (state) => {
+          state.isExporting = false;
+          state.exportError = null;
+        }
+      )
 
-.addCase(
-  exportJobs.rejected,
-  (state, action) => {
-    state.isExporting = false;
+      .addCase(
+        exportJobs.rejected,
+        (state, action) => {
+          state.isExporting = false;
 
-    state.exportError =
-      action.payload ||
-      "Unable to export jobs.";
-  }
-);
+          state.exportError =
+            action.payload ||
+            "Unable to export jobs.";
+        }
+      )
+      .addCase(
+        exportEmployees.pending,
+        (state) => {
+          state.isEmployeeExporting = true;
+          state.employeeExportError = null;
+        }
+      )
+
+      .addCase(
+        exportEmployees.fulfilled,
+        (state) => {
+          state.isEmployeeExporting = false;
+          state.employeeExportError = null;
+        }
+      )
+
+      .addCase(
+        exportEmployees.rejected,
+        (state, action) => {
+          state.isEmployeeExporting = false;
+
+          state.employeeExportError =
+            action.payload ||
+            "Unable to export employees.";
+        }
+      );
 
   },
 });

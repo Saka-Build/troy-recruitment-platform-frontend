@@ -1168,6 +1168,7 @@ import EmployeeModal from "./EmployeeModal";
 import RoleAssignmentModal from "./RoleAssignmentModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import Pagination from "../../Components/Pagination";
+import EmployeeExportModal from "./EmployeeExportModal";
 
 import {
     getAllEmployees,
@@ -1185,9 +1186,10 @@ import {
     assignRoleToEmployee,
 } from "../../Redux/Slice/roleSlice";
 
+import { exportEmployees, } from "../../Redux/Slice/jobSlice"
+
 import { useNavigate } from "react-router-dom";
 import Toast from "../../Components/Toast";
-import ExcelJS from "exceljs";
 
 
 function generateEmployeeId() {
@@ -1207,25 +1209,25 @@ function Employees() {
     |--------------------------------------------------------------------------
     */
 
-const {
-    employees = [],
-    countries = [],
-    employeePagination = {},
+    const {
+        employees = [],
+        countries = [],
+        employeePagination = {},
 
-    employeeFilters = {
-        totalEmployees: 0,
-        totalActiveEmployees: 0,
-        totalInActiveEmployees: 0,
-    },
+        employeeFilters = {
+            totalEmployees: 0,
+            totalActiveEmployees: 0,
+            totalInActiveEmployees: 0,
+        },
 
-    isLoading,
-    isSaving,
-    deleteLoading,
-    countriesLoading,
-    error,
-} = useSelector(
-    (state) => state.employees
-);
+        isLoading,
+        isSaving,
+        deleteLoading,
+        countriesLoading,
+        error,
+    } = useSelector(
+        (state) => state.employees
+    );
 
 
     const {
@@ -1234,26 +1236,11 @@ const {
         (state) => state.role || {}
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOCAL STATE
-    |--------------------------------------------------------------------------
-    */
-
     const [search, setSearch] =
         useState("");
 
     const [statusFilter, setStatusFilter] =
         useState("all");
-
-    /*
-     * Backend pagination is 0-based.
-     *
-     * page=0 -> first page
-     * page=1 -> second page
-     * page=2 -> third page
-     */
     const [currentPage, setCurrentPage] =
         useState(0);
 
@@ -1307,7 +1294,15 @@ const {
         message: "",
     });
 
+    const [
+        showExportModal,
+        setShowExportModal,
+    ] = useState(false);
 
+    const [
+        isExporting,
+        setIsExporting,
+    ] = useState(false);
     /*
     |--------------------------------------------------------------------------
     | TOAST
@@ -1377,7 +1372,7 @@ const {
         dispatch(getCountries());
 
         dispatch(getAllRoles());
-         dispatch(getEmployeeFilters());
+        dispatch(getEmployeeFilters());
 
     }, [dispatch]);
 
@@ -2047,343 +2042,97 @@ const {
     |--------------------------------------------------------------------------
     */
 
-    const handleExport = async () => {
-
-        if (employees.length === 0) {
-
-            alert(
-                "There are no employees to export."
-            );
-
-            return;
-        }
-
-
-        const workbook =
-            new ExcelJS.Workbook();
-
-
-        const worksheet =
-            workbook.addWorksheet(
-                "Employees"
-            );
-
-
-        worksheet.columns = [
-
-            {
-                header: "Employee ID",
-                key: "employeeId",
-                width: 18,
-            },
-
-            {
-                header: "Full Name",
-                key: "fullName",
-                width: 28,
-            },
-
-            {
-                header: "Designation",
-                key: "designation",
-                width: 25,
-            },
-
-            {
-                header: "Contact Number",
-                key: "contactNumber",
-                width: 20,
-            },
-
-            {
-                header: "WhatsApp Number",
-                key: "whatsappNumber",
-                width: 20,
-            },
-
-            {
-                header: "Official Email",
-                key: "officialEmail",
-                width: 32,
-            },
-
-            {
-                header: "Personal Email",
-                key: "personalEmail",
-                width: 32,
-            },
-
-            {
-                header: "Country",
-                key: "country",
-                width: 20,
-            },
-
-            {
-                header: "Status",
-                key: "status",
-                width: 15,
-            },
-        ];
-
-
-        employees.forEach(
-            (employee) => {
-
-                worksheet.addRow({
-
-                    employeeId:
-                        employee.employeeCode ||
-                        "",
-
-                    fullName:
-                        employee.fullName ||
-                        "",
-
-                    designation:
-                        employee.designation ||
-                        "",
-
-                    contactNumber:
-                        employee.phone ||
-                        "",
-
-                    whatsappNumber:
-                        employee.whatsapp ||
-                        "",
-
-                    officialEmail:
-                        employee.officialEmail ||
-                        "",
-
-                    personalEmail:
-                        employee.personalEmail ||
-                        "",
-
-                    country:
-                        employee.country?.name ||
-                        "",
-
-                    status:
-                        employee.active
-                            ? "Active"
-                            : "Inactive",
-                });
-            }
-        );
-
-
-        const headerRow =
-            worksheet.getRow(1);
-
-
-        headerRow.height = 25;
-
-
-        headerRow.eachCell(
-            (cell) => {
-
-                cell.font = {
-
-                    name: "Calibri",
-
-                    size: 11,
-
-                    bold: true,
-
-                    color: {
-                        argb: "FF263B57",
-                    },
-                };
-
-
-                cell.fill = {
-
-                    type: "pattern",
-
-                    pattern: "none",
-                };
-
-
-                cell.alignment = {
-
-                    horizontal:
-                        "center",
-
-                    vertical:
-                        "middle",
-                };
-
-
-                cell.border = {
-
-                    top: {
-                        style: "thin",
-
-                        color: {
-                            argb: "FFD9E1EB",
-                        },
-                    },
-
-                    bottom: {
-                        style: "thin",
-
-                        color: {
-                            argb: "FFD9E1EB",
-                        },
-                    },
-
-                    left: {
-                        style: "thin",
-
-                        color: {
-                            argb: "FFD9E1EB",
-                        },
-                    },
-
-                    right: {
-                        style: "thin",
-
-                        color: {
-                            argb: "FFD9E1EB",
-                        },
-                    },
-                };
-            }
-        );
-
-
-        worksheet.eachRow(
-            (row, rowNumber) => {
-
-                if (rowNumber === 1) {
-                    return;
-                }
-
-
-                row.height = 22;
-
-
-                row.eachCell(
-                    (
-                        cell,
-                        columnNumber
-                    ) => {
-
-                        cell.font = {
-
-                            name: "Calibri",
-
-                            size: 11,
-
-                            color: {
-                                argb: "FF263B57",
-                            },
-                        };
-
-
-                        cell.alignment = {
-
-                            vertical:
-                                "middle",
-
-                            horizontal:
-                                columnNumber === 1 ||
-                                columnNumber === 9
-                                    ? "center"
-                                    : "left",
-                        };
-
-
-                        cell.border = {
-
-                            top: {
-                                style: "thin",
-
-                                color: {
-                                    argb: "FFE2E6ED",
-                                },
-                            },
-
-                            bottom: {
-                                style: "thin",
-
-                                color: {
-                                    argb: "FFE2E6ED",
-                                },
-                            },
-
-                            left: {
-                                style: "thin",
-
-                                color: {
-                                    argb: "FFE2E6ED",
-                                },
-                            },
-
-                            right: {
-                                style: "thin",
-
-                                color: {
-                                    argb: "FFE2E6ED",
-                                },
-                            },
-                        };
+    const handleExport = async (exportParams) => {
+
+        try {
+
+            setIsExporting(true);
+
+            const result =
+                await dispatch(
+                    exportEmployees(
+                        exportParams
+                    )
+                ).unwrap();
+
+
+            const blob =
+                new Blob(
+                    [result.data],
+                    {
+                        type:
+                            result.headers?.["content-type"] ||
+                            "application/octet-stream",
                     }
                 );
-            }
-        );
 
 
-        worksheet.views = [
-            {
-                state: "frozen",
-                ySplit: 1,
-            },
-        ];
+            const url =
+                window.URL.createObjectURL(
+                    blob
+                );
 
 
-        const buffer =
-            await workbook.xlsx.writeBuffer();
+            const link =
+                document.createElement("a");
 
 
-        const blob = new Blob(
-            [buffer],
-            {
-                type:
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }
-        );
+            link.href = url;
 
 
-        const url =
-            URL.createObjectURL(blob);
+            /*
+             * You can change this filename
+             * if backend sends a specific filename.
+             */
+            link.download =
+                "troy-employees.xlsx";
 
 
-        const link =
-            document.createElement("a");
+            document.body.appendChild(
+                link
+            );
 
 
-        link.href = url;
-
-        link.download =
-            "troy-employees.xlsx";
+            link.click();
 
 
-        document.body.appendChild(
-            link
-        );
+            document.body.removeChild(
+                link
+            );
 
 
-        link.click();
+            window.URL.revokeObjectURL(
+                url
+            );
 
 
-        document.body.removeChild(
-            link
-        );
+            setShowExportModal(false);
 
 
-        URL.revokeObjectURL(url);
+            showToast(
+                "Employees exported successfully."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Employee export failed:",
+                error
+            );
+
+
+            showToast(
+                typeof error === "string"
+                    ? error
+                    : "Failed to export employees.",
+                "error"
+            );
+
+        } finally {
+
+            setIsExporting(false);
+
+        }
     };
 
 
@@ -2449,11 +2198,12 @@ const {
 
 
                 <div className="employees-header-actions">
-
                     <button
                         type="button"
                         className="employee-export-btn"
-                        onClick={handleExport}
+                        onClick={() =>
+                            setShowExportModal(true)
+                        }
                     >
 
                         <i className="bi bi-download"></i>
@@ -2486,52 +2236,52 @@ const {
 
             <div className="employee-stats">
 
-<div className="employee-stat-card">
+                <div className="employee-stat-card">
 
-    <div className="employee-stat-value">
+                    <div className="employee-stat-value">
 
-        {employeeFilters.totalEmployees || 0}
+                        {employeeFilters.totalEmployees || 0}
 
-    </div>
+                    </div>
 
-    <div className="employee-stat-label">
+                    <div className="employee-stat-label">
 
-        Total Employees
+                        Total Employees
 
-    </div>
+                    </div>
 
-</div>
+                </div>
 
-<div className="employee-stat-card employee-stat-active">
+                <div className="employee-stat-card employee-stat-active">
 
-    <div className="employee-stat-value">
+                    <div className="employee-stat-value">
 
-        {employeeFilters.totalActiveEmployees || 0}
+                        {employeeFilters.totalActiveEmployees || 0}
 
-    </div>
+                    </div>
 
-    <div className="employee-stat-label">
+                    <div className="employee-stat-label">
 
-        Active
+                        Active
 
-    </div>
+                    </div>
 
-</div>
-<div className="employee-stat-card employee-stat-inactive">
+                </div>
+                <div className="employee-stat-card employee-stat-inactive">
 
-    <div className="employee-stat-value">
+                    <div className="employee-stat-value">
 
-        {employeeFilters.totalInActiveEmployees || 0}
+                        {employeeFilters.totalInActiveEmployees || 0}
 
-    </div>
+                    </div>
 
-    <div className="employee-stat-label">
+                    <div className="employee-stat-label">
 
-        Inactive
+                        Inactive
 
-    </div>
+                    </div>
 
-</div>
+                </div>
 
             </div>
 
@@ -2741,10 +2491,9 @@ const {
 
                                                     <span
                                                         className={
-                                                            `employee-status-badge ${
-                                                                employee.active
-                                                                    ? "employee-status-active"
-                                                                    : "employee-status-inactive"
+                                                            `employee-status-badge ${employee.active
+                                                                ? "employee-status-active"
+                                                                : "employee-status-inactive"
                                                             }`
                                                         }
                                                     >
@@ -3085,7 +2834,7 @@ const {
 
                     assignedRoles={
                         employeeRoleMap[
-                            selectedEmployeeForRole?.id
+                        selectedEmployeeForRole?.id
                         ] || []
                     }
 
@@ -3175,6 +2924,16 @@ const {
                 }
 
             />
+
+            {showExportModal && (
+                <EmployeeExportModal
+                    onClose={() =>
+                        setShowExportModal(false)
+                    }
+                    onExport={handleExport}
+                    isExporting={isExporting}
+                />
+            )}
 
         </div>
     );
