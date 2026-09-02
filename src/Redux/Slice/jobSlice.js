@@ -26,44 +26,34 @@ export const createJob = createAsyncThunk(
 
 export const getAllJobs = createAsyncThunk(
   "jobs/getAllJobs",
-
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await jobApi.getAllJobs();
+      const response = await jobApi.getAllJobs(params);
       return response;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Get All Jobs API Error:", error);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error ||
         "Unable to load jobs.";
-
       return rejectWithValue(message);
     }
   }
 );
+
+// Update getOpenJobs to accept parameters
 export const getOpenJobs = createAsyncThunk(
   "jobs/getOpenJobs",
-
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response =
-        await jobApi.getOpenJobs();
-
+      const response = await jobApi.getOpenJobs(params);
       return response;
-    }
-    catch (error) {
-      console.error(
-        "Get Open Jobs API Error:",
-        error
-      );
-
+    } catch (error) {
+      console.error("Get Open Jobs API Error:", error);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error ||
         "Unable to load open jobs.";
-
       return rejectWithValue(message);
     }
   }
@@ -164,6 +154,65 @@ export const getJobActivities = createAsyncThunk(
   }
 );
 
+/* =========================================================
+   GET JOB FILTERS / HEADER COUNTS
+========================================================= */
+
+export const getJobFilters = createAsyncThunk(
+  "jobs/getJobFilters",
+
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await jobApi.getJobFilters();
+
+      return response;
+
+    } catch (error) {
+      console.error(
+        "Get Job Filters API Error:",
+        error
+      );
+
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Unable to load job filters.";
+
+      return rejectWithValue(message);
+    }
+  }
+);
+
+/* =========================================================
+   EXPORT JOBS
+========================================================= */
+
+export const exportJobs = createAsyncThunk(
+    "jobs/exportJobs",
+
+    async (params = {}, { rejectWithValue }) => {
+        try {
+            const response =
+                await jobApi.exportJobs(params);
+
+            return response;
+
+        } catch (error) {
+            console.error(
+                "Export Jobs API Error:",
+                error
+            );
+
+            const message =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Unable to export jobs.";
+
+            return rejectWithValue(message);
+        }
+    }
+);
+
 
 const initialState = {
   jobs: [],
@@ -182,6 +231,36 @@ const initialState = {
   isDeleting: false,
   error: null,
   success: false,
+  jobFilters: {
+    totalJobs: 0,
+    totalOpenJobs: 0,
+    totalClosedJobs: 0,
+    totalOnHoldJobs: 0,
+
+    statuses: [],
+    priorities: [],
+  },
+
+  isJobFiltersLoading: false,
+  jobFiltersError: null,
+
+  /* =========================================================
+     JOB EXPORT
+  ========================================================= */
+
+  isExporting: false,
+  exportError: null,
+  isEmployeeExporting: false,
+  employeeExportError: null,
+  // Add pagination state
+  pagination: {
+    currentPage: 0,
+    pageSize: 20,
+    totalPages: 0,
+    totalElements: 0,
+    first: true,
+    last: false,
+  },
 };
 
 const jobSlice = createSlice({
@@ -192,15 +271,25 @@ const jobSlice = createSlice({
       state.error = null;
       state.createError = null;
     },
-
     clearJobSuccess: (state) => {
       state.success = false;
     },
-
     clearSelectedJob: (state) => {
       state.selectedJob = null;
     },
+    // Add reset pagination reducer
+    resetPagination: (state) => {
+      state.pagination = {
+        currentPage: 0,
+        pageSize: 20,
+        totalPages: 0,
+        totalElements: 0,
+        first: true,
+        last: false,
+      };
+    },
   },
+
 
   extraReducers: (builder) => {
     builder
@@ -234,38 +323,79 @@ const jobSlice = createSlice({
       .addCase(getAllJobs.pending, (state) => {
         state.isFetching = true;
         state.error = null;
-      }
-      )
-
+      })
       .addCase(getAllJobs.fulfilled, (state, action) => {
         state.isFetching = false;
         state.error = null;
 
+        // Store the content array
         if (Array.isArray(action.payload?.content)) {
           state.jobs = action.payload.content;
-        } else if (
-          Array.isArray(action.payload)
-        ) {
+        } else if (Array.isArray(action.payload)) {
           state.jobs = action.payload;
-        } else if (
-          Array.isArray(action.payload?.data)
-        ) {
+        } else if (Array.isArray(action.payload?.data)) {
           state.jobs = action.payload.data;
-        } else if (
-          Array.isArray(action.payload?.jobs)
-        ) {
+        } else if (Array.isArray(action.payload?.jobs)) {
           state.jobs = action.payload.jobs;
         } else {
           state.jobs = [];
         }
-      }
-      )
 
+        // Store pagination metadata
+        if (action.payload) {
+          state.pagination = {
+            currentPage: action.payload.number || 0,
+            pageSize: action.payload.size || 20,
+            totalPages: action.payload.totalPages || 0,
+            totalElements: action.payload.totalElements || 0,
+            first: action.payload.first !== undefined ? action.payload.first : true,
+            last: action.payload.last !== undefined ? action.payload.last : false,
+          };
+        }
+      })
       .addCase(getAllJobs.rejected, (state, action) => {
         state.isFetching = false;
         state.error = action.payload || "Unable to load jobs.";
-      }
-      )
+      })
+
+      // Update getOpenJobs reducers similarly
+      .addCase(getOpenJobs.pending, (state) => {
+        state.isOpenJobsLoading = true;
+        state.openJobsError = null;
+      })
+      .addCase(getOpenJobs.fulfilled, (state, action) => {
+        state.isOpenJobsLoading = false;
+        state.openJobsError = null;
+
+        if (Array.isArray(action.payload?.content)) {
+          state.openJobs = action.payload.content;
+          // Store pagination for open jobs if needed
+          if (action.payload) {
+            state.pagination = {
+              currentPage: action.payload.number || 0,
+              pageSize: action.payload.size || 20,
+              totalPages: action.payload.totalPages || 0,
+              totalElements: action.payload.totalElements || 0,
+              first: action.payload.first !== undefined ? action.payload.first : true,
+              last: action.payload.last !== undefined ? action.payload.last : false,
+            };
+          }
+        } else if (Array.isArray(action.payload)) {
+          state.openJobs = action.payload;
+        } else if (Array.isArray(action.payload?.data)) {
+          state.openJobs = action.payload.data;
+        } else if (Array.isArray(action.payload?.jobs)) {
+          state.openJobs = action.payload.jobs;
+        } else {
+          state.openJobs = [];
+        }
+      })
+      .addCase(getOpenJobs.rejected, (state, action) => {
+        state.isOpenJobsLoading = false;
+        state.openJobsError = action.payload || "Unable to load open jobs.";
+        state.openJobs = [];
+      })
+
 
       .addCase(
         getJobById.pending, (state) => {
@@ -366,78 +496,134 @@ const jobSlice = createSlice({
         state.activities = [];
       }
       )
+      /* =========================================================
+   GET JOB FILTERS / HEADER COUNTS
+========================================================= */
+
       .addCase(
-        getOpenJobs.pending,
+        getJobFilters.pending,
         (state) => {
-          state.isOpenJobsLoading = true;
-          state.openJobsError = null;
+          state.isJobFiltersLoading = true;
+          state.jobFiltersError = null;
         }
       )
 
       .addCase(
-        getOpenJobs.fulfilled,
+        getJobFilters.fulfilled,
         (state, action) => {
-          state.isOpenJobsLoading = false;
-          state.openJobsError = null;
+          state.isJobFiltersLoading = false;
+          state.jobFiltersError = null;
 
-          if (
-            Array.isArray(
-              action.payload?.content
-            )
-          ) {
-            state.openJobs =
-              action.payload.content;
-          }
-          else if (
-            Array.isArray(action.payload)
-          ) {
-            state.openJobs =
-              action.payload;
-          }
-          else if (
-            Array.isArray(
-              action.payload?.data
-            )
-          ) {
-            state.openJobs =
-              action.payload.data;
-          }
-          else if (
-            Array.isArray(
-              action.payload?.jobs
-            )
-          ) {
-            state.openJobs =
-              action.payload.jobs;
-          }
-          else {
-            state.openJobs = [];
-          }
+          const data = action.payload || {};
+
+          state.jobFilters = {
+            totalJobs: data.totalJobs || 0,
+
+            totalOpenJobs:
+              data.totalOpenJobs || 0,
+
+            totalClosedJobs:
+              data.totalClosedJobs || 0,
+
+            totalOnHoldJobs:
+              data.totalOnHoldJobs || 0,
+
+            /*
+             * Backend returns:
+             * Open
+             * Closed
+             * On_hold
+             * Filled
+             * Cancelled
+             *
+             * But frontend should only show:
+             * Open
+             * Closed
+             * On hold
+             */
+
+            statuses: Array.isArray(data.statuses)
+              ? data.statuses.filter(
+                (status) =>
+                  [
+                    "Open",
+                    "Closed",
+                    "On_hold",
+                  ].includes(status)
+              )
+              : [],
+
+            /*
+             * Backend returns:
+             * Low
+             * Medium
+             * High
+             * Urgent
+             *
+             * But frontend should only show:
+             * High
+             * Medium
+             * Low
+             */
+
+            priorities: Array.isArray(data.priorities)
+              ? data.priorities.filter(
+                (priority) =>
+                  [
+                    "High",
+                    "Medium",
+                    "Low",
+                  ].includes(priority)
+              )
+              : [],
+          };
         }
       )
 
       .addCase(
-        getOpenJobs.rejected,
+        getJobFilters.rejected,
         (state, action) => {
-          state.isOpenJobsLoading = false;
-          state.openJobsError =
+          state.isJobFiltersLoading = false;
+
+          state.jobFiltersError =
             action.payload ||
-            "Unable to load open jobs.";
+            "Unable to load job filters.";
+        }
+      )
+      /* =========================================================
+         EXPORT JOBS
+      ========================================================= */
 
-          state.openJobs = [];
+      .addCase(
+        exportJobs.pending,
+        (state) => {
+          state.isExporting = true;
+          state.exportError = null;
+        }
+      )
+
+      .addCase(
+        exportJobs.fulfilled,
+        (state) => {
+          state.isExporting = false;
+          state.exportError = null;
+        }
+      )
+
+      .addCase(
+        exportJobs.rejected,
+        (state, action) => {
+          state.isExporting = false;
+
+          state.exportError =
+            action.payload ||
+            "Unable to export jobs.";
         }
       );
-
 
   },
 });
 
 
-export const {
-  clearJobError,
-  clearJobSuccess,
-  clearSelectedJob,
-} = jobSlice.actions;
-
-
+export const { clearJobError, clearJobSuccess, clearSelectedJob, resetPagination } = jobSlice.actions;
 export default jobSlice.reducer;

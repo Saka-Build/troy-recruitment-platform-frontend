@@ -1,6 +1,1812 @@
+// import React, {
+//     useEffect,
+//     useMemo,
+//     useState,
+// } from "react";
+
+// import {
+//     useDispatch,
+//     useSelector,
+// } from "react-redux";
+
+// import "./Clients.css";
+
+// import Add_Edit_clients
+//     from "./Add_Edit_clients";
+
+// import DeleteConfirmationModal
+//     from "./DeleteConfirmationModal";
+
+// import EndClients
+//     from "./EndClients";
+
+// import {
+//     fetchClients,
+//     fetchCountries,
+//     createClient,
+//     updateClient,
+//     deleteClient,
+//     exportClients,
+//     clearClientError,
+// } from "../../Redux/Slice/clientSlice";
+
+// import {
+//     fetchEndClients,
+//     fetchActiveEndClients,
+// } from "../../Redux/Slice/endClientSlice";
+
+// import {
+//     FontAwesomeIcon
+// } from "@fortawesome/react-fontawesome";
+
+// import {
+//     faMicrosoft,
+//     faGoogle,
+//     faWhatsapp,
+// } from "@fortawesome/free-brands-svg-icons";
+// import Toast from "../../Components/Toast";
+
+
+// function Clients() {
+
+//     const dispatch =
+//         useDispatch();
+// const [
+//     toast,
+//     setToast,
+// ] = useState({
+//     show: false,
+//     type: "success",
+//     message: "",
+// });
+// const showToast = (
+//     type,
+//     message
+// ) => {
+//     setToast({
+//         show: true,
+//         type,
+//         message,
+//     });
+// };
+
+// const hideToast = () => {
+//     setToast((prev) => ({
+//         ...prev,
+//         show: false,
+//     }));
+// };
+
+//     /* =========================================================
+//        CLIENT REDUX STATE
+//     ========================================================= */
+
+//     const {
+//         items: clients = [],
+
+//         countries = [],
+
+//         loading,
+
+//         countriesLoading,
+
+//         creating,
+
+//         updating,
+
+//         deleting,
+//         exporting,
+
+//         error,
+
+//         countriesError,
+
+//     } = useSelector(
+//         (state) =>
+//             state.clients
+//     );
+
+
+//     /* =========================================================
+//        END CLIENT REDUX STATE
+//     ========================================================= */
+
+//     // const {
+//     //     items: endClients = [],
+
+//     //     loading: endClientsLoading,
+
+//     // } = useSelector(
+//     //     (state) =>
+//     //         state.endClients
+//     // );
+
+//     const {
+//         activeItems: activeEndClients = [],
+//         activeLoading: activeEndClientsLoading,
+//     } = useSelector(
+//         (state) => state.endClients
+//     );
+
+
+//     /* =========================================================
+//        LOCAL STATE
+//     ========================================================= */
+
+//     const [
+//         searchTerm,
+//         setSearchTerm,
+//     ] = useState("");
+
+
+//     const [
+//         statusFilter,
+//         setStatusFilter,
+//     ] = useState("Active");
+
+
+//     const [
+//         showModal,
+//         setShowModal,
+//     ] = useState(false);
+
+
+//     const [
+//         editingClient,
+//         setEditingClient,
+//     ] = useState(null);
+
+
+//     const [
+//         showDeleteModal,
+//         setShowDeleteModal,
+//     ] = useState(false);
+
+
+//     const [
+//         clientToDelete,
+//         setClientToDelete,
+//     ] = useState(null);
+
+
+//     const [
+//         showEndClients,
+//         setShowEndClients,
+//     ] = useState(false);
+
+//     /* =========================================================
+//     EXPORT FILTER STATE
+//     ========================================================= */
+
+//     const [
+//         showExportModal,
+//         setShowExportModal,
+//     ] = useState(false);
+
+
+//     const [
+//         exportFromDate,
+//         setExportFromDate,
+//     ] = useState("");
+
+
+//     const [
+//         exportToDate,
+//         setExportToDate,
+//     ] = useState("");
+
+
+//     const [
+//         exportStatus,
+//         setExportStatus,
+//     ] = useState("");
+
+//     /* =========================================================
+//        FETCH CLIENTS + COUNTRIES + END CLIENTS
+//     ========================================================= */
+
+//     // useEffect(() => {
+
+//     //     dispatch(
+//     //         fetchClients()
+//     //     );
+
+
+//     //     dispatch(
+//     //         fetchCountries()
+//     //     );
+
+
+//     //     dispatch(
+//     //         fetchEndClients()
+//     //     );
+
+//     // }, [dispatch]);
+
+//     useEffect(() => {
+
+//         dispatch(
+//             fetchClients()
+//         );
+
+//         dispatch(
+//             fetchCountries()
+//         );
+
+//         dispatch(
+//             fetchActiveEndClients()
+//         );
+
+//     }, [dispatch]);
+
+
+//     /* =========================================================
+//        OPEN ADD CLIENT MODAL
+//     ========================================================= */
+
+//     const handleAddClient = () => {
+//         dispatch(clearClientError());
+//         setEditingClient(null);
+
+//         setShowModal(true);
+
+//     };
+
+
+//     /* =========================================================
+//        OPEN EDIT CLIENT MODAL
+//     ========================================================= */
+
+//     const handleEditClient = (
+//         client
+//     ) => {
+//         dispatch(clearClientError());
+//         setEditingClient(client);
+
+//         setShowModal(true);
+
+//     };
+
+
+//     /* =========================================================
+//        CLOSE CLIENT MODAL
+//     ========================================================= */
+
+//     const handleCloseModal = () => {
+
+//         setShowModal(false);
+
+//         setEditingClient(null);
+//         dispatch(clearClientError());
+//     };
+
+
+//     /* =========================================================
+//        SAVE CLIENT
+//     ========================================================= */
+// const getFriendlyErrorMessage = (
+//     error
+// ) => {
+
+//     if (!error) {
+//         return "Something went wrong. Please try again.";
+//     }
+
+//     if (typeof error === "string") {
+
+//         try {
+
+//             const parsed =
+//                 JSON.parse(error);
+
+//             return (
+//                 parsed?.message ||
+//                 error
+//             );
+
+//         } catch {
+
+//             return error;
+
+//         }
+//     }
+
+//     if (
+//         typeof error === "object"
+//     ) {
+
+//         if (error.message) {
+
+//             const message =
+//                 error.message;
+
+//             if (
+//                 message.includes(
+//                     "Client with email already exists"
+//                 )
+//             ) {
+
+//                 return "This email is already registered. Please use a different email address.";
+
+//             }
+
+//             if (
+//                 message
+//                     .toLowerCase()
+//                     .includes("duplicate")
+//             ) {
+
+//                 return "This record already exists. Please check your data.";
+
+//             }
+
+//             return message;
+//         }
+
+//         if (error.error) {
+//             return error.error;
+//         }
+//     }
+
+//     return "Something went wrong. Please try again.";
+// };
+// const handleSaveClient = async (
+//     clientData
+// ) => {
+
+//     try {
+
+//         if (editingClient) {
+
+//             await dispatch(
+//                 updateClient({
+//                     id: editingClient.id,
+//                     ...clientData,
+//                 })
+//             ).unwrap();
+
+//             showToast(
+//                 "success",
+//                 "Client updated successfully."
+//             );
+
+//         } else {
+
+//             await dispatch(
+//                 createClient(
+//                     clientData
+//                 )
+//             ).unwrap();
+
+//             showToast(
+//                 "success",
+//                 "Client added successfully."
+//             );
+//         }
+
+//         handleCloseModal();
+
+//     } catch (error) {
+
+//         console.error(
+//             "Client save error:",
+//             error
+//         );
+
+//         showToast(
+//             "error",
+//             getFriendlyErrorMessage(error)
+//         );
+//     }
+// };
+
+
+//     /* =========================================================
+//        DELETE CLIENT
+//     ========================================================= */
+
+//     const handleDeleteClick = (
+//         client
+//     ) => {
+
+//         setClientToDelete(client);
+
+//         setShowDeleteModal(true);
+
+//     };
+
+
+//     /* =========================================================
+//        CONFIRM DELETE
+//     ========================================================= */
+
+// const handleConfirmDelete =
+//     async () => {
+
+//         if (!clientToDelete) {
+//             return;
+//         }
+
+//         try {
+
+//             await dispatch(
+//                 deleteClient(
+//                     clientToDelete.id
+//                 )
+//             ).unwrap();
+
+//             setShowDeleteModal(
+//                 false
+//             );
+
+//             setClientToDelete(
+//                 null
+//             );
+
+//             showToast(
+//                 "success",
+//                 "Client deleted successfully."
+//             );
+
+//         } catch (error) {
+
+//             console.error(
+//                 "Client delete error:",
+//                 error
+//             );
+
+//             showToast(
+//                 "error",
+//                 getFriendlyErrorMessage(error)
+//             );
+//         }
+//     };
+
+//     /* =========================================================
+//        CANCEL DELETE
+//     ========================================================= */
+
+//     const handleCancelDelete =
+//         () => {
+
+//             setShowDeleteModal(
+//                 false
+//             );
+
+
+//             setClientToDelete(
+//                 null
+//             );
+
+//         };
+
+
+//     /* =========================================================
+//        FILTER CLIENTS
+//     ========================================================= */
+
+//     // const filteredClients =
+//     //     useMemo(() => {
+
+//     //         return clients.filter(
+//     //             (client) => {
+
+//     //                 const search =
+//     //                     searchTerm
+//     //                         .toLowerCase()
+//     //                         .trim();
+
+
+//     //                 const matchesSearch =
+
+//     //                     !search ||
+
+//     //                     client.name
+//     //                         ?.toLowerCase()
+//     //                         .includes(
+//     //                             search
+//     //                         ) ||
+
+//     //                     client.contactPerson
+//     //                         ?.toLowerCase()
+//     //                         .includes(
+//     //                             search
+//     //                         ) ||
+
+//     //                     client.countryName
+//     //                         ?.toLowerCase()
+//     //                         .includes(
+//     //                             search
+//     //                         ) ||
+
+//     //                     client.email
+//     //                         ?.toLowerCase()
+//     //                         .includes(
+//     //                             search
+//     //                         );
+
+
+//     //                 const matchesStatus =
+
+//     //                     statusFilter ===
+//     //                         "All statuses" ||
+
+//     //                     client.status ===
+//     //                         statusFilter;
+
+
+//     //                 return (
+//     //                     matchesSearch &&
+//     //                     matchesStatus
+//     //                 );
+
+//     //             }
+//     //         );
+
+//     //     }, [
+//     //         clients,
+//     //         searchTerm,
+//     //         statusFilter,
+//     //     ]);
+
+//     /* =========================================================
+//    FILTER CLIENTS
+//    NEWEST CLIENTS SHOULD ALWAYS STAY AT THE BOTTOM
+// ========================================================= */
+
+//     const filteredClients =
+//         useMemo(() => {
+
+//             return clients
+//                 .filter((client) => {
+
+//                     const search =
+//                         searchTerm
+//                             .toLowerCase()
+//                             .trim();
+
+
+//                     const matchesSearch =
+
+//                         !search ||
+
+//                         client.name
+//                             ?.toLowerCase()
+//                             .includes(search) ||
+
+//                         client.contactPerson
+//                             ?.toLowerCase()
+//                             .includes(search) ||
+
+//                         client.countryName
+//                             ?.toLowerCase()
+//                             .includes(search) ||
+
+//                         client.email
+//                             ?.toLowerCase()
+//                             .includes(search);
+
+
+//                     const matchesStatus =
+
+//                         statusFilter ===
+//                         "All statuses" ||
+
+//                         client.status ===
+//                         statusFilter;
+
+
+//                     return (
+//                         matchesSearch &&
+//                         matchesStatus
+//                     );
+
+//                 })
+
+//                 .sort((a, b) => {
+
+//                     /*
+//                      * Sort by Created At ASCENDING.
+//                      *
+//                      * Oldest client  -> TOP
+//                      * Newest client  -> BOTTOM
+//                      */
+
+//                     const dateA =
+//                         a.createdAt
+//                             ? new Date(a.createdAt).getTime()
+//                             : 0;
+
+//                     const dateB =
+//                         b.createdAt
+//                             ? new Date(b.createdAt).getTime()
+//                             : 0;
+
+
+//                     return dateA - dateB;
+
+//                 });
+
+//         }, [
+//             clients,
+//             searchTerm,
+//             statusFilter,
+//         ]);
+
+
+//     /* =========================================================
+//        STATISTICS
+//     ========================================================= */
+
+//     const activeCount =
+//         clients.filter(
+//             (client) =>
+//                 client.status ===
+//                 "Active"
+//         ).length;
+
+
+//     const inactiveCount =
+//         clients.filter(
+//             (client) =>
+//                 client.status ===
+//                 "Inactive"
+//         ).length;
+
+
+//     /* =========================================================
+//        EXPORT CSV
+//     ========================================================= */
+
+//     /* =========================================================
+//        OPEN EXPORT MODAL
+//     ========================================================= */
+
+//     const handleExportCSV = () => {
+
+//         setExportFromDate("");
+
+//         setExportToDate("");
+
+//         setExportStatus("");
+
+//         setShowExportModal(true);
+
+//     };
+
+
+//     /* =========================================================
+//        CLOSE EXPORT MODAL
+//     ========================================================= */
+
+//     const handleCloseExportModal = () => {
+
+//         if (exporting) {
+//             return;
+//         }
+
+//         setShowExportModal(false);
+
+//     };
+
+
+//     /* =========================================================
+//        EXPORT CLIENTS
+//     ========================================================= */
+
+//     const handleConfirmExport = async () => {
+
+//         try {
+
+//             /* =====================================================
+//                DATE VALIDATION
+//             ===================================================== */
+
+// if (
+//     exportFromDate &&
+//     exportToDate &&
+//     exportFromDate >
+//     exportToDate
+// ) {
+
+//     showToast(
+//         "warning",
+//         "From date cannot be later than To date."
+//     );
+
+//     return;
+// }
+
+
+//             /* =====================================================
+//                CALL EXPORT API
+//             ===================================================== */
+
+//             const result =
+//                 await dispatch(
+
+//                     exportClients({
+
+//                         fromDate:
+//                             exportFromDate,
+
+//                         toDate:
+//                             exportToDate,
+
+//                         status:
+//                             exportStatus,
+
+//                     })
+
+//                 ).unwrap();
+
+
+//             /* =====================================================
+//                DOWNLOAD EXCEL FILE
+//             ===================================================== */
+
+//             const blob =
+//                 result.blob;
+
+
+//             const url =
+//                 URL.createObjectURL(
+//                     blob
+//                 );
+
+
+//             const link =
+//                 document.createElement(
+//                     "a"
+//                 );
+
+
+//             link.href =
+//                 url;
+
+
+//             /*
+//                 API response is Excel binary,
+//                 so use .xls instead of .csv.
+//             */
+
+//             const datePart =
+//                 new Date()
+//                     .toISOString()
+//                     .slice(
+//                         0,
+//                         10
+//                     );
+
+
+//             link.download =
+//                 `clients_${datePart}.xls`;
+
+
+//             document.body.appendChild(
+//                 link
+//             );
+
+
+//             link.click();
+
+
+//             document.body.removeChild(
+//                 link
+//             );
+
+
+//             URL.revokeObjectURL(
+//                 url
+//             );
+
+
+//             /* =====================================================
+//                CLOSE MODAL
+//             ===================================================== */
+
+//             setShowExportModal(false);
+//             showToast(
+//     "success",
+//     "Clients exported successfully."
+// );
+
+// } catch (error) {
+
+//     console.error(
+//         "Client export error:",
+//         error
+//     );
+
+//     showToast(
+//         "error",
+//         getFriendlyErrorMessage(error)
+//     );
+
+// }
+
+//     };
+
+
+//     /* =========================================================
+//        END CLIENT PAGE
+//     ========================================================= */
+
+//     if (showEndClients) {
+
+//         return (
+
+//             <EndClients
+
+//                 onBack={() =>
+//                     setShowEndClients(
+//                         false
+//                     )
+//                 }
+
+//             />
+
+//         );
+
+//     }
+
+
+//     /* =========================================================
+//        RENDER
+//     ========================================================= */
+
+//     return (
+
+//         <div className="clients-page page">
+//                     <Toast
+//             show={toast.show}
+//             type={toast.type}
+//             message={toast.message}
+//             onClose={hideToast}
+//         />
+
+//             <div className="clients-content">
+
+
+//                 {/* =================================================
+//                     HEADER
+//                 ================================================= */}
+
+//                 <div className=" page-header">
+
+//                     <div>
+
+//                         <h1 className="page-title">
+//                             Clients
+//                         </h1>
+
+//                         <p className="page-subtitle">
+
+//                             {clients.length} client{" "}
+
+//                             {clients.length === 1
+//                                 ? "company"
+//                                 : "companies"}
+
+//                         </p>
+
+//                     </div>
+
+
+//                     <div className="page-header-actions">
+
+//                         <button
+//                             // type="button"
+//                             className="outline-btn"
+//                             onClick={handleExportCSV}
+//                             disabled={
+//                                 !clients.length ||
+//                                 exporting
+//                             }
+//                         >
+
+//                             {exporting
+//                                 ? "Exporting..."
+//                                 : "↓ Export Clients"}
+
+//                         </button>
+
+
+//                         <button
+//                             type="button"
+//                             className="primary-btn"
+//                             onClick={() =>
+//                                 setShowEndClients(
+//                                     true
+//                                 )
+//                             }
+//                         >
+
+//                             View End Clients
+
+//                         </button>
+
+
+//                         <button
+//                             type="button"
+//                             className="primary-btn"
+//                             onClick={
+//                                 handleAddClient
+//                             }
+//                             disabled={
+//                                 creating
+//                             }
+//                         >
+
+//                             {creating
+//                                 ? "Adding..."
+//                                 : "+ Add client"}
+
+//                         </button>
+
+//                     </div>
+
+//                 </div>
+
+
+//                 {/* =================================================
+//                     STATISTICS
+//                 ================================================= */}
+
+//                 <div className="client-stats">
+
+
+//                     <div className="client-stat-card">
+
+//                         <div className="client-stat-number active-number">
+
+//                             {activeCount}
+
+//                         </div>
+
+//                         <div className="client-stat-label">
+
+//                             Active
+
+//                         </div>
+
+//                     </div>
+
+
+//                     <div className="client-stat-card">
+
+//                         <div className="client-stat-number">
+
+//                             {inactiveCount}
+
+//                         </div>
+
+//                         <div className="client-stat-label">
+
+//                             Inactive
+
+//                         </div>
+
+//                     </div>
+
+
+//                 </div>
+
+
+//                 {/* =================================================
+//                     SEARCH + FILTER
+//                 ================================================= */}
+
+//                 <div className="clients-filter-bar">
+
+
+//                     <div className="common-search">
+
+//                         <input
+//                             type="text"
+//                             value={
+//                                 searchTerm
+//                             }
+//                             onChange={(e) =>
+//                                 setSearchTerm(
+//                                     e.target.value
+//                                 )
+//                             }
+//                             placeholder="Search company or contact person, country..."
+//                         />
+
+//                     </div>
+
+
+//                     <select
+//                         value={
+//                             statusFilter
+//                         }
+//                         onChange={(e) =>
+//                             setStatusFilter(
+//                                 e.target.value
+//                             )
+//                         }
+//                         className="status-filter"
+//                     >
+
+//                         <option value="All statuses">
+//                             All statuses
+//                         </option>
+
+//                         <option value="Active">
+//                             Active
+//                         </option>
+
+//                         <option value="Inactive">
+//                             Inactive
+//                         </option>
+
+//                     </select>
+
+
+//                 </div>
+
+
+//                 {/* =================================================
+//                     TABLE
+//                 ================================================= */}
+
+//                 <div className="clients-table-wrapper">
+
+//                     <table className="clients-table">
+
+
+//                         <thead>
+
+//                             <tr>
+
+//                                 <th>
+//                                     CLIENT
+//                                 </th>
+
+//                                 <th>
+//                                     CONTACT PERSON
+//                                 </th>
+
+//                                 <th>
+//                                     THROUGH · BDM
+//                                 </th>
+
+//                                 <th>
+//                                     END CLIENT
+//                                 </th>
+
+//                                 <th>
+//                                     COUNTRY
+//                                 </th>
+
+//                                 <th>
+//                                     STATUS
+//                                 </th>
+
+//                                 <th>
+//                                     ACTIONS
+//                                 </th>
+
+//                             </tr>
+
+//                         </thead>
+
+
+//                         <tbody>
+
+
+//                             {loading ? (
+
+//                                 <tr>
+
+//                                     <td
+//                                         colSpan="7"
+//                                         className="no-client-data"
+//                                     >
+
+//                                         Loading clients...
+
+//                                     </td>
+
+//                                 </tr>
+
+//                             ) : filteredClients.length === 0 ? (
+
+//                                 <tr>
+
+//                                     <td
+//                                         colSpan="7"
+//                                         className="no-client-data"
+//                                     >
+
+//                                         No clients found
+
+//                                     </td>
+
+//                                 </tr>
+
+//                             ) : (
+
+//                                 filteredClients.map(
+//                                     (client) => (
+
+//                                         <tr
+//                                             key={
+//                                                 client.id
+//                                             }
+//                                         >
+
+
+//                                             {/* =================================
+//                                                 CLIENT
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <div className="client-company-name">
+
+//                                                     {
+//                                                         client.name
+//                                                     }
+
+//                                                 </div>
+
+//                                                 <div className="client-industry">
+
+//                                                     {
+//                                                         client.industry ||
+//                                                         "—"
+//                                                     }
+
+//                                                 </div>
+
+//                                             </td>
+
+
+//                                             {/* =================================
+//                                                 CONTACT PERSON
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <div className="client-contact-name">
+
+//                                                     {
+//                                                         client.contactPerson ||
+//                                                         "—"
+//                                                     }
+
+//                                                 </div>
+
+
+//                                                 <div className="client-email">
+
+//                                                     {
+//                                                         client.email ||
+//                                                         "—"
+//                                                     }
+
+//                                                 </div>
+
+
+//                                                 <div className="contact-icons">
+
+
+//                                                     {/* OUTLOOK */}
+
+//                                                     <button
+//                                                         type="button"
+//                                                         className="contact-icon outlook-icon"
+//                                                         title="Outlook"
+//                                                         onClick={() => {
+
+//                                                             if (
+//                                                                 client.email
+//                                                             ) {
+
+//                                                                 window.location.href =
+//                                                                     `mailto:${client.email}`;
+
+//                                                             }
+
+//                                                         }}
+//                                                     >
+
+//                                                         <FontAwesomeIcon
+//                                                             icon={
+//                                                                 faMicrosoft
+//                                                             }
+//                                                         />
+
+//                                                     </button>
+
+
+//                                                     {/* GMAIL */}
+
+//                                                     <button
+//                                                         type="button"
+//                                                         className="contact-icon gmail-icon"
+//                                                         title="Gmail"
+//                                                         onClick={() => {
+
+//                                                             if (
+//                                                                 client.email
+//                                                             ) {
+
+//                                                                 window.open(
+
+//                                                                     `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+//                                                                         client.email
+//                                                                     )}`,
+
+//                                                                     "_blank"
+
+//                                                                 );
+
+//                                                             }
+
+//                                                         }}
+//                                                     >
+
+//                                                         <FontAwesomeIcon
+//                                                             icon={
+//                                                                 faGoogle
+//                                                             }
+//                                                         />
+
+//                                                     </button>
+
+
+//                                                     {/* WHATSAPP */}
+
+//                                                     <button
+//                                                         type="button"
+//                                                         className="contact-icon whatsapp-icon"
+//                                                         title="WhatsApp"
+//                                                         onClick={() => {
+
+//                                                             if (
+//                                                                 client.phone
+//                                                             ) {
+
+//                                                                 const phoneNumber =
+//                                                                     client.phone.replace(
+//                                                                         /\D/g,
+//                                                                         ""
+//                                                                     );
+
+
+//                                                                 if (
+//                                                                     phoneNumber
+//                                                                 ) {
+
+//                                                                     window.open(
+
+//                                                                         `https://wa.me/${phoneNumber}`,
+
+//                                                                         "_blank"
+
+//                                                                     );
+
+//                                                                 }
+
+//                                                             }
+
+//                                                         }}
+//                                                     >
+
+//                                                         <FontAwesomeIcon
+//                                                             icon={
+//                                                                 faWhatsapp
+//                                                             }
+//                                                         />
+
+//                                                     </button>
+
+
+//                                                 </div>
+
+//                                             </td>
+
+
+//                                             {/* =================================
+//                                                 SOURCE / BDM
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <span className="table-dash">
+
+//                                                     {
+//                                                         client.source ||
+//                                                         "—"
+//                                                     }
+
+//                                                 </span>
+
+//                                             </td>
+
+//                                             {/* =================================
+//                                                 END CLIENT
+//                                             ================================= */}
+
+//                                             <td>
+//                                                 {client.endClients?.length ? (
+//                                                     <div className="client-end-client-list">
+//                                                         {client.endClients.map((endClient, index) => (
+//                                                             <span key={endClient.id}>
+//                                                                 <span className="end-client-item">
+//                                                                     {endClient.name}
+//                                                                 </span>
+//                                                                 {index < client.endClients.length - 1 && (
+//                                                                     <span className="end-client-comma">,</span>
+//                                                                 )}
+//                                                             </span>
+//                                                         ))}
+//                                                     </div>
+//                                                 ) : (
+//                                                     <span className="table-end-client-na">
+//                                                         NA
+//                                                     </span>
+//                                                 )}
+//                                             </td>
+
+
+//                                             {/* =================================
+//                                                 COUNTRY
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <span className="country-text">
+
+//                                                     {
+//                                                         client.countryName ||
+//                                                         client.countryCode ||
+//                                                         "—"
+//                                                     }
+
+//                                                 </span>
+
+//                                             </td>
+
+
+//                                             {/* =================================
+//                                                 STATUS
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <span
+//                                                     className={`client-status ${client.status
+//                                                         ?.toLowerCase()
+//                                                         .replace(
+//                                                             /\s+/g,
+//                                                             "-"
+//                                                         )}`}
+//                                                 >
+
+//                                                     {
+//                                                         client.status
+//                                                     }
+
+//                                                 </span>
+
+//                                             </td>
+
+
+//                                             {/* =================================
+//                                                 ACTIONS
+//                                             ================================= */}
+
+//                                             <td>
+
+//                                                 <div className="client-actions">
+
+
+//                                                     <button
+//                                                         type="button"
+//                                                         className="edit-action"
+//                                                         onClick={() =>
+//                                                             handleEditClient(
+//                                                                 client
+//                                                             )
+//                                                         }
+//                                                         disabled={
+//                                                             updating ||
+//                                                             deleting
+//                                                         }
+//                                                     >
+
+//                                                         Edit
+
+//                                                     </button>
+
+
+//                                                     <button
+//                                                         type="button"
+//                                                         className="delete-action"
+//                                                         onClick={() =>
+//                                                             handleDeleteClick(
+//                                                                 client
+//                                                             )
+//                                                         }
+//                                                         disabled={
+//                                                             deleting
+//                                                         }
+//                                                     >
+
+//                                                         Delete
+
+//                                                     </button>
+
+
+//                                                 </div>
+
+//                                             </td>
+
+
+//                                         </tr>
+
+//                                     )
+//                                 )
+
+//                             )}
+
+
+//                         </tbody>
+
+//                     </table>
+
+//                 </div>
+
+//             </div>
+
+
+//             {/* =====================================================
+//                 ADD / EDIT CLIENT MODAL
+//             ===================================================== */}
+
+//             {showModal && (
+
+//                 <Add_Edit_clients
+
+//                     client={
+//                         editingClient
+//                     }
+
+//                     endClients={
+//                         activeEndClients
+//                     }
+
+//                     countries={
+//                         countries
+//                     }
+
+//                     countriesLoading={
+//                         countriesLoading
+//                     }
+
+//                     endClientsLoading={
+//                         activeEndClientsLoading
+//                     }
+
+//                     onClose={
+//                         handleCloseModal
+//                     }
+
+//                     onSave={
+//                         handleSaveClient
+//                     }
+
+//                     isSubmitting={
+//                         creating ||
+//                         updating
+//                     }
+
+//                     error={
+//                         error
+//                     }
+
+//                     countriesError={
+//                         countriesError
+//                     }
+
+//                 />
+//             )}
+
+
+//             {/* =====================================================
+//                 DELETE CONFIRMATION MODAL
+//             ===================================================== */}
+
+//             {showDeleteModal && (
+
+//                 <DeleteConfirmationModal
+
+//                     clientName={
+//                         clientToDelete?.name ||
+//                         ""
+//                     }
+
+//                     onConfirm={
+//                         handleConfirmDelete
+//                     }
+
+//                     onCancel={
+//                         handleCancelDelete
+//                     }
+
+//                 />
+
+//             )}
+
+//             {/* =====================================================
+//     EXPORT CLIENTS MODAL
+// ===================================================== */}
+
+//             {showExportModal && (
+
+//                 <div
+//                     className="export-modal-overlay"
+//                     onMouseDown={(e) => {
+
+//                         if (
+//                             e.target ===
+//                             e.currentTarget &&
+//                             !exporting
+//                         ) {
+
+//                             handleCloseExportModal();
+
+//                         }
+
+//                     }}
+//                 >
+
+//                     <div
+//                         className="export-modal"
+//                         onMouseDown={(e) =>
+//                             e.stopPropagation()
+//                         }
+//                     >
+
+
+//                         {/* =================================================
+//                 HEADER
+//             ================================================= */}
+
+//                         <div className="export-modal-header">
+
+//                             <div>
+
+//                                 <h2>
+//                                     Export Clients
+//                                 </h2>
+
+//                                 <p>
+//                                     Choose optional filters
+//                                     for your export
+//                                 </p>
+
+//                             </div>
+
+
+//                             <button
+//                                 type="button"
+//                                 className="export-modal-close"
+//                                 onClick={
+//                                     handleCloseExportModal
+//                                 }
+//                                 disabled={exporting}
+//                             >
+
+//                                 ×
+
+//                             </button>
+
+//                         </div>
+
+
+//                         {/* =================================================
+//                 BODY
+//             ================================================= */}
+
+//                         <div className="export-modal-body">
+
+
+//                             {/* =================================================
+//                     DATE RANGE
+//                 ================================================= */}
+
+//                             <div className="export-date-row">
+
+
+//                                 {/* FROM DATE */}
+
+//                                 <div className="export-form-group">
+
+//                                     <label>
+//                                         From date
+//                                     </label>
+
+//                                     <input
+//                                         type="date"
+//                                         value={
+//                                             exportFromDate
+//                                         }
+//                                         onChange={(e) =>
+//                                             setExportFromDate(
+//                                                 e.target.value
+//                                             )
+//                                         }
+//                                         disabled={
+//                                             exporting
+//                                         }
+//                                     />
+
+//                                 </div>
+
+
+//                                 {/* TO DATE */}
+
+//                                 <div className="export-form-group">
+
+//                                     <label>
+//                                         To date
+//                                     </label>
+
+//                                     <input
+//                                         type="date"
+//                                         value={
+//                                             exportToDate
+//                                         }
+//                                         onChange={(e) =>
+//                                             setExportToDate(
+//                                                 e.target.value
+//                                             )
+//                                         }
+//                                         disabled={
+//                                             exporting
+//                                         }
+//                                     />
+
+//                                 </div>
+
+//                             </div>
+
+
+//                             {/* =================================================
+//                     STATUS
+//                 ================================================= */}
+
+//                             <div className="export-form-group">
+
+//                                 <label>
+//                                     Status
+//                                 </label>
+
+
+//                                 <select
+//                                     value={
+//                                         exportStatus
+//                                     }
+//                                     onChange={(e) =>
+//                                         setExportStatus(
+//                                             e.target.value
+//                                         )
+//                                     }
+//                                     disabled={
+//                                         exporting
+//                                     }
+//                                 >
+
+//                                     <option value="">
+//                                         All statuses
+//                                     </option>
+
+//                                     <option value="Active">
+//                                         Active
+//                                     </option>
+
+//                                     <option value="Inactive">
+//                                         Inactive
+//                                     </option>
+
+//                                 </select>
+
+//                             </div>
+
+
+//                             {/* =================================================
+//                     FILTER INFO
+//                 ================================================= */}
+
+//                             <div className="export-info">
+
+//                                 <span className="export-info-icon">
+//                                     i
+//                                 </span>
+
+//                                 <span>
+//                                     Leave all filters empty
+//                                     to export all clients.
+//                                 </span>
+
+//                             </div>
+
+//                         </div>
+
+
+//                         {/* =================================================
+//                 FOOTER
+//             ================================================= */}
+
+//                         <div className="export-modal-footer">
+
+
+//                             <button
+//                                 type="button"
+//                                 className="export-cancel-btn"
+//                                 onClick={
+//                                     handleCloseExportModal
+//                                 }
+//                                 disabled={
+//                                     exporting
+//                                 }
+//                             >
+
+//                                 Cancel
+
+//                             </button>
+
+
+//                             <button
+//                                 type="button"
+//                                 className="export-submit-btn"
+//                                 onClick={
+//                                     handleConfirmExport
+//                                 }
+//                                 disabled={
+//                                     exporting
+//                                 }
+//                             >
+
+//                                 {exporting
+//                                     ? "Exporting..."
+//                                     : "Export"}
+
+//                             </button>
+
+
+//                         </div>
+
+
+//                     </div>
+
+//                 </div>
+
+//             )}
+
+
+//         </div>
+
+//     );
+
+// }
+
+
+// export default Clients;
+
+
+
+
+
+
 import React, {
     useEffect,
-    useMemo,
     useState,
 } from "react";
 
@@ -20,6 +1826,9 @@ import DeleteConfirmationModal
 import EndClients
     from "./EndClients";
 
+import CommonPagination
+    from "../../Components/CommonPagination";
+
 import {
     fetchClients,
     fetchCountries,
@@ -28,15 +1837,15 @@ import {
     deleteClient,
     exportClients,
     clearClientError,
+    fetchClientHeaderFilters,
 } from "../../Redux/Slice/clientSlice";
 
 import {
-    fetchEndClients,
     fetchActiveEndClients,
 } from "../../Redux/Slice/endClientSlice";
 
 import {
-    FontAwesomeIcon
+    FontAwesomeIcon,
 } from "@fortawesome/react-fontawesome";
 
 import {
@@ -44,93 +1853,139 @@ import {
     faGoogle,
     faWhatsapp,
 } from "@fortawesome/free-brands-svg-icons";
-import Toast from "../../Components/Toast";
+
+import Toast
+    from "../../Components/Toast";
 
 
 function Clients() {
 
     const dispatch =
         useDispatch();
-const [
-    toast,
-    setToast,
-] = useState({
-    show: false,
-    type: "success",
-    message: "",
-});
-const showToast = (
-    type,
-    message
-) => {
-    setToast({
-        show: true,
-        type,
-        message,
-    });
-};
 
-const hideToast = () => {
-    setToast((prev) => ({
-        ...prev,
+
+    /* =========================================================
+       TOAST
+    ========================================================= */
+
+    const [
+        toast,
+        setToast,
+    ] = useState({
+
         show: false,
-    }));
-};
+
+        type: "success",
+
+        message: "",
+
+    });
+
+
+    const showToast = (
+        type,
+        message
+    ) => {
+
+        setToast({
+
+            show: true,
+
+            type,
+
+            message,
+
+        });
+
+    };
+
+
+    const hideToast = () => {
+
+        setToast((prev) => ({
+
+            ...prev,
+
+            show: false,
+
+        }));
+
+    };
+
 
     /* =========================================================
        CLIENT REDUX STATE
     ========================================================= */
 
-    const {
-        items: clients = [],
-
-        countries = [],
-
-        loading,
-
-        countriesLoading,
-
-        creating,
-
-        updating,
-
-        deleting,
-        exporting,
-
-        error,
-
-        countriesError,
-
-    } = useSelector(
-        (state) =>
-            state.clients
-    );
+const {
+    items: clients = [],
+    countries = [],
+    loading,
+    countriesLoading,
+    creating,
+    updating,
+    deleting,
+    exporting,
+    error,
+    countriesError,
+    totalPages = 0,
+    totalElements = 0,
+    pageSize = 10,
+    totalClients = 0,           // ← Add this
+    totalActiveClients = 0,     // ← Add this
+    totalInActiveClients = 0,   // ← Add this
+    clientHeaderLoading,
+    clientHeaderError,
+} = useSelector(
+    (state) =>
+        state.clients
+);
 
 
     /* =========================================================
        END CLIENT REDUX STATE
     ========================================================= */
 
-    // const {
-    //     items: endClients = [],
-
-    //     loading: endClientsLoading,
-
-    // } = useSelector(
-    //     (state) =>
-    //         state.endClients
-    // );
-
     const {
-        activeItems: activeEndClients = [],
-        activeLoading: activeEndClientsLoading,
+
+        activeItems:
+            activeEndClients = [],
+
+        activeLoading:
+            activeEndClientsLoading,
+
     } = useSelector(
-        (state) => state.endClients
+        (state) =>
+            state.endClients
     );
 
 
     /* =========================================================
-       LOCAL STATE
+       PAGINATION STATE
+       
+       UI:
+       1 = backend page 0
+       2 = backend page 1
+       3 = backend page 2
+    ========================================================= */
+
+    const [
+        currentPage,
+        setCurrentPage,
+    ] = useState(1);
+
+
+    /*
+        Backend page size.
+
+        We always request 10 records.
+    */
+
+    const itemsPerPage = 10;
+
+
+    /* =========================================================
+       FILTER STATE
     ========================================================= */
 
     const [
@@ -139,11 +1994,15 @@ const hideToast = () => {
     ] = useState("");
 
 
-    const [
-        statusFilter,
-        setStatusFilter,
-    ] = useState("Active");
+const [
+    statusFilter,
+    setStatusFilter,
+] = useState("All statuses");
 
+
+    /* =========================================================
+       MODAL STATE
+    ========================================================= */
 
     const [
         showModal,
@@ -174,8 +2033,9 @@ const hideToast = () => {
         setShowEndClients,
     ] = useState(false);
 
+
     /* =========================================================
-    EXPORT FILTER STATE
+       EXPORT FILTER STATE
     ========================================================= */
 
     const [
@@ -201,33 +2061,91 @@ const hideToast = () => {
         setExportStatus,
     ] = useState("");
 
+
     /* =========================================================
-       FETCH CLIENTS + COUNTRIES + END CLIENTS
+       FETCH CLIENTS
+       
+       BACKEND HANDLES:
+       - pagination
+       - search
+       - active/inactive filtering
+       
+       FRONTEND DOES NOT:
+       - filter
+       - sort
+       - slice
+       - paginate
     ========================================================= */
-
-    // useEffect(() => {
-
-    //     dispatch(
-    //         fetchClients()
-    //     );
-
-
-    //     dispatch(
-    //         fetchCountries()
-    //     );
-
-
-    //     dispatch(
-    //         fetchEndClients()
-    //     );
-
-    // }, [dispatch]);
 
     useEffect(() => {
 
+        let active;
+
+
+        /*
+            Active -> true
+            Inactive -> false
+            All statuses -> undefined
+        */
+
+        if (
+            statusFilter === "Active"
+        ) {
+
+            active = true;
+
+        }
+
+        else if (
+            statusFilter === "Inactive"
+        ) {
+
+            active = false;
+
+        }
+
+
         dispatch(
-            fetchClients()
+            fetchClients({
+
+                /*
+                    CommonPagination is 1-based.
+
+                    Backend is 0-based.
+                */
+
+                page:
+                    currentPage - 1,
+
+                size:
+                    itemsPerPage,
+
+                search:
+                    searchTerm.trim(),
+
+                active,
+
+            })
         );
+
+    }, [
+
+        dispatch,
+
+        currentPage,
+
+        searchTerm,
+
+        statusFilter,
+
+    ]);
+
+
+    /* =========================================================
+       FETCH COUNTRIES + ACTIVE END CLIENTS
+    ========================================================= */
+
+    useEffect(() => {
 
         dispatch(
             fetchCountries()
@@ -239,13 +2157,70 @@ const hideToast = () => {
 
     }, [dispatch]);
 
+useEffect(() => {
+
+    dispatch(
+        fetchClientHeaderFilters()
+    );
+
+}, [dispatch]);
+    /* =========================================================
+       SEARCH CHANGE
+       
+       New search always starts from page 1.
+    ========================================================= */
+
+    const handleSearchChange = (
+        value
+    ) => {
+
+        setSearchTerm(value);
+
+        setCurrentPage(1);
+
+    };
+
+
+    /* =========================================================
+       STATUS CHANGE
+       
+       New status always starts from page 1.
+    ========================================================= */
+
+    const handleStatusChange = (
+        value
+    ) => {
+
+        setStatusFilter(value);
+
+        setCurrentPage(1);
+
+    };
+
+
+    /* =========================================================
+       PAGE CHANGE
+    ========================================================= */
+
+    const handlePageChange = (
+        page
+    ) => {
+
+        setCurrentPage(page);
+
+    };
+
 
     /* =========================================================
        OPEN ADD CLIENT MODAL
     ========================================================= */
 
     const handleAddClient = () => {
-        dispatch(clearClientError());
+
+        dispatch(
+            clearClientError()
+        );
+
         setEditingClient(null);
 
         setShowModal(true);
@@ -260,7 +2235,11 @@ const hideToast = () => {
     const handleEditClient = (
         client
     ) => {
-        dispatch(clearClientError());
+
+        dispatch(
+            clearClientError()
+        );
+
         setEditingClient(client);
 
         setShowModal(true);
@@ -277,128 +2256,222 @@ const hideToast = () => {
         setShowModal(false);
 
         setEditingClient(null);
-        dispatch(clearClientError());
+
+        dispatch(
+            clearClientError()
+        );
+
+    };
+
+
+    /* =========================================================
+       FRIENDLY ERROR
+    ========================================================= */
+
+    const getFriendlyErrorMessage = (
+        error
+    ) => {
+
+        if (!error) {
+
+            return "Something went wrong. Please try again.";
+
+        }
+
+
+        if (
+            typeof error === "string"
+        ) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(error);
+
+                return (
+                    parsed?.message ||
+                    error
+                );
+
+            }
+
+            catch {
+
+                return error;
+
+            }
+
+        }
+
+
+        if (
+            typeof error === "object"
+        ) {
+
+            if (error.message) {
+
+                const message =
+                    error.message;
+
+
+                if (
+                    message.includes(
+                        "Client with email already exists"
+                    )
+                ) {
+
+                    return "This email is already registered. Please use a different email address.";
+
+                }
+
+
+                if (
+                    message
+                        .toLowerCase()
+                        .includes("duplicate")
+                ) {
+
+                    return "This record already exists. Please check your data.";
+
+                }
+
+
+                return message;
+
+            }
+
+
+            if (error.error) {
+
+                return error.error;
+
+            }
+
+        }
+
+
+        return "Something went wrong. Please try again.";
+
     };
 
 
     /* =========================================================
        SAVE CLIENT
+       
+       After create/update, fetch the backend page again.
     ========================================================= */
-const getFriendlyErrorMessage = (
-    error
-) => {
 
-    if (!error) {
-        return "Something went wrong. Please try again.";
-    }
-
-    if (typeof error === "string") {
+    const handleSaveClient = async (
+        clientData
+    ) => {
 
         try {
 
-            const parsed =
-                JSON.parse(error);
+            if (editingClient) {
 
-            return (
-                parsed?.message ||
+                await dispatch(
+                    updateClient({
+
+                        id:
+                            editingClient.id,
+
+                        ...clientData,
+
+                    })
+                ).unwrap();
+
+
+                showToast(
+                    "success",
+                    "Client updated successfully."
+                );
+
+            }
+
+            else {
+
+                await dispatch(
+                    createClient(
+                        clientData
+                    )
+                ).unwrap();
+
+
+                showToast(
+                    "success",
+                    "Client added successfully."
+                );
+
+            }
+
+
+            handleCloseModal();
+
+
+            /*
+                Do NOT modify Redux items manually.
+
+                Just reload the current backend page.
+            */
+
+            let active;
+
+
+            if (
+                statusFilter === "Active"
+            ) {
+
+                active = true;
+
+            }
+
+            else if (
+                statusFilter === "Inactive"
+            ) {
+
+                active = false;
+
+            }
+
+
+            dispatch(
+                fetchClients({
+
+                    page:
+                        currentPage - 1,
+
+                    size:
+                        itemsPerPage,
+
+                    search:
+                        searchTerm.trim(),
+
+                    active,
+
+                })
+            );
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Client save error:",
                 error
             );
 
-        } catch {
-
-            return error;
-
-        }
-    }
-
-    if (
-        typeof error === "object"
-    ) {
-
-        if (error.message) {
-
-            const message =
-                error.message;
-
-            if (
-                message.includes(
-                    "Client with email already exists"
-                )
-            ) {
-
-                return "This email is already registered. Please use a different email address.";
-
-            }
-
-            if (
-                message
-                    .toLowerCase()
-                    .includes("duplicate")
-            ) {
-
-                return "This record already exists. Please check your data.";
-
-            }
-
-            return message;
-        }
-
-        if (error.error) {
-            return error.error;
-        }
-    }
-
-    return "Something went wrong. Please try again.";
-};
-const handleSaveClient = async (
-    clientData
-) => {
-
-    try {
-
-        if (editingClient) {
-
-            await dispatch(
-                updateClient({
-                    id: editingClient.id,
-                    ...clientData,
-                })
-            ).unwrap();
 
             showToast(
-                "success",
-                "Client updated successfully."
-            );
-
-        } else {
-
-            await dispatch(
-                createClient(
-                    clientData
+                "error",
+                getFriendlyErrorMessage(
+                    error
                 )
-            ).unwrap();
-
-            showToast(
-                "success",
-                "Client added successfully."
             );
+
         }
 
-        handleCloseModal();
-
-    } catch (error) {
-
-        console.error(
-            "Client save error:",
-            error
-        );
-
-        showToast(
-            "error",
-            getFriendlyErrorMessage(error)
-        );
-    }
-};
+    };
 
 
     /* =========================================================
@@ -418,49 +2491,109 @@ const handleSaveClient = async (
 
     /* =========================================================
        CONFIRM DELETE
+       
+       After delete, fetch the current backend page again.
     ========================================================= */
 
-const handleConfirmDelete =
-    async () => {
+    const handleConfirmDelete =
+        async () => {
 
-        if (!clientToDelete) {
-            return;
-        }
+            if (
+                !clientToDelete
+            ) {
 
-        try {
+                return;
 
-            await dispatch(
-                deleteClient(
-                    clientToDelete.id
-                )
-            ).unwrap();
+            }
 
-            setShowDeleteModal(
-                false
-            );
 
-            setClientToDelete(
-                null
-            );
+            try {
 
-            showToast(
-                "success",
-                "Client deleted successfully."
-            );
+                await dispatch(
+                    deleteClient(
+                        clientToDelete.id
+                    )
+                ).unwrap();
 
-        } catch (error) {
 
-            console.error(
-                "Client delete error:",
-                error
-            );
+                setShowDeleteModal(
+                    false
+                );
 
-            showToast(
-                "error",
-                getFriendlyErrorMessage(error)
-            );
-        }
-    };
+                setClientToDelete(
+                    null
+                );
+
+
+                showToast(
+                    "success",
+                    "Client deleted successfully."
+                );
+
+
+                /*
+                    Reload current backend page.
+                */
+
+                let active;
+
+
+                if (
+                    statusFilter === "Active"
+                ) {
+
+                    active = true;
+
+                }
+
+                else if (
+                    statusFilter === "Inactive"
+                ) {
+
+                    active = false;
+
+                }
+
+
+                dispatch(
+                    fetchClients({
+
+                        page:
+                            currentPage - 1,
+
+                        size:
+                            itemsPerPage,
+
+                        search:
+                            searchTerm.trim(),
+
+                        active,
+
+                    })
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Client delete error:",
+                    error
+                );
+
+
+                showToast(
+                    "error",
+                    getFriendlyErrorMessage(
+                        error
+                    )
+                );
+
+            }
+
+        };
+
 
     /* =========================================================
        CANCEL DELETE
@@ -473,7 +2606,6 @@ const handleConfirmDelete =
                 false
             );
 
-
             setClientToDelete(
                 null
             );
@@ -482,184 +2614,30 @@ const handleConfirmDelete =
 
 
     /* =========================================================
-       FILTER CLIENTS
-    ========================================================= */
-
-    // const filteredClients =
-    //     useMemo(() => {
-
-    //         return clients.filter(
-    //             (client) => {
-
-    //                 const search =
-    //                     searchTerm
-    //                         .toLowerCase()
-    //                         .trim();
-
-
-    //                 const matchesSearch =
-
-    //                     !search ||
-
-    //                     client.name
-    //                         ?.toLowerCase()
-    //                         .includes(
-    //                             search
-    //                         ) ||
-
-    //                     client.contactPerson
-    //                         ?.toLowerCase()
-    //                         .includes(
-    //                             search
-    //                         ) ||
-
-    //                     client.countryName
-    //                         ?.toLowerCase()
-    //                         .includes(
-    //                             search
-    //                         ) ||
-
-    //                     client.email
-    //                         ?.toLowerCase()
-    //                         .includes(
-    //                             search
-    //                         );
-
-
-    //                 const matchesStatus =
-
-    //                     statusFilter ===
-    //                         "All statuses" ||
-
-    //                     client.status ===
-    //                         statusFilter;
-
-
-    //                 return (
-    //                     matchesSearch &&
-    //                     matchesStatus
-    //                 );
-
-    //             }
-    //         );
-
-    //     }, [
-    //         clients,
-    //         searchTerm,
-    //         statusFilter,
-    //     ]);
-
-    /* =========================================================
-   FILTER CLIENTS
-   NEWEST CLIENTS SHOULD ALWAYS STAY AT THE BOTTOM
-========================================================= */
-
-    const filteredClients =
-        useMemo(() => {
-
-            return clients
-                .filter((client) => {
-
-                    const search =
-                        searchTerm
-                            .toLowerCase()
-                            .trim();
-
-
-                    const matchesSearch =
-
-                        !search ||
-
-                        client.name
-                            ?.toLowerCase()
-                            .includes(search) ||
-
-                        client.contactPerson
-                            ?.toLowerCase()
-                            .includes(search) ||
-
-                        client.countryName
-                            ?.toLowerCase()
-                            .includes(search) ||
-
-                        client.email
-                            ?.toLowerCase()
-                            .includes(search);
-
-
-                    const matchesStatus =
-
-                        statusFilter ===
-                        "All statuses" ||
-
-                        client.status ===
-                        statusFilter;
-
-
-                    return (
-                        matchesSearch &&
-                        matchesStatus
-                    );
-
-                })
-
-                .sort((a, b) => {
-
-                    /*
-                     * Sort by Created At ASCENDING.
-                     *
-                     * Oldest client  -> TOP
-                     * Newest client  -> BOTTOM
-                     */
-
-                    const dateA =
-                        a.createdAt
-                            ? new Date(a.createdAt).getTime()
-                            : 0;
-
-                    const dateB =
-                        b.createdAt
-                            ? new Date(b.createdAt).getTime()
-                            : 0;
-
-
-                    return dateA - dateB;
-
-                });
-
-        }, [
-            clients,
-            searchTerm,
-            statusFilter,
-        ]);
-
-
-    /* =========================================================
-       STATISTICS
+       CURRENT PAGE STATISTICS
+       
+       These are statistics for the currently loaded page.
+       
+       If you need GLOBAL active/inactive counts,
+       backend should return those separately.
     ========================================================= */
 
     const activeCount =
         clients.filter(
             (client) =>
-                client.status ===
-                "Active"
+                client.isActive === true
         ).length;
 
 
     const inactiveCount =
         clients.filter(
             (client) =>
-                client.status ===
-                "Inactive"
+                client.isActive === false
         ).length;
 
 
     /* =========================================================
-       EXPORT CSV
-    ========================================================= */
-
-    /* =========================================================
-       OPEN EXPORT MODAL
+       EXPORT
     ========================================================= */
 
     const handleExportCSV = () => {
@@ -682,7 +2660,9 @@ const handleConfirmDelete =
     const handleCloseExportModal = () => {
 
         if (exporting) {
+
             return;
+
         }
 
         setShowExportModal(false);
@@ -691,141 +2671,130 @@ const handleConfirmDelete =
 
 
     /* =========================================================
-       EXPORT CLIENTS
+       CONFIRM EXPORT
     ========================================================= */
 
-    const handleConfirmExport = async () => {
+    const handleConfirmExport =
+        async () => {
 
-        try {
+            try {
 
-            /* =====================================================
-               DATE VALIDATION
-            ===================================================== */
+                if (
+                    exportFromDate &&
+                    exportToDate &&
+                    exportFromDate >
+                    exportToDate
+                ) {
 
-if (
-    exportFromDate &&
-    exportToDate &&
-    exportFromDate >
-    exportToDate
-) {
+                    showToast(
+                        "warning",
+                        "From date cannot be later than To date."
+                    );
 
-    showToast(
-        "warning",
-        "From date cannot be later than To date."
-    );
+                    return;
 
-    return;
-}
+                }
 
 
-            /* =====================================================
-               CALL EXPORT API
-            ===================================================== */
+                const result =
+                    await dispatch(
+                        exportClients({
 
-            const result =
-                await dispatch(
+                            fromDate:
+                                exportFromDate,
 
-                    exportClients({
+                            toDate:
+                                exportToDate,
 
-                        fromDate:
-                            exportFromDate,
+                            status:
+                                exportStatus,
 
-                        toDate:
-                            exportToDate,
-
-                        status:
-                            exportStatus,
-
-                    })
-
-                ).unwrap();
+                        })
+                    ).unwrap();
 
 
-            /* =====================================================
-               DOWNLOAD EXCEL FILE
-            ===================================================== */
-
-            const blob =
-                result.blob;
+                const blob =
+                    result.blob;
 
 
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-
-            link.href =
-                url;
-
-
-            /*
-                API response is Excel binary,
-                so use .xls instead of .csv.
-            */
-
-            const datePart =
-                new Date()
-                    .toISOString()
-                    .slice(
-                        0,
-                        10
+                const url =
+                    URL.createObjectURL(
+                        blob
                     );
 
 
-            link.download =
-                `clients_${datePart}.xls`;
+                const link =
+                    document.createElement(
+                        "a"
+                    );
 
 
-            document.body.appendChild(
-                link
-            );
+                link.href =
+                    url;
 
 
-            link.click();
+                const datePart =
+                    new Date()
+                        .toISOString()
+                        .slice(
+                            0,
+                            10
+                        );
 
 
-            document.body.removeChild(
-                link
-            );
+                link.download =
+                    `clients_${datePart}.xls`;
 
 
-            URL.revokeObjectURL(
-                url
-            );
+                document.body.appendChild(
+                    link
+                );
 
 
-            /* =====================================================
-               CLOSE MODAL
-            ===================================================== */
+                link.click();
 
-            setShowExportModal(false);
-            showToast(
-    "success",
-    "Clients exported successfully."
-);
 
-} catch (error) {
+                document.body.removeChild(
+                    link
+                );
 
-    console.error(
-        "Client export error:",
-        error
-    );
 
-    showToast(
-        "error",
-        getFriendlyErrorMessage(error)
-    );
+                URL.revokeObjectURL(
+                    url
+                );
 
-}
 
-    };
+                setShowExportModal(
+                    false
+                );
+
+
+                showToast(
+                    "success",
+                    "Clients exported successfully."
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Client export error:",
+                    error
+                );
+
+
+                showToast(
+                    "error",
+                    getFriendlyErrorMessage(
+                        error
+                    )
+                );
+
+            }
+
+        };
 
 
     /* =========================================================
@@ -858,12 +2827,27 @@ if (
     return (
 
         <div className="clients-page page">
-                    <Toast
-            show={toast.show}
-            type={toast.type}
-            message={toast.message}
-            onClose={hideToast}
-        />
+
+            <Toast
+
+                show={
+                    toast.show
+                }
+
+                type={
+                    toast.type
+                }
+
+                message={
+                    toast.message
+                }
+
+                onClose={
+                    hideToast
+                }
+
+            />
+
 
             <div className="clients-content">
 
@@ -872,7 +2856,7 @@ if (
                     HEADER
                 ================================================= */}
 
-                <div className=" page-header">
+                <div className="page-header">
 
                     <div>
 
@@ -880,15 +2864,10 @@ if (
                             Clients
                         </h1>
 
-                        <p className="page-subtitle">
-
-                            {clients.length} client{" "}
-
-                            {clients.length === 1
-                                ? "company"
-                                : "companies"}
-
-                        </p>
+<p className="page-subtitle">
+    {totalClients} client{" "}
+    {totalClients === 1 ? "company" : "companies"}
+</p>
 
                     </div>
 
@@ -896,11 +2875,14 @@ if (
                     <div className="page-header-actions">
 
                         <button
-                            // type="button"
                             className="outline-btn"
-                            onClick={handleExportCSV}
+
+                            onClick={
+                                handleExportCSV
+                            }
+
                             disabled={
-                                !clients.length ||
+                                !totalElements ||
                                 exporting
                             }
                         >
@@ -914,7 +2896,9 @@ if (
 
                         <button
                             type="button"
+
                             className="primary-btn"
+
                             onClick={() =>
                                 setShowEndClients(
                                     true
@@ -929,10 +2913,13 @@ if (
 
                         <button
                             type="button"
+
                             className="primary-btn"
+
                             onClick={
                                 handleAddClient
                             }
+
                             disabled={
                                 creating
                             }
@@ -953,44 +2940,47 @@ if (
                     STATISTICS
                 ================================================= */}
 
-                <div className="client-stats">
+<div className="client-stats">
+
+    <div className="client-stat-card">
+
+        <div className="client-stat-number">
+            {totalClients}
+        </div>
+
+        <div className="client-stat-label">
+            Total Clients
+        </div>
+
+    </div>
 
 
-                    <div className="client-stat-card">
+    <div className="client-stat-card">
 
-                        <div className="client-stat-number active-number">
+        <div className="client-stat-number active-number">
+            {totalActiveClients}
+        </div>
 
-                            {activeCount}
+        <div className="client-stat-label">
+            Active
+        </div>
 
-                        </div>
-
-                        <div className="client-stat-label">
-
-                            Active
-
-                        </div>
-
-                    </div>
+    </div>
 
 
-                    <div className="client-stat-card">
+    <div className="client-stat-card">
 
-                        <div className="client-stat-number">
+        <div className="client-stat-number">
+            {totalInActiveClients}
+        </div>
 
-                            {inactiveCount}
+        <div className="client-stat-label">
+            Inactive
+        </div>
 
-                        </div>
+    </div>
 
-                        <div className="client-stat-label">
-
-                            Inactive
-
-                        </div>
-
-                    </div>
-
-
-                </div>
+</div>
 
 
                 {/* =================================================
@@ -999,63 +2989,84 @@ if (
 
                 <div className="clients-filter-bar">
 
-
                     <div className="common-search">
 
                         <input
+
                             type="text"
+
                             value={
                                 searchTerm
                             }
+
                             onChange={(e) =>
-                                setSearchTerm(
+                                handleSearchChange(
                                     e.target.value
                                 )
                             }
+
                             placeholder="Search company or contact person, country..."
+
                         />
 
                     </div>
 
 
                     <select
+
                         value={
                             statusFilter
                         }
+
                         onChange={(e) =>
-                            setStatusFilter(
+                            handleStatusChange(
                                 e.target.value
                             )
                         }
+
                         className="status-filter"
+
                     >
 
                         <option value="All statuses">
+
                             All statuses
+
                         </option>
 
                         <option value="Active">
+
                             Active
+
                         </option>
 
                         <option value="Inactive">
+
                             Inactive
+
                         </option>
 
                     </select>
-
 
                 </div>
 
 
                 {/* =================================================
                     TABLE
+                   
+                    IMPORTANT:
+                   
+                    NO FILTER
+                    NO SORT
+                    NO SLICE
+                    NO FRONTEND PAGINATION
+                   
+                    Backend already returned the current page.
                 ================================================= */}
 
                 <div className="clients-table-wrapper">
 
                     <table className="clients-table">
-
 
                         <thead>
 
@@ -1096,7 +3107,6 @@ if (
 
                         <tbody>
 
-
                             {loading ? (
 
                                 <tr>
@@ -1112,7 +3122,7 @@ if (
 
                                 </tr>
 
-                            ) : filteredClients.length === 0 ? (
+                            ) : clients.length === 0 ? (
 
                                 <tr>
 
@@ -1129,7 +3139,7 @@ if (
 
                             ) : (
 
-                                filteredClients.map(
+                                clients.map(
                                     (client) => (
 
                                         <tr
@@ -1138,10 +3148,7 @@ if (
                                             }
                                         >
 
-
-                                            {/* =================================
-                                                CLIENT
-                                            ================================= */}
+                                            {/* CLIENT */}
 
                                             <td>
 
@@ -1165,9 +3172,7 @@ if (
                                             </td>
 
 
-                                            {/* =================================
-                                                CONTACT PERSON
-                                            ================================= */}
+                                            {/* CONTACT PERSON */}
 
                                             <td>
 
@@ -1193,13 +3198,15 @@ if (
 
                                                 <div className="contact-icons">
 
-
                                                     {/* OUTLOOK */}
 
                                                     <button
                                                         type="button"
+
                                                         className="contact-icon outlook-icon"
+
                                                         title="Outlook"
+
                                                         onClick={() => {
 
                                                             if (
@@ -1227,8 +3234,11 @@ if (
 
                                                     <button
                                                         type="button"
+
                                                         className="contact-icon gmail-icon"
+
                                                         title="Gmail"
+
                                                         onClick={() => {
 
                                                             if (
@@ -1263,8 +3273,11 @@ if (
 
                                                     <button
                                                         type="button"
+
                                                         className="contact-icon whatsapp-icon"
+
                                                         title="WhatsApp"
+
                                                         onClick={() => {
 
                                                             if (
@@ -1305,15 +3318,12 @@ if (
 
                                                     </button>
 
-
                                                 </div>
 
                                             </td>
 
 
-                                            {/* =================================
-                                                SOURCE / BDM
-                                            ================================= */}
+                                            {/* SOURCE / BDM */}
 
                                             <td>
 
@@ -1328,35 +3338,66 @@ if (
 
                                             </td>
 
-                                            {/* =================================
-                                                END CLIENT
-                                            ================================= */}
+
+                                            {/* END CLIENT */}
 
                                             <td>
+
                                                 {client.endClients?.length ? (
+
                                                     <div className="client-end-client-list">
-                                                        {client.endClients.map((endClient, index) => (
-                                                            <span key={endClient.id}>
-                                                                <span className="end-client-item">
-                                                                    {endClient.name}
+
+                                                        {client.endClients.map(
+                                                            (
+                                                                endClient,
+                                                                index
+                                                            ) => (
+
+                                                                <span
+                                                                    key={
+                                                                        endClient.id
+                                                                    }
+                                                                >
+
+                                                                    <span className="end-client-item">
+
+                                                                        {
+                                                                            endClient.name
+                                                                        }
+
+                                                                    </span>
+
+                                                                    {index <
+                                                                        client.endClients.length -
+                                                                        1 && (
+
+                                                                        <span className="end-client-comma">
+                                                                            ,
+                                                                        </span>
+
+                                                                    )}
+
                                                                 </span>
-                                                                {index < client.endClients.length - 1 && (
-                                                                    <span className="end-client-comma">,</span>
-                                                                )}
-                                                            </span>
-                                                        ))}
+
+                                                            )
+                                                        )}
+
                                                     </div>
+
                                                 ) : (
+
                                                     <span className="table-end-client-na">
+
                                                         NA
+
                                                     </span>
+
                                                 )}
+
                                             </td>
 
 
-                                            {/* =================================
-                                                COUNTRY
-                                            ================================= */}
+                                            {/* COUNTRY */}
 
                                             <td>
 
@@ -1373,19 +3414,21 @@ if (
                                             </td>
 
 
-                                            {/* =================================
-                                                STATUS
-                                            ================================= */}
+                                            {/* STATUS */}
 
                                             <td>
 
                                                 <span
-                                                    className={`client-status ${client.status
-                                                        ?.toLowerCase()
-                                                        .replace(
-                                                            /\s+/g,
-                                                            "-"
-                                                        )}`}
+
+                                                    className={`client-status ${
+                                                        client.status
+                                                            ?.toLowerCase()
+                                                            .replace(
+                                                                /\s+/g,
+                                                                "-"
+                                                            )
+                                                    }`}
+
                                                 >
 
                                                     {
@@ -1397,27 +3440,29 @@ if (
                                             </td>
 
 
-                                            {/* =================================
-                                                ACTIONS
-                                            ================================= */}
+                                            {/* ACTIONS */}
 
                                             <td>
 
                                                 <div className="client-actions">
 
-
                                                     <button
+
                                                         type="button"
+
                                                         className="edit-action"
+
                                                         onClick={() =>
                                                             handleEditClient(
                                                                 client
                                                             )
                                                         }
+
                                                         disabled={
                                                             updating ||
                                                             deleting
                                                         }
+
                                                     >
 
                                                         Edit
@@ -1426,27 +3471,30 @@ if (
 
 
                                                     <button
+
                                                         type="button"
+
                                                         className="delete-action"
+
                                                         onClick={() =>
                                                             handleDeleteClick(
                                                                 client
                                                             )
                                                         }
+
                                                         disabled={
                                                             deleting
                                                         }
+
                                                     >
 
                                                         Delete
 
                                                     </button>
 
-
                                                 </div>
 
                                             </td>
-
 
                                         </tr>
 
@@ -1455,12 +3503,49 @@ if (
 
                             )}
 
-
                         </tbody>
 
                     </table>
 
                 </div>
+
+
+                {/* =================================================
+                    BACKEND PAGINATION
+                   
+                    CommonPagination only controls which page
+                    the backend should return.
+                ================================================= */}
+
+                {totalElements > 0 && (
+
+                    <CommonPagination
+
+                        currentPage={
+                            currentPage
+                        }
+
+                        totalPages={
+                            totalPages
+                        }
+
+                        totalItems={
+                            totalElements
+                        }
+
+                        itemsPerPage={
+                            pageSize
+                        }
+
+                        onPageChange={
+                            handlePageChange
+                        }
+
+                        itemLabel="clients"
+
+                    />
+
+                )}
 
             </div>
 
@@ -1515,6 +3600,7 @@ if (
                     }
 
                 />
+
             )}
 
 
@@ -1543,14 +3629,17 @@ if (
 
             )}
 
+
             {/* =====================================================
-    EXPORT CLIENTS MODAL
-===================================================== */}
+                EXPORT CLIENTS MODAL
+            ===================================================== */}
 
             {showExportModal && (
 
                 <div
+
                     className="export-modal-overlay"
+
                     onMouseDown={(e) => {
 
                         if (
@@ -1564,19 +3653,20 @@ if (
                         }
 
                     }}
+
                 >
 
                     <div
+
                         className="export-modal"
+
                         onMouseDown={(e) =>
                             e.stopPropagation()
                         }
+
                     >
 
-
-                        {/* =================================================
-                HEADER
-            ================================================= */}
+                        {/* HEADER */}
 
                         <div className="export-modal-header">
 
@@ -1595,12 +3685,19 @@ if (
 
 
                             <button
+
                                 type="button"
+
                                 className="export-modal-close"
+
                                 onClick={
                                     handleCloseExportModal
                                 }
-                                disabled={exporting}
+
+                                disabled={
+                                    exporting
+                                }
+
                             >
 
                                 ×
@@ -1610,21 +3707,13 @@ if (
                         </div>
 
 
-                        {/* =================================================
-                BODY
-            ================================================= */}
+                        {/* BODY */}
 
                         <div className="export-modal-body">
 
-
-                            {/* =================================================
-                    DATE RANGE
-                ================================================= */}
+                            {/* DATE RANGE */}
 
                             <div className="export-date-row">
-
-
-                                {/* FROM DATE */}
 
                                 <div className="export-form-group">
 
@@ -1633,24 +3722,27 @@ if (
                                     </label>
 
                                     <input
+
                                         type="date"
+
                                         value={
                                             exportFromDate
                                         }
+
                                         onChange={(e) =>
                                             setExportFromDate(
                                                 e.target.value
                                             )
                                         }
+
                                         disabled={
                                             exporting
                                         }
+
                                     />
 
                                 </div>
 
-
-                                {/* TO DATE */}
 
                                 <div className="export-form-group">
 
@@ -1659,18 +3751,23 @@ if (
                                     </label>
 
                                     <input
+
                                         type="date"
+
                                         value={
                                             exportToDate
                                         }
+
                                         onChange={(e) =>
                                             setExportToDate(
                                                 e.target.value
                                             )
                                         }
+
                                         disabled={
                                             exporting
                                         }
+
                                     />
 
                                 </div>
@@ -1678,9 +3775,7 @@ if (
                             </div>
 
 
-                            {/* =================================================
-                    STATUS
-                ================================================= */}
+                            {/* STATUS */}
 
                             <div className="export-form-group">
 
@@ -1690,17 +3785,21 @@ if (
 
 
                                 <select
+
                                     value={
                                         exportStatus
                                     }
+
                                     onChange={(e) =>
                                         setExportStatus(
                                             e.target.value
                                         )
                                     }
+
                                     disabled={
                                         exporting
                                     }
+
                                 >
 
                                     <option value="">
@@ -1720,9 +3819,7 @@ if (
                             </div>
 
 
-                            {/* =================================================
-                    FILTER INFO
-                ================================================= */}
+                            {/* INFO */}
 
                             <div className="export-info">
 
@@ -1740,22 +3837,24 @@ if (
                         </div>
 
 
-                        {/* =================================================
-                FOOTER
-            ================================================= */}
+                        {/* FOOTER */}
 
                         <div className="export-modal-footer">
 
-
                             <button
+
                                 type="button"
+
                                 className="export-cancel-btn"
+
                                 onClick={
                                     handleCloseExportModal
                                 }
+
                                 disabled={
                                     exporting
                                 }
+
                             >
 
                                 Cancel
@@ -1764,14 +3863,19 @@ if (
 
 
                             <button
+
                                 type="button"
+
                                 className="export-submit-btn"
+
                                 onClick={
                                     handleConfirmExport
                                 }
+
                                 disabled={
                                     exporting
                                 }
+
                             >
 
                                 {exporting
@@ -1780,16 +3884,13 @@ if (
 
                             </button>
 
-
                         </div>
-
 
                     </div>
 
                 </div>
 
             )}
-
 
         </div>
 

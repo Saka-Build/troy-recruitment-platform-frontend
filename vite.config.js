@@ -6,32 +6,12 @@
 //   plugins: [react()],
 // })
 
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-export default defineConfig({
-    plugins: [react()],
-    base:  "/ats/",
-
-    server: {
-        proxy: {
-            "/api": {
-                target: "http://13.233.44.12:8080",
-                changeOrigin: true,
-            },
-        },
-    },
-});
-
-
-
-
 // import { defineConfig } from "vite";
 // import react from "@vitejs/plugin-react";
 
 // export default defineConfig({
 //     plugins: [react()],
-//        base: "/ats/",
+
 //     server: {
 //         proxy: {
 //             "/api": {
@@ -41,3 +21,22 @@ export default defineConfig({
 //         },
 //     },
 // });
+
+
+
+
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+    plugins: [react()],
+       base: "/ats/",
+    server: {
+        proxy: {
+            "/api": {
+                target: "http://13.233.44.12:8080",
+                changeOrigin: true,
+            },
+        },
+    },
+});

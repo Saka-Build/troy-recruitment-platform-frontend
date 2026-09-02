@@ -9,6 +9,8 @@ import recruitmentWorkflowReducer from "./Slice/recruitmentWorkflowSlice";
 import dashboardReducer from "./Slice/dashboardSlice";
 
 import roleReducer from "./Slice/roleSlice";
+import reportReducer from "./Slice/reportSlice";
+
 const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -21,6 +23,7 @@ const store = configureStore({
 
         role: roleReducer,
         dashboard: dashboardReducer,
+        report: reportReducer,
     },
 });
 
