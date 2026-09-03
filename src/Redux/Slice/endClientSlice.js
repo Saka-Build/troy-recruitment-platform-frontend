@@ -1,18 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import fetch from "../../services/fetchInstance";
 
-/* =========================================================
-   API BASE URL
-========================================================= */
+/*   API BASE URL*/
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     "";
 
 
-/* =========================================================
-   GET ACCESS TOKEN
-========================================================= */
+/*   GET ACCESS TOKEN*/
 
 const getAccessToken = (getState) => {
 
@@ -22,9 +18,7 @@ const getAccessToken = (getState) => {
 };
 
 
-/* =========================================================
-   GET ALL END CLIENTS
-========================================================= */
+/*   GET ALL END CLIENTS*/
 
 export const fetchEndClients = createAsyncThunk(
     "endClients/fetchEndClients",
@@ -86,9 +80,7 @@ export const fetchEndClients = createAsyncThunk(
 );
 
 
-/* =========================================================
-   GET ACTIVE END CLIENTS
-========================================================= */
+/*   GET ACTIVE END CLIENTS*/
 
 export const fetchActiveEndClients = createAsyncThunk(
     "endClients/fetchActiveEndClients",
@@ -162,9 +154,7 @@ export const fetchActiveEndClients = createAsyncThunk(
 );
 
 
-/* =========================================================
-   CREATE END CLIENT
-========================================================= */
+/*   CREATE END CLIENT*/
 
 export const createEndClient = createAsyncThunk(
     "endClients/createEndClient",
@@ -246,9 +236,7 @@ export const createEndClient = createAsyncThunk(
 );
 
 
-/* =========================================================
-   UPDATE END CLIENT
-========================================================= */
+/*   UPDATE END CLIENT*/
 
 export const updateEndClient = createAsyncThunk(
     "endClients/updateEndClient",
@@ -337,10 +325,72 @@ export const updateEndClient = createAsyncThunk(
     }
 );
 
+/*   DELETE END CLIENT*/
 
-/* =========================================================
-   SLICE
-========================================================= */
+export const deleteEndClient = createAsyncThunk(
+    "endClients/deleteEndClient",
+
+    async (
+        id,
+        { getState, rejectWithValue }
+    ) => {
+
+        try {
+
+            const token =
+                getAccessToken(getState);
+
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/endclients/delete/${id}`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        ...(token && {
+                            Authorization:
+                                `Bearer ${token}`,
+                        }),
+                    },
+                }
+            );
+
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    errorText ||
+                    "Failed to delete end client"
+                );
+            }
+
+
+            /*
+                Return the deleted ID so the
+                reducer can remove it from
+                both lists.
+            */
+
+            return id;
+
+
+        } catch (error) {
+
+            return rejectWithValue(
+                error.message ||
+                "Failed to delete end client"
+            );
+
+        }
+    }
+);
+/*   SLICE*/
 
 const endClientSlice = createSlice({
 
@@ -377,6 +427,7 @@ const endClientSlice = createSlice({
         error: null,
 
         activeError: null,
+        deleting: false,
 
     },
 
@@ -397,9 +448,8 @@ const endClientSlice = createSlice({
     extraReducers: (builder) => {
 
 
-        /* =====================================================
-           FETCH ALL END CLIENTS
-        ===================================================== */
+        /*           FETCH ALL END CLIENTS
+    */
 
         builder
 
@@ -457,9 +507,8 @@ const endClientSlice = createSlice({
             );
 
 
-        /* =====================================================
-           FETCH ACTIVE END CLIENTS
-        ===================================================== */
+        /*           FETCH ACTIVE END CLIENTS
+    */
 
         builder
 
@@ -517,9 +566,8 @@ const endClientSlice = createSlice({
             );
 
 
-        /* =====================================================
-           CREATE
-        ===================================================== */
+        /*           CREATE
+    */
 
         builder
 
@@ -563,12 +611,6 @@ const endClientSlice = createSlice({
                     );
 
 
-                    /*
-                        If the newly created client
-                        is active, also add it to
-                        activeItems immediately.
-                    */
-
                     if (
                         action.payload.active
                     ) {
@@ -597,9 +639,8 @@ const endClientSlice = createSlice({
             );
 
 
-        /* =====================================================
-           UPDATE
-        ===================================================== */
+        /*           UPDATE
+    */
 
         builder
 
@@ -641,11 +682,6 @@ const endClientSlice = createSlice({
 
                     };
 
-
-                    /* =========================================
-                       UPDATE ALL END CLIENTS
-                    ========================================= */
-
                     const index =
                         state.items.findIndex(
                             (client) =>
@@ -660,12 +696,6 @@ const endClientSlice = createSlice({
                             updatedClientData;
 
                     }
-
-
-                    /* =========================================
-                       UPDATE ACTIVE END CLIENTS
-                    ========================================= */
-
                     const activeIndex =
                         state.activeItems.findIndex(
                             (client) =>
@@ -677,13 +707,6 @@ const endClientSlice = createSlice({
                     if (
                         updatedClient.active
                     ) {
-
-                        /*
-                            Still active.
-
-                            Update existing record or add
-                            it if it wasn't previously active.
-                        */
 
                         if (
                             activeIndex !== -1
@@ -704,10 +727,6 @@ const endClientSlice = createSlice({
 
                     } else {
 
-                        /*
-                            Client became inactive,
-                            so remove it from activeItems.
-                        */
 
                         if (
                             activeIndex !== -1
@@ -739,7 +758,68 @@ const endClientSlice = createSlice({
                         "Failed to update end client";
 
                 }
-            );
+            )
+            /*           DELETE
+*/
+
+builder
+
+    .addCase(
+        deleteEndClient.pending,
+        (state) => {
+
+            state.deleting = true;
+
+            state.error = null;
+
+        }
+    )
+
+
+    .addCase(
+        deleteEndClient.fulfilled,
+        (state, action) => {
+
+            state.deleting = false;
+
+
+            const deletedId =
+                action.payload;
+
+
+            /* REMOVE FROM ALL END CLIENTS */
+
+            state.items =
+                state.items.filter(
+                    (client) =>
+                        client.id !== deletedId
+                );
+
+
+            /* REMOVE FROM ACTIVE END CLIENTS */
+
+            state.activeItems =
+                state.activeItems.filter(
+                    (client) =>
+                        client.id !== deletedId
+                );
+
+        }
+    )
+
+
+    .addCase(
+        deleteEndClient.rejected,
+        (state, action) => {
+
+            state.deleting = false;
+
+            state.error =
+                action.payload ||
+                "Failed to delete end client";
+
+        }
+    );
 
     },
 

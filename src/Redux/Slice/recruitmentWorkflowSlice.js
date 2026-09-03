@@ -119,65 +119,6 @@ export const getSubmissionStatuses = createAsyncThunk(
 );
 
 
-// export const getSubmissionsByStage = createAsyncThunk(
-//     "recruitmentWorkflow/getSubmissionsByStage",
-//     async (pipelineStage, { rejectWithValue }) => {
-//         try {
-//             const accessToken =
-//                 localStorage.getItem("accessToken");
-
-//             if (!accessToken) {
-//                 return rejectWithValue(
-//                     "Authentication token not found. Please login again."
-//                 );
-//             }
-
-//             const cleanToken = accessToken
-//                 .replace(/^Bearer\s+/i, "")
-//                 .trim();
-
-//             const response = await fetch(
-//                 `${API_BASE_URL}/api/v1/submissions?pipelineStage=${encodeURIComponent(
-//                     pipelineStage
-//                 )}`,
-//                 {
-//                     method: "GET",
-//                     headers: {
-//                         "Content-Type": "application/json",
-//                         Authorization: `Bearer ${cleanToken}`,
-//                     },
-//                 }
-//             );
-
-//             const data = await response.json();
-
-//             console.log(
-//                 `Submissions API Response - ${pipelineStage}:`,
-//                 data
-//             );
-
-//             if (!response.ok) {
-//                 return rejectWithValue(
-//                     data?.message ||
-//                     `Failed to fetch ${pipelineStage} submissions`
-//                 );
-//             }
-
-//             return data;
-//         } catch (error) {
-//             console.error(
-//                 `Submissions API Error - ${pipelineStage}:`,
-//                 error
-//             );
-
-//             return rejectWithValue(
-//                 error.message ||
-//                 "Something went wrong while fetching submissions"
-//             );
-//         }
-//     }
-// );
-
 export const getSubmissionsByStage = createAsyncThunk(
     "recruitmentWorkflow/getSubmissionsByStage",
     async (
