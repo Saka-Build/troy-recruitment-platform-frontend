@@ -31,12 +31,6 @@ import CommonPagination from "../../Components/CommonPagination";
 
 import "./RecruitmentWorkflow.css";
 
-/*
-|--------------------------------------------------------------------------
-| NORMALIZE WORKFLOW NAME
-|--------------------------------------------------------------------------
-*/
-
 const normalizeWorkflowName = (value) => {
   if (!value) {
     return "";
@@ -48,13 +42,6 @@ const normalizeWorkflowName = (value) => {
     .trim()
     .replace(/\s+/g, "_");
 };
-
-
-/*
-|--------------------------------------------------------------------------
-| CONVERT API WORKFLOW STAGE TO ROUTE ID
-|--------------------------------------------------------------------------
-*/
 
 const getStageId = (workflowStage) => {
   const normalized =
@@ -71,13 +58,6 @@ const getStageId = (workflowStage) => {
       return normalized;
   }
 };
-
-
-/*
-|--------------------------------------------------------------------------
-| DISPLAY LABEL
-|--------------------------------------------------------------------------
-*/
 
 const getStageLabel = (workflowStage) => {
   const normalized =
@@ -98,13 +78,6 @@ const getStageLabel = (workflowStage) => {
   }
 };
 
-
-/*
-|--------------------------------------------------------------------------
-| INITIALS
-|--------------------------------------------------------------------------
-*/
-
 const getInitials = (name) => {
   if (!name) {
     return "NA";
@@ -120,13 +93,6 @@ const getInitials = (name) => {
     .join("");
 };
 
-
-/*
-|--------------------------------------------------------------------------
-| COMPONENT
-|--------------------------------------------------------------------------
-*/
-
 function RecruitmentWorkflowDetails() {
   const {
     stage = "applied",
@@ -135,32 +101,6 @@ function RecruitmentWorkflowDetails() {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | REDUX STATE
-  |--------------------------------------------------------------------------
-  */
-
-  // const {
-  //   submissions = [],
-  //   submissionsLoading,
-  //   submissionsError,
-
-  //   submissionCounts,
-
-  //   submissionStatuses = [],
-  //   workflowStages = [],
-
-  //   submissionStatusesLoading,
-
-  //   updatingSubmission,
-  //   updateSubmissionError,
-  // } = useSelector(
-  //   (state) =>
-  //     state.recruitmentWorkflow
-  // );
 
   const {
   submissions = [],
@@ -233,24 +173,12 @@ const [currentPage, setCurrentPage] =
             workflowStage
           );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Do NOT show Rejected as a workflow stage
-        |--------------------------------------------------------------------------
-        */
-
         if (
           normalizedWorkflowStage ===
           "rejected"
         ) {
           return null;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Find matching status from submissionStatusList
-        |--------------------------------------------------------------------------
-        */
 
         const status =
           submissionStatuses.find(
@@ -293,26 +221,25 @@ const [currentPage, setCurrentPage] =
     workflowStages,
     submissionStatuses,
   ]);
+  const rejectedStatus = useMemo(() => {
+    if (!Array.isArray(submissionStatuses)) {
+      return null;
+    }
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | CURRENT STAGE
-  |--------------------------------------------------------------------------
-  */
-
+    return (
+      submissionStatuses.find(
+        (item) =>
+          normalizeWorkflowName(item.name) ===
+          "rejected"
+      ) || null
+    );
+  }, [submissionStatuses]);
   const currentStage =
     stages.find(
       (item) =>
         item.id === stage
     ) || stages[0] || null;
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD STATUS LIST + COUNTS
-  |--------------------------------------------------------------------------
-  */
 useEffect(() => {
   dispatch(getSubmissionStatuses());
   dispatch(getSubmissionCounts());
@@ -335,32 +262,6 @@ useEffect(() => {
   dispatch,
   currentStage?.apiStage,
 ]);
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD SUBMISSIONS FOR CURRENT WORKFLOW STAGE
-  |--------------------------------------------------------------------------
-  */
-
-  // useEffect(() => {
-  //   if (
-  //     !currentStage?.apiStage
-  //   ) {
-  //     return;
-  //   }
-
-  //   dispatch(
-  //     getSubmissionsByStage(
-  //       currentStage.apiStage
-  //     )
-  //   );
-
-  // }, [
-  //   dispatch,
-  //   currentStage?.apiStage,
-  // ]);
-
 
   useEffect(() => {
   if (
@@ -391,11 +292,6 @@ useEffect(() => {
 }, [
   currentStage?.apiStage,
 ]);
-  /*
-|--------------------------------------------------------------------------
-| LOAD INTERVIEWS FOR EACH SUBMISSION
-|--------------------------------------------------------------------------
-*/
 
 useEffect(() => {
   if (!Array.isArray(submissions) || submissions.length === 0) {
@@ -418,11 +314,6 @@ useEffect(() => {
   dispatch,
   submissions,
 ]);
-  /*
-  |--------------------------------------------------------------------------
-  | CANDIDATE MAPPING
-  |--------------------------------------------------------------------------
-  */
 
   const candidates = useMemo(() => {
     return submissions.map(
@@ -504,15 +395,6 @@ const latestInterview =
           pipelineStage:
             workflowStage,
 
-
-          /*
-          |--------------------------------------------------------------------------
-          | STATUS
-          |
-          | This is what we display under CURRENT STATUS.
-          |--------------------------------------------------------------------------
-          */
-
           statusId:
             submission.statusId ||
             "",
@@ -525,23 +407,9 @@ const latestInterview =
             submission.statusName ||
             "—",
 
-
-          /*
-          |--------------------------------------------------------------------------
-          | CV
-          |--------------------------------------------------------------------------
-          */
-
           cvId:
             submission.candidateCVId ||
             "—",
-
-
-          /*
-          |--------------------------------------------------------------------------
-          | CONTACT
-          |--------------------------------------------------------------------------
-          */
 
           email:
             submission.candidateEmail ||
@@ -555,13 +423,6 @@ const latestInterview =
             submission.candidateOriginalCV ||
             "",
 
-
-          /*
-          |--------------------------------------------------------------------------
-          | EXPECTED RATE
-          |--------------------------------------------------------------------------
-          */
-
           expectedCurrency:
             submission.candidateExpectedCurrency ||
             "INR",
@@ -573,13 +434,6 @@ const latestInterview =
           expectedPeriod:
             submission.candidateExpectedPeriod ||
             "day",
-
-
-          /*
-          |--------------------------------------------------------------------------
-          | SUBMISSION RATE
-          |--------------------------------------------------------------------------
-          */
 
           submissionCurrency:
             submission.submissionCurrency ||
@@ -593,14 +447,6 @@ const latestInterview =
           submissionPeriod:
             submission.submissionPeriod ||
             "day",
-
-
-          /*
-          |--------------------------------------------------------------------------
-          | OFFER RATE
-          |--------------------------------------------------------------------------
-          */
-
           offerCurrency:
             submission.offerCurrency ||
             submission.submissionCurrency ||
@@ -614,14 +460,6 @@ const latestInterview =
           offerPeriod:
             submission.offerPeriod ||
             "day",
-
-
-          /*
-          |--------------------------------------------------------------------------
-          | OTHER DATA
-          |--------------------------------------------------------------------------
-          */
-
           notes:
             submission.notes ||
             "",
@@ -654,13 +492,6 @@ interviewTime:
     interviewsBySubmission,
 
   ]);
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | STAGE COUNTS
-  |--------------------------------------------------------------------------
-  */
 
   const stageCounts =
     useMemo(() => {
@@ -705,12 +536,6 @@ interviewTime:
       submissionCounts,
     ]);
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | SEARCH + FILTER
-  |--------------------------------------------------------------------------
-  */
 
   const currentCandidates =
     useMemo(() => {
@@ -778,29 +603,6 @@ interviewTime:
     ]);
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | ROLE OPTIONS
-  |--------------------------------------------------------------------------
-  */
-
-  // const roles =
-  //   useMemo(() => {
-
-  //     return [
-  //       "All roles",
-  //       ...new Set(
-  //         candidates.map(
-  //           (candidate) =>
-  //             candidate.role
-  //         )
-  //       ),
-  //     ];
-
-  //   }, [
-  //     candidates,
-  //   ]);
-
   const roles =
   useMemo(() => {
 
@@ -825,13 +627,6 @@ interviewTime:
   }, [
     allJobsName,
   ]);
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | PREVIOUS / NEXT STAGE
-  |--------------------------------------------------------------------------
-  */
 
   const currentStageIndex =
     stages.findIndex(
@@ -918,12 +713,6 @@ const showToast = (
   };
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | STATUS ICON
-  |--------------------------------------------------------------------------
-  */
-
   const getStatusIcon = (
     candidate
   ) => {
@@ -975,12 +764,6 @@ const showToast = (
   };
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | FORMAT RATE
-  |--------------------------------------------------------------------------
-  */
-
   const formatRate = (
     currency,
     amount,
@@ -1001,7 +784,7 @@ const showToast = (
   };
 
 
-  const handleStageChange = async (
+const handleStageChange = async (
   candidate,
   newStage
 ) => {
@@ -1011,6 +794,87 @@ const showToast = (
   ) {
     return;
   }
+
+  if (newStage === "rejected") {
+    if (!rejectedStatus?.id) {
+      showToast(
+        "Rejected status ID not found",
+        "danger"
+      );
+
+      return;
+    }
+
+    try {
+      const result =
+        await dispatch(
+          updateSubmission({
+            submissionId:
+              candidate.submissionId,
+
+            statusId:
+              rejectedStatus.id,
+
+            subStatusId:
+              null,
+          })
+        ).unwrap();
+
+      showToast(
+        `${candidate.name} rejected`,
+        "success"
+      );
+
+      await Promise.all([
+        dispatch(
+          getSubmissionCounts()
+        ),
+
+        dispatch(
+          getSubmissionsByStage({
+            pipelineStage:
+              currentStage.apiStage,
+
+            page:
+              currentPage - 1,
+
+            size: 20,
+          })
+        )
+      ]);
+
+      console.log(
+        "Submission rejected:",
+        result
+      );
+
+    } catch (error) {
+      console.error(
+        "Failed to reject submission:",
+        error
+      );
+
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message ||
+            error?.error ||
+            "Failed to reject candidate";
+
+      showToast(
+        `${candidate.name}: ${errorMessage}`,
+        "danger"
+      );
+    }
+
+    return;
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | EXISTING MOVE TO STAGE LOGIC
+  |--------------------------------------------------------------------------
+  */
 
   if (
     newStage === candidate.stage
@@ -1051,44 +915,29 @@ const showToast = (
         })
       ).unwrap();
 
-    /*
-     * SUCCESS TOAST
-     */
     showToast(
       `${candidate.name} moved to ${targetStage.label}`,
       "success"
     );
 
-    /*
-     * REFRESH COUNTS + CURRENT STAGE
-     */
     await Promise.all([
       dispatch(
         getSubmissionCounts()
       ),
 
-      // dispatch(
-      //   getSubmissionsByStage(
-      //     currentStage.apiStage
-      //   )
-      // ),
-
       dispatch(
-  getSubmissionsByStage({
-    pipelineStage:
-      currentStage.apiStage,
+        getSubmissionsByStage({
+          pipelineStage:
+            currentStage.apiStage,
 
-    page:
-      currentPage - 1,
+          page:
+            currentPage - 1,
 
-    size: 20,
-  })
-)
+          size: 20,
+        })
+      )
     ]);
 
-    /*
-     * NAVIGATE TO TARGET STAGE
-     */
     if (
       targetStage.id !== stage
     ) {
@@ -1108,9 +957,6 @@ const showToast = (
       error
     );
 
-    /*
-     * BACKEND ERROR TOAST
-     */
     const errorMessage =
       typeof error === "string"
         ? error
@@ -1124,13 +970,6 @@ const showToast = (
     );
   }
 };
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | NAVIGATE TO STAGE
-  |--------------------------------------------------------------------------
-  */
 
   const goToStage = (
     stageId
@@ -1146,12 +985,6 @@ const showToast = (
     );
   };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | LOADING STATUS API
-  |--------------------------------------------------------------------------
-  */
 
   if (
     submissionStatusesLoading &&
@@ -1171,20 +1004,9 @@ const showToast = (
     );
   }
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | RENDER
-  |--------------------------------------------------------------------------
-  */
-
   return (
 
     <div className="page recruitment-workflow-details-page">
-
-      {/* ------------------------------------------------------------------
-          HEADER
-      ------------------------------------------------------------------ */}
 
       <div className="workflow-details-header">
 
@@ -1230,24 +1052,7 @@ const showToast = (
 
             </h1>
 
-
-            {/* <p className="page-subtitle">
-
-              Candidates at the "
-              {currentStage?.label ||
-                "current"}"
-              stage — with the role they
-              applied for and their
-              current status.
-
-            </p> */}
-
           </div>
-
-
-          {/* --------------------------------------------------------------
-              WORKFLOW STAGE TABS
-          -------------------------------------------------------------- */}
 
           <div className="workflow-stage-tabs">
 
@@ -1286,11 +1091,6 @@ const showToast = (
         </div>
 
       </div>
-
-
-      {/* ------------------------------------------------------------------
-          FILTERS
-      ------------------------------------------------------------------ */}
 
       <div className="workflow-filters">
 
@@ -1350,11 +1150,6 @@ const showToast = (
 
       </div>
 
-
-      {/* ------------------------------------------------------------------
-          TABLE
-      ------------------------------------------------------------------ */}
-
       <div className="workflow-table-wrapper">
 
         <table className="workflow-table">
@@ -1398,10 +1193,6 @@ const showToast = (
 
           <tbody>
 
-            {/* ------------------------------------------------------------
-                LOADING
-            ------------------------------------------------------------ */}
-
             {submissionsLoading && (
 
               <tr>
@@ -1416,11 +1207,6 @@ const showToast = (
               </tr>
 
             )}
-
-
-            {/* ------------------------------------------------------------
-                ERROR
-            ------------------------------------------------------------ */}
 
             {!submissionsLoading &&
               submissionsError && (
@@ -1438,11 +1224,6 @@ const showToast = (
 
               )}
 
-
-            {/* ------------------------------------------------------------
-                CANDIDATES
-            ------------------------------------------------------------ */}
-
             {!submissionsLoading &&
               !submissionsError &&
               currentCandidates.map(
@@ -1453,10 +1234,6 @@ const showToast = (
                       candidate.submissionId
                     }
                   >
-
-                    {/* ----------------------------------------------------
-                        CANDIDATE
-                    ---------------------------------------------------- */}
 
                     <td>
 
@@ -1496,11 +1273,6 @@ const showToast = (
 
                     </td>
 
-
-                    {/* ----------------------------------------------------
-                        CV ID
-                    ---------------------------------------------------- */}
-
                     <td>
 
                       <span className="workflow-cv-id">
@@ -1510,11 +1282,6 @@ const showToast = (
                       </span>
 
                     </td>
-
-
-                    {/* ----------------------------------------------------
-                        ROLE
-                    ---------------------------------------------------- */}
 
                     <td>
 
@@ -1526,11 +1293,6 @@ const showToast = (
 
                     </td>
 
-
-                    {/* ----------------------------------------------------
-                        CLIENT
-                    ---------------------------------------------------- */}
-
                     <td>
 
                       <span className="workflow-client">
@@ -1540,11 +1302,6 @@ const showToast = (
                       </span>
 
                     </td>
-
-
-                    {/* ----------------------------------------------------
-                        CURRENT STATUS
-                    ---------------------------------------------------- */}
 
                     <td>
 
@@ -1658,11 +1415,6 @@ const showToast = (
 
                     </td>
 
-
-                    {/* ----------------------------------------------------
-                        MOVE TO STAGE
-                    ---------------------------------------------------- */}
-
                     <td>
 
                       <select
@@ -1704,15 +1456,17 @@ const showToast = (
 
                           )
                         )}
+{rejectedStatus &&
+  (candidate.stage === "screening" ||
+    candidate.stage === "interview") && (
+    <option value="rejected">
+      Rejected
+    </option>
+  )}
 
                       </select>
 
                     </td>
-
-
-                    {/* ----------------------------------------------------
-                        ACTIONS
-                    ---------------------------------------------------- */}
 
                     <td>
 
@@ -1736,11 +1490,6 @@ const showToast = (
 
                 )
               )}
-
-
-            {/* ------------------------------------------------------------
-                EMPTY
-            ------------------------------------------------------------ */}
 
             {!submissionsLoading &&
               !submissionsError &&
@@ -1767,11 +1516,6 @@ const showToast = (
         </table>
 
       </div>
-
-
-      {/* ------------------------------------------------------------------
-          PREVIOUS / NEXT NAVIGATION
-      ------------------------------------------------------------------ */}
 
       <div className="workflow-navigation">
 
@@ -1824,11 +1568,6 @@ const showToast = (
 
       </div>
 
-
-      {/* ------------------------------------------------------------------
-          TOAST
-      ------------------------------------------------------------------ */}
-
       {toast && (
   <Toast
     type={toast.type}
@@ -1859,4 +1598,3 @@ const showToast = (
 }
 
 export default RecruitmentWorkflowDetails;
-

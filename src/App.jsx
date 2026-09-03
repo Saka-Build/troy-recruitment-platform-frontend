@@ -18,7 +18,7 @@ import RecruitmentWorkflow from "./Pages/RecruitmentWorkflow/RecruitmentWorkflow
 import RecruitmentWorkflowDetails from "./Pages/RecruitmentWorkflow/RecruitmentWorkflowDetails";
 import JobRoleReport from "./Pages/Reports/JobRoleReport";
 
-import "./app.css";
+import "./App.css";
 import Roles from "./Pages/RolesPermission/Roles";
 import EmployeeDetails from "./Pages/Employees/EmployeeDetails";
 
@@ -40,7 +40,7 @@ function ProtectedRoute({ children }) {
 function App() {
 
     return (
-        <BrowserRouter>
+        <BrowserRouter basename="/ats">
 
             <Routes>
 

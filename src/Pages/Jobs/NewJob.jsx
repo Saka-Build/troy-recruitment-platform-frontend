@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Job.css";
 import ManualCreationModal from "./ManualCreationModal";
 
+
 function NewJob() {
   const navigate = useNavigate();
 

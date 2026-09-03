@@ -105,7 +105,7 @@ const Login = () => {
                     {/* Troy Logo */}
                     <div className="logo-wrapper">
                         <img
-                            src="/Troylogo1.png"
+                            src={`${import.meta.env.BASE_URL}Troylogo1.png`}
                             alt="Troy Consultancy"
                             className="troy-logo"
                         />
