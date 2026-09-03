@@ -372,7 +372,7 @@ const CVTab = ({ candidate }) => {
                             <button
                                 type="button"
                                 className="cv-preview-btn"
-                                disabled={loadingFile}
+                                disabled={true}
                                 onClick={() =>
                                     handlePreview(
                                         fileUrl,

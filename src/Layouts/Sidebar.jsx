@@ -259,11 +259,11 @@ function Sidebar() {
                 }
                 style={{ cursor: "pointer" }}
             >
-                <img
-                    src="/Troylogo1.png"
-                    alt="Troy Consultancy"
-                    className="troy-logo-image"
-                />
+<img
+    src={`${import.meta.env.BASE_URL}Troylogo1.png`}
+    alt="Troy Consultancy"
+    className="troy-logo-image"
+/>
             </div>
 
             <nav className="sidebar-nav">

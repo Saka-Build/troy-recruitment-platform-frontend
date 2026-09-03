@@ -1,16 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-/* =========================================================
-   API BASE URL
-========================================================= */
+import fetch from "../../services/fetchInstance";
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "";
-
-
-/* =========================================================
-   GET ACCESS TOKEN
-========================================================= */
 
 const getAccessToken = () => {
     return (
@@ -18,11 +10,6 @@ const getAccessToken = () => {
         localStorage.getItem("token")
     );
 };
-
-
-/* =========================================================
-   COMMON GET REQUEST
-========================================================= */
 
 const fetchGetRequest = async (url, rejectWithValue) => {
     try {
@@ -63,12 +50,6 @@ const fetchGetRequest = async (url, rejectWithValue) => {
 };
 
 
-/* =========================================================
-   GET SUBMISSION FILTERS
-   API:
-   /api/v1/submissions/header/submissionfilters
-========================================================= */
-
 export const getSubmissionFilters = createAsyncThunk(
     "report/getSubmissionFilters",
 
@@ -79,12 +60,6 @@ export const getSubmissionFilters = createAsyncThunk(
         );
     }
 );
-
-/* =========================================================
-   EXPORT SUBMISSIONS
-   API:
-   POST /api/v1/submissions/export
-========================================================= */
 
 export const exportSubmissions = createAsyncThunk(
     "report/exportSubmissions",
@@ -137,10 +112,6 @@ export const exportSubmissions = createAsyncThunk(
                 body.clientId = clientId;
             }
 
-
-            /* -------------------------------------------------
-               API CALL
-            ------------------------------------------------- */
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions/export`,

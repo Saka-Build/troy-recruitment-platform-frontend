@@ -1111,10 +1111,13 @@ const handleSubmit = (e) => {
                     className="candidate-rate-select"
                   >
 
-                    <option value="INR">INR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
+<option value="USD">USD</option>
+<option value="QAR">QAR</option>
+<option value="GBP">GBP</option>
+<option value="INR">INR</option>
+<option value="PLN">PLN</option>
+<option value="EUR">EUR</option>
+<option value="CAD">CAD</option>
 
                   </select>
 
@@ -1167,10 +1170,13 @@ const handleSubmit = (e) => {
                     className="candidate-rate-select"
                   >
 
-                    <option value="INR">INR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
+<option value="USD">USD</option>
+<option value="QAR">QAR</option>
+<option value="GBP">GBP</option>
+<option value="INR">INR</option>
+<option value="PLN">PLN</option>
+<option value="EUR">EUR</option>
+<option value="CAD">CAD</option>
 
                   </select>
 
