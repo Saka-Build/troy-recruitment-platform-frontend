@@ -13,7 +13,7 @@ import {
 } from "../../Redux/Slice/dashboardSlice";
 
 import { switchRole } from "../../Redux/Slice/roleSlice";
-import { setActiveRole } from "../../Redux/Slice/authSlice";
+import { setActiveRole, setRoles } from "../../Redux/Slice/authSlice";
 import Toast from "../../Components/Toast";
 import DashboardActivityModal from "./DashboardActivityModal";
 import { useNavigate } from "react-router-dom";
@@ -220,30 +220,40 @@ function Dashboard() {
      ROLES
   ========================================================= */
 
-  const normalizedRoles = useMemo(() => {
-    return (roles || [])
-      .map((roleItem) => {
-        const id =
-          roleItem?.id ||
-          roleItem?.roleId ||
-          roleItem?.role?.id;
+const normalizedRoles = useMemo(() => {
+  const roleMap = new Map();
 
-        const name =
-          roleItem?.name ||
-          roleItem?.roleName ||
-          roleItem?.role?.name;
+  // Add roles from the roles array
+  (roles || []).forEach((roleItem) => {
+    const id =
+      roleItem?.id ||
+      roleItem?.roleId ||
+      roleItem?.role?.id;
 
-        if (!id || !name) {
-          return null;
-        }
+    const name =
+      roleItem?.name ||
+      roleItem?.roleName ||
+      roleItem?.role?.name;
 
-        return {
-          id,
-          name,
-        };
-      })
-      .filter(Boolean);
-  }, [roles]);
+    if (id && name) {
+      roleMap.set(String(id), {
+        id,
+        name,
+      });
+    }
+  });
+
+  // Also add the currently active role
+  // This handles cases where activeRole is not present in roles
+  if (activeRole?.id && activeRole?.name) {
+    roleMap.set(String(activeRole.id), {
+      id: activeRole.id,
+      name: activeRole.name,
+    });
+  }
+
+  return Array.from(roleMap.values());
+}, [roles, activeRole]);
 
   useEffect(() => {
     if (activeRole?.id) {
@@ -308,7 +318,10 @@ function Dashboard() {
         response?.activeRole ||
         response?.data?.activeRole ||
         selectedRole;
-
+const returnedRoles =
+  response?.roles ||
+  response?.data?.roles ||
+  [];
       if (newAccessToken) {
         localStorage.setItem(
           "accessToken",
@@ -323,9 +336,59 @@ function Dashboard() {
         );
       }
 
-      if (newActiveRole) {
-        dispatch(setActiveRole(newActiveRole));
-      }
+if (newActiveRole) {
+  dispatch(setActiveRole(newActiveRole));
+}const allRolesMap = new Map();
+
+// Preserve the roles already available in Redux
+(roles || []).forEach((roleItem) => {
+  const id =
+    roleItem?.id ||
+    roleItem?.roleId ||
+    roleItem?.role?.id;
+
+  const name =
+    roleItem?.name ||
+    roleItem?.roleName ||
+    roleItem?.role?.name;
+
+  if (id && name) {
+    allRolesMap.set(String(id), {
+      id,
+      name,
+    });
+  }
+});
+
+// Add the newly active role
+if (newActiveRole?.id && newActiveRole?.name) {
+  allRolesMap.set(String(newActiveRole.id), {
+    id: newActiveRole.id,
+    name: newActiveRole.name,
+  });
+}
+
+// Add roles returned by the switch-role API
+returnedRoles.forEach((roleItem) => {
+  const id =
+    roleItem?.id ||
+    roleItem?.roleId ||
+    roleItem?.role?.id;
+
+  const name =
+    roleItem?.name ||
+    roleItem?.roleName ||
+    roleItem?.role?.name;
+
+  if (id && name) {
+    allRolesMap.set(String(id), {
+      id,
+      name,
+    });
+  }
+});
+
+dispatch(setRoles(Array.from(allRolesMap.values())));
 
       setSelectedRoleId(newRoleId);
 
@@ -990,37 +1053,42 @@ const summaryCards = [
             </p>
           </div>
 
-          <div className="dashboard-role-box">
-            {normalizedRoles.length > 0 ? (
-              <select
+<div className="dashboard-role-box">
+    {normalizedRoles.length > 0 ? (
+        <div className="dashboard-role-select-wrapper">
+            <i className="bi bi-person-badge dashboard-role-icon" />
+
+            <select
                 className="dashboard-role-select"
                 value={selectedRoleId}
                 onChange={handleRoleChange}
                 disabled={switchingRole}
-              >
-                {normalizedRoles.map(
-                  (roleItem) => (
+                aria-label="Switch role"
+            >
+                {normalizedRoles.map((roleItem) => (
                     <option
-                      key={roleItem.id}
-                      value={roleItem.id}
+                        key={roleItem.id}
+                        value={roleItem.id}
                     >
-                      {roleItem.name}
+                        {roleItem.name}
                     </option>
-                  )
-                )}
-              </select>
-            ) : (
-              <div className="dashboard-role-value">
-                {role || "User"}
-              </div>
-            )}
+                ))}
+            </select>
+
+            <i className="bi bi-chevron-down dashboard-role-chevron" />
 
             {switchingRole && (
-              <span className="role-switch-spinner">
-                <span className="spinner-border spinner-border-sm" />
-              </span>
+                <span className="role-switch-spinner">
+                    <span className="spinner-border spinner-border-sm" />
+                </span>
             )}
-          </div>
+        </div>
+    ) : (
+        <div className="dashboard-role-value">
+            {role || "User"}
+        </div>
+    )}
+</div>
         </div>
 
         {/* Dashboard Loading */}

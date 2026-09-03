@@ -85,20 +85,10 @@ export const exportSubmissions = createAsyncThunk(
                 );
             }
 
-
-            /* -------------------------------------------------
-               REQUEST BODY
-            ------------------------------------------------- */
-
             const body = {
                 createdFrom,
                 createdTo,
             };
-
-
-            /* -------------------------------------------------
-               OPTIONAL FILTERS
-            ------------------------------------------------- */
 
             if (statusId) {
                 body.statusId = statusId;
@@ -127,11 +117,6 @@ export const exportSubmissions = createAsyncThunk(
                 }
             );
 
-
-            /* -------------------------------------------------
-               RESPONSE
-            ------------------------------------------------- */
-
             if (!response.ok) {
 
                 let errorMessage =
@@ -156,18 +141,8 @@ export const exportSubmissions = createAsyncThunk(
                 );
             }
 
-
-            /* -------------------------------------------------
-               EXCEL / FILE RESPONSE
-            ------------------------------------------------- */
-
             const blob =
                 await response.blob();
-
-
-            /* -------------------------------------------------
-               FILE NAME
-            ------------------------------------------------- */
 
             const contentDisposition =
                 response.headers.get(
@@ -209,15 +184,8 @@ export const exportSubmissions = createAsyncThunk(
         }
     }
 );
-/* =========================================================
-   INITIAL STATE
-========================================================= */
 
 const initialState = {
-
-    /* -------------------------
-       Submission Filter Data
-    ------------------------- */
 
     submissionFilters: {
         totalSubmittedApplications: 0,
@@ -231,20 +199,11 @@ const initialState = {
         applicationStatusList: [],
     },
 
-    /* -------------------------
-       Loading / Error
-    ------------------------- */
-
     loading: false,
     error: null,
     exportLoading: false,
 exportError: null,
 };
-
-
-/* =========================================================
-   SLICE
-========================================================= */
 
 const reportSlice = createSlice({
 
@@ -254,19 +213,10 @@ const reportSlice = createSlice({
 
     reducers: {
 
-        /* =====================================================
-           CLEAR ERROR
-        ===================================================== */
-
         clearReportError: (state) => {
             state.error = null;
             state.exportError = null;
         },
-
-
-        /* =====================================================
-           CLEAR SUBMISSION FILTERS
-        ===================================================== */
 
         clearSubmissionFilters: (state) => {
             state.submissionFilters = {
@@ -277,11 +227,6 @@ const reportSlice = createSlice({
                 applicationStatusList: [],
             };
         },
-
-
-        /* =====================================================
-           CLEAR ALL REPORT DATA
-        ===================================================== */
 
         clearReportData: (state) => {
 
@@ -304,18 +249,9 @@ state.exportError = null;
         },
     },
 
-
-    /* =========================================================
-       EXTRA REDUCERS
-    ========================================================= */
-
     extraReducers: (builder) => {
 
         builder
-
-            /* =================================================
-               GET SUBMISSION FILTERS - PENDING
-            ================================================= */
 
             .addCase(
                 getSubmissionFilters.pending,
@@ -326,20 +262,11 @@ state.exportError = null;
                 }
             )
 
-
-            /* =================================================
-               GET SUBMISSION FILTERS - FULFILLED
-            ================================================= */
-
             .addCase(
                 getSubmissionFilters.fulfilled,
                 (state, action) => {
 
                     state.loading = false;
-
-                    /*
-                     * Store complete backend response.
-                     */
                     state.submissionFilters = {
                         totalSubmittedApplications:
                             action.payload
@@ -367,11 +294,6 @@ state.exportError = null;
                 }
             )
 
-
-            /* =================================================
-               GET SUBMISSION FILTERS - REJECTED
-            ================================================= */
-
             .addCase(
                 getSubmissionFilters.rejected,
                 (state, action) => {
@@ -384,10 +306,6 @@ state.exportError = null;
                 }
             )
 
-            /* =================================================
-   EXPORT SUBMISSIONS - PENDING
-================================================= */
-
 .addCase(
     exportSubmissions.pending,
     (state) => {
@@ -397,11 +315,6 @@ state.exportError = null;
     }
 )
 
-
-/* =================================================
-   EXPORT SUBMISSIONS - FULFILLED
-================================================= */
-
 .addCase(
     exportSubmissions.fulfilled,
     (state) => {
@@ -410,11 +323,6 @@ state.exportError = null;
         state.exportError = null;
     }
 )
-
-
-/* =================================================
-   EXPORT SUBMISSIONS - REJECTED
-================================================= */
 
 .addCase(
     exportSubmissions.rejected,
@@ -430,21 +338,12 @@ state.exportError = null;
     },
 });
 
-
-/* =========================================================
-   ACTIONS
-========================================================= */
-
 export const {
     clearReportError,
     clearSubmissionFilters,
     clearReportData,
 } = reportSlice.actions;
 
-
-/* =========================================================
-   SELECTORS
-========================================================= */
 
 export const selectSubmissionFilters = (state) =>
     state.report.submissionFilters;
@@ -463,9 +362,6 @@ export const selectExportLoading = (state) =>
 
 export const selectExportError = (state) =>
     state.report.exportError;
-/* =========================================================
-   INDIVIDUAL SELECTORS
-========================================================= */
 
 export const selectTotalSubmittedApplications = (state) =>
     state.report.submissionFilters
@@ -495,10 +391,5 @@ export const selectReportClients = (state) =>
 export const selectApplicationStatusList = (state) =>
     state.report.submissionFilters
         ?.applicationStatusList || [];
-
-
-/* =========================================================
-   DEFAULT EXPORT
-========================================================= */
 
 export default reportSlice.reducer;

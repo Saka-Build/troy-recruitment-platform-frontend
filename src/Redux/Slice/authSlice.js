@@ -132,7 +132,14 @@ const authSlice = createSlice({
                 JSON.stringify(action.payload)
             );
         },
+        setRoles: (state, action) => {
+            state.roles = action.payload || [];
 
+            localStorage.setItem(
+                "roles",
+                JSON.stringify(state.roles)
+            );
+        },
             handleUnauthorized: (state) => {
         state.accessToken = null;
         state.refreshToken = null;
@@ -211,6 +218,6 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearAuthError, setActiveRole, handleUnauthorized, } = authSlice.actions;
+export const { clearAuthError, setActiveRole, handleUnauthorized, setRoles, } = authSlice.actions;
 
 export default authSlice.reducer;

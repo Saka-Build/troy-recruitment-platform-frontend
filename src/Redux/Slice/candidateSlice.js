@@ -5,15 +5,36 @@ const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     " ";
 
+    const getAccessToken = () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+        return null;
+    }
+
+    return token
+        .replace(/^Bearer\s+/i, "")
+        .trim();
+};
+
+
+const getAuthHeaders = () => {
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+        return null;
+    }
+
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+    };
+};
+
 export const getAllCandidates = createAsyncThunk(
     "candidates/getAllCandidates",
     async (
-        {
-            page = 0,
-            size = 20,
-            search = "",
-            status = undefined,
-        } = {},
+        {page = 0,size = 20,search = "",status = undefined,} = {},
         { rejectWithValue }
     ) => {
         try {
@@ -26,21 +47,23 @@ export const getAllCandidates = createAsyncThunk(
                 params.append("search", search.trim());
             }
 
-            if (
-                status !== undefined &&
-                status !== null &&
-                status !== ""
-            ) {
+            if (status !== undefined && status !== null && status !== "") {
                 params.append("status", status);
+            }
+
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
             }
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/candidates?${params.toString()}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers,
                 }
             );
 
@@ -48,37 +71,18 @@ export const getAllCandidates = createAsyncThunk(
 
             if (!response.ok) {
                 return rejectWithValue(
-                    data?.message ||
-                    "Failed to fetch candidates"
+                    data?.message || "Failed to fetch candidates"
                 );
             }
 
-            /*
-             * Backend returns Spring Page response:
-             *
-             * {
-             *   content: [],
-             *   totalPages: 130,
-             *   totalElements: 2590,
-             *   number: 0,
-             *   size: 20,
-             *   first: true,
-             *   last: false
-             * }
-             */
-
             return {
-                candidates: Array.isArray(data?.content)
-                    ? data.content
-                    : [],
-
+                candidates: Array.isArray(data?.content)? data.content: [],
                 pagination: {
                     page: data?.number ?? page,
                     size: data?.size ?? size,
                     totalPages: data?.totalPages ?? 0,
                     totalElements: data?.totalElements ?? 0,
-                    numberOfElements:
-                        data?.numberOfElements ?? 0,
+                    numberOfElements: data?.numberOfElements ?? 0,
                     first: data?.first ?? true,
                     last: data?.last ?? true,
                 },
@@ -86,26 +90,29 @@ export const getAllCandidates = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(
                 error.message ||
-                "Something went wrong while fetching candidates"
+                    "Something went wrong while fetching candidates"
             );
         }
     }
 );
 
-
-
 export const getCandidateById = createAsyncThunk(
     "candidates/getCandidateById",
     async (id, { rejectWithValue }) => {
         try {
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/candidates/${id}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers,
                 }
             );
 
@@ -135,14 +142,19 @@ export const getAllEmployees = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
 
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/employees?active=true`,
                 {
                     method: "GET",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers,
                 }
             );
 
@@ -516,27 +528,19 @@ export const getCandidateActivity = createAsyncThunk(
     "candidates/getCandidateActivity",
     async (candidateId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/activityLog/candidate/${candidateId}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers,
                 }
             );
 
@@ -582,27 +586,19 @@ export const getSubmissionActivities = createAsyncThunk(
     "candidates/getSubmissionActivities",
     async (submissionId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/activityLog/submission/${submissionId}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -643,26 +639,19 @@ export const getCandidateApplications = createAsyncThunk(
     "candidates/getCandidateApplications",
     async (candidateId, { rejectWithValue }) => {
         try {
-            const accessToken = localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions?candidateId=${candidateId}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -701,27 +690,19 @@ export const getSubmissionStatuses = createAsyncThunk(
     "candidates/getSubmissionStatuses",
     async (_, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions/status/allStatuses`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -832,27 +813,19 @@ export const getSubmissionSubStatuses = createAsyncThunk(
     "candidates/getSubmissionSubStatuses",
     async (statusId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions/substatus/allSubStatuses/${statusId}`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -1339,48 +1312,24 @@ export const getInterviewsBySubmission = createAsyncThunk(
     "candidates/getInterviewsBySubmission",
     async (submissionId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+            const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue({
-                    submissionId,
-                    message:
-                        "Authentication token not found. Please login again.",
-                });
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
-
-            console.log(
-                "========== GET INTERVIEWS BY SUBMISSION =========="
-            );
-
-            console.log(
-                "Submission ID:",
-                submissionId
-            );
+if (!headers) {
+    return rejectWithValue({
+        submissionId,
+        message:
+            "Authentication token not found. Please login again.",
+    });
+}
 
             const url =
                 `${API_BASE_URL}/api/v1/interviews/submission/${submissionId}`;
-
-            console.log(
-                "Interview API URL:",
-                url
-            );
 
             const response = await fetch(
                 url,
                 {
                     method: "GET",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                            `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -1537,34 +1486,25 @@ export const getCandidateNotes = createAsyncThunk(
     "candidates/getCandidateNotes",
     async (candidateId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
-            if (!candidateId) {
-                return rejectWithValue(
-                    "Candidate ID is required"
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!candidateId) {
+    return rejectWithValue(
+        "Candidate ID is required"
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/notes/candidate/${candidateId}`,
                 {
                     method: "GET",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -1622,44 +1562,25 @@ export const deleteSubmission = createAsyncThunk(
     "candidates/deleteSubmission",
     async (submissionId, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+            const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
-            if (!submissionId) {
-                return rejectWithValue(
-                    "Submission ID is required"
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
-
-            console.log(
-                "========== DELETE SUBMISSION =========="
-            );
-
-            console.log(
-                "Submission ID:",
-                submissionId
-            );
+if (!submissionId) {
+    return rejectWithValue(
+        "Submission ID is required"
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions/delete/${submissionId}`,
                 {
                     method: "DELETE",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                            `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -1735,27 +1656,19 @@ export const getCandidateFilters = createAsyncThunk(
     "candidates/getCandidateFilters",
     async (_, { rejectWithValue }) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/candidates/candidatefilters`,
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${cleanToken}`,
-                    },
+                    headers
                 }
             );
 
@@ -1800,19 +1713,13 @@ export const exportCandidates = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            const accessToken =
-                localStorage.getItem("accessToken");
+const headers = getAuthHeaders();
 
-            if (!accessToken) {
-                return rejectWithValue(
-                    "Authentication token not found. Please login again."
-                );
-            }
-
-            const cleanToken = accessToken
-                .replace(/^Bearer\s+/i, "")
-                .trim();
-
+if (!headers) {
+    return rejectWithValue(
+        "Authentication token not found. Please login again."
+    );
+}
             const requestBody = {};
 
             /*
@@ -1843,13 +1750,7 @@ export const exportCandidates = createAsyncThunk(
                 `${API_BASE_URL}/api/v1/candidates/export`,
                 {
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                            `Bearer ${cleanToken}`,
-                    },
-
+                    headers,
                     body: JSON.stringify(requestBody),
                 }
             );
@@ -1904,16 +1805,8 @@ export const exportCandidates = createAsyncThunk(
                     errorMessage
                 );
             }
-
-            /*
-             * Successful response is an Excel file.
-             */
             const blob =
                 await response.blob();
-
-            /*
-             * Get filename from Content-Disposition.
-             */
             const contentDisposition =
                 response.headers.get(
                     "Content-Disposition"
@@ -1961,13 +1854,8 @@ export const exportCandidates = createAsyncThunk(
 );
 const initialState = {
     candidates: [],
-
     loading: false,
     error: null,
-
-    /*
-     * SERVER-SIDE PAGINATION
-     */
     pagination: {
         page: 0,
         size: 20,
@@ -1977,73 +1865,33 @@ const initialState = {
         first: true,
         last: true,
     },
-
-    /*
-     * Existing employee data
-     */
     employees: [],
     employeesLoading: false,
     employeeError: null,
-
-    /*
-     * Candidate details
-     */
     selectedCandidate: null,
     candidateDetailsLoading: false,
     candidateDetailsError: null,
-
-    /*
-     * Candidate activity
-     */
     candidateActivity: [],
     candidateActivityLoading: false,
     candidateActivityError: null,
-
-    /*
-     * Candidate applications
-     */
     candidateApplications: [],
     candidateApplicationsLoading: false,
     candidateApplicationsError: null,
-
-    /*
-     * Submission activities
-     */
     submissionActivities: [],
     submissionActivitiesLoading: false,
     submissionActivitiesError: null,
-
-    /*
-     * Submission statuses
-     */
     submissionStatuses: [],
     submissionStatusesLoading: false,
     submissionStatusesError: null,
-
-    /*
-     * Submission sub-statuses
-     */
     submissionSubStatuses: {},
     submissionSubStatusesLoading: {},
     submissionSubStatusesError: {},
-
-    /*
-     * Interviews
-     */
     interviewsBySubmission: {},
     interviewsBySubmissionLoading: {},
     interviewsBySubmissionError: {},
-
-    /*
-     * Notes
-     */
     notes: [],
     notesLoading: false,
     notesError: null,
-
-    /*
-     * Create / update states
-     */
     adding: false,
     creatingSubmission: false,
     updatingSubmission: false,
@@ -2052,10 +1900,6 @@ const initialState = {
     updatingInterview: false,
     creatingNote: false,
     deletingSubmission: false,
-
-    /*
-     * Errors
-     */
     createSubmissionError: null,
     updateSubmissionError: null,
     updateSubmissionRatesError: null,
@@ -2063,102 +1907,64 @@ const initialState = {
     updateInterviewError: null,
     createNoteError: null,
     deleteSubmissionError: null,
-
-    /*
-     * Export
-     */
     exportingCandidates: false,
     exportCandidatesError: null,
-
     candidateFilters: {
     totalCandidates: 0,
     totalActiveCandidates: 0,
     totalInActiveCandidates: 0,
     totalBackListedCandidates: 0,
     statusList: [],
-
     exportingCandidates: false,
-exportCandidatesError: null,
+    exportCandidatesError: null,
 },
-
-candidateFiltersLoading: false,
-candidateFiltersError: null,
+    candidateFiltersLoading: false,
+    candidateFiltersError: null,
 };
 
 
 
 const candidateSlice = createSlice({
     name: "candidates",
-
     initialState,
-
     reducers: {
-        clearCandidateError: (state) => {
-            state.error = null;
-        },
-
-        clearEmployeeError: (state) => {
-            state.employeeError = null;
-        },
-
-        clearCandidateDetails: (state) => {
-            state.selectedCandidate = null;
-            state.candidateDetailsError = null;
-        },
-
-        clearCandidateActivity: (state) => {
-            state.candidateActivity = [];
-            state.candidateActivityError = null;
-        },
-        clearSubmissionActivities: (state) => {
-            state.submissionActivities = [];
-            state.submissionActivitiesError = null;
-        },
-
-        clearCandidateApplications: (state) => {
-            state.candidateApplications = [];
-            state.candidateApplicationsError = null;
-        },
+        clearCandidateError: (state) => {state.error = null;},
+        clearEmployeeError: (state) => {state.employeeError = null;},
+        clearCandidateDetails: (state) => {state.selectedCandidate = null;state.candidateDetailsError = null;},
+        clearCandidateActivity: (state) => {state.candidateActivity = [];state.candidateActivityError = null;},        
+        clearSubmissionActivities: (state) => {state.submissionActivities = [];state.submissionActivitiesError = null;},
+        clearCandidateApplications: (state) => {state.candidateApplications = [];state.candidateApplicationsError = null;},    
     },
 
     extraReducers: (builder) => {
 
         builder
-.addCase(
-    getAllCandidates.pending,
-    (state) => {
-        state.loading = true;
-        state.error = null;
-    }
-)
+            .addCase(
+                getAllCandidates.pending,
+                (state) => {
+                    state.loading = true;
+                    state.error = null;
+                }
+            )
 
-.addCase(
-    getAllCandidates.fulfilled,
-    (state, action) => {
-        state.loading = false;
+            .addCase(
+                getAllCandidates.fulfilled,
+                (state, action) => {
+                    state.loading = false;
+                    state.candidates = action.payload.candidates;
+                    state.pagination = action.payload.pagination;
+                }
+            )
 
-        /*
-         * Backend already paginated the data.
-         * Store only the current page returned by backend.
-         */
-        state.candidates = action.payload.candidates;
-
-        /*
-         * Store backend pagination metadata.
-         */
-        state.pagination = action.payload.pagination;
-    }
-)
-
-.addCase(
-    getAllCandidates.rejected,
-    (state, action) => {
-        state.loading = false;
-        state.error =
-            action.payload ||
-            "Failed to fetch candidates";
-    }
-)
+            .addCase(
+                getAllCandidates.rejected,
+                (state, action) => {
+                    state.loading = false;
+                    state.error =
+                        action.payload ||
+                        "Failed to fetch candidates";
+                }
+            )
 
             .addCase(
                 getCandidateById.pending,
@@ -2219,15 +2025,6 @@ const candidateSlice = createSlice({
                 }
             )
 
-            // .addCase(
-            //     addCandidate.fulfilled,
-            //     (state, action) => {
-            //         state.adding = false;
-            //         state.candidates.unshift(
-            //             action.payload
-            //         );
-            //     }
-            // )
             .addCase( addCandidate.fulfilled, (state) => { state.adding = false; state.error = null; } )
 
             .addCase(
@@ -2247,24 +2044,6 @@ const candidateSlice = createSlice({
                 }
             )
 
-            // .addCase(
-            //     updateCandidate.fulfilled,
-            //     (state, action) => {
-            //         state.loading = false;
-
-            //         const index =
-            //             state.candidates.findIndex(
-            //                 (candidate) =>
-            //                     candidate.id ===
-            //                     action.payload.id
-            //             );
-
-            //         if (index !== -1) {
-            //             state.candidates[index] =
-            //                 action.payload;
-            //         }
-            //     }
-            // )
             .addCase( updateCandidate.fulfilled, (state) => { state.loading = false; state.error = null; } )
 
             .addCase(
@@ -2284,20 +2063,6 @@ const candidateSlice = createSlice({
                     state.error = null;
                 }
             )
-
-            // .addCase(
-            //     deleteCandidate.fulfilled,
-            //     (state, action) => {
-            //         state.loading = false;
-
-            //         state.candidates =
-            //             state.candidates.filter(
-            //                 (candidate) =>
-            //                     candidate.id !==
-            //                     action.payload
-            //             );
-            //     }
-            // )
             .addCase( deleteCandidate.fulfilled, (state) => { state.loading = false; state.error = null; } )
 
             .addCase(
@@ -2600,43 +2365,19 @@ const candidateSlice = createSlice({
             .addCase(
                 getInterviewsBySubmission.fulfilled,
                 (state, action) => {
-                    const {
-                        submissionId,
-                        interviews,
-                    } = action.payload;
-
-                    state.interviewsBySubmission[
-                        submissionId
-                    ] = Array.isArray(interviews)
-                            ? interviews
-                            : [];
-
-                    state.interviewsBySubmissionLoading[
-                        submissionId
-                    ] = false;
-
-                    state.interviewsBySubmissionError[
-                        submissionId
-                    ] = null;
+                    const {submissionId,interviews,} = action.payload;
+                    state.interviewsBySubmission[submissionId] = Array.isArray(interviews)    ? interviews    : [];
+                    state.interviewsBySubmissionLoading[submissionId] = false;
+                    state.interviewsBySubmissionError[submissionId] = null;
                 }
             )
 
             .addCase(
                 getInterviewsBySubmission.rejected,
                 (state, action) => {
-                    const submissionId =
-                        action.payload?.submissionId ||
-                        action.meta.arg;
-
-                    state.interviewsBySubmissionLoading[
-                        submissionId
-                    ] = false;
-
-                    state.interviewsBySubmissionError[
-                        submissionId
-                    ] =
-                        action.payload?.message ||
-                        "Failed to fetch interviews";
+                    const submissionId =action.payload?.submissionId ||action.meta.arg;
+                    state.interviewsBySubmissionLoading[submissionId] = false;
+                    state.interviewsBySubmissionError[submissionId] =action.payload?.message ||"Failed to fetch interviews";
                 }
             )
             .addCase(
@@ -2661,9 +2402,7 @@ const candidateSlice = createSlice({
                 (state, action) => {
                     state.notesLoading = false;
                     state.notes = [];
-                    state.notesError =
-                        action.payload ||
-                        "Failed to fetch candidate notes";
+                    state.notesError =action.payload ||"Failed to fetch candidate notes";
                 }
             )
 
@@ -2680,15 +2419,7 @@ const candidateSlice = createSlice({
                 (state, action) => {
                     state.creatingNote = false;
                     state.createNoteError = null;
-
-                    /*
-                     * Add newly created note immediately.
-                     */
-                    if (action.payload) {
-                        state.notes = [
-                            ...state.notes,
-                            action.payload,
-                        ];
+                    if (action.payload) {state.notes = [    ...state.notes,    action.payload,];
                     }
                 }
             )
@@ -2698,9 +2429,7 @@ const candidateSlice = createSlice({
                 (state, action) => {
                     state.creatingNote = false;
 
-                    state.createNoteError =
-                        action.payload ||
-                        "Failed to create note";
+                    state.createNoteError =action.payload ||"Failed to create note";
                 }
             )
             .addCase(
@@ -2716,10 +2445,7 @@ const candidateSlice = createSlice({
                 (state, action) => {
                     state.deletingSubmission = false;
                     state.deleteSubmissionError = null;
-
-                    const deletedSubmissionId =
-                        action.payload?.submissionId;
-
+                    const deletedSubmissionId =action.payload?.submissionId;
                     if (deletedSubmissionId) {
                         state.candidateApplications =
                             state.candidateApplications.filter(
@@ -2737,10 +2463,8 @@ const candidateSlice = createSlice({
                 deleteSubmission.rejected,
                 (state, action) => {
                     state.deletingSubmission = false;
-
                     state.deleteSubmissionError =
-                        action.payload ||
-                        "Failed to delete submission";
+                    action.payload ||"Failed to delete submission";
                 }
             )
 
@@ -2764,82 +2488,64 @@ const candidateSlice = createSlice({
                 updateInterview.rejected,
                 (state, action) => {
                     state.updatingInterview = false;
-                    state.updateInterviewError =
-                        action.payload ||
-                        "Failed to reschedule interview";
+                    state.updateInterviewError =action.payload ||"Failed to reschedule interview";
                 }
             )
 
 
             .addCase(
-    getCandidateFilters.pending,
-    (state) => {
-        state.candidateFiltersLoading = true;
-        state.candidateFiltersError = null;
-    }
-)
+                getCandidateFilters.pending,
+                (state) => {
+                    state.candidateFiltersLoading = true;
+                    state.candidateFiltersError = null;
+                }
+            )
 
-.addCase(
-    getCandidateFilters.fulfilled,
-    (state, action) => {
-        state.candidateFiltersLoading = false;
+        .addCase(
+            getCandidateFilters.fulfilled,
+            (state, action) => {
+                state.candidateFiltersLoading = false;
 
-        state.candidateFilters = {
-            totalCandidates:
-                action.payload?.totalCandidates ?? 0,
+                state.candidateFilters = {
+                    totalCandidates:action.payload?.totalCandidates ?? 0,
+                    totalActiveCandidates:action.payload?.totalActiveCandidates ?? 0,
+                    totalInActiveCandidates:action.payload?.totalInActiveCandidates ?? 0,
+                    totalBackListedCandidates:action.payload?.totalBackListedCandidates ?? 0,
+                    statusList:Array.isArray(action.payload?.statusList)    ? action.payload.statusList    : [],
+                };
+            }
+        )
 
-            totalActiveCandidates:
-                action.payload?.totalActiveCandidates ?? 0,
+        .addCase(
+            getCandidateFilters.rejected,
+            (state, action) => {
+                state.candidateFiltersLoading = false;
+                state.candidateFiltersError =action.payload ||"Failed to fetch candidate filters";
+            }
+        )
+        .addCase(
+            exportCandidates.pending,
+            (state) => {
+                state.exportingCandidates = true;
+                state.exportCandidatesError = null;
+            }
+        )
 
-            totalInActiveCandidates:
-                action.payload?.totalInActiveCandidates ?? 0,
+        .addCase(
+            exportCandidates.fulfilled,
+            (state) => {
+                state.exportingCandidates = false;
+                state.exportCandidatesError = null;
+            }
+        )
 
-            totalBackListedCandidates:
-                action.payload?.totalBackListedCandidates ?? 0,
-
-            statusList:
-                Array.isArray(action.payload?.statusList)
-                    ? action.payload.statusList
-                    : [],
-        };
-    }
-)
-
-.addCase(
-    getCandidateFilters.rejected,
-    (state, action) => {
-        state.candidateFiltersLoading = false;
-
-        state.candidateFiltersError =
-            action.payload ||
-            "Failed to fetch candidate filters";
-    }
-)
-.addCase(
-    exportCandidates.pending,
-    (state) => {
-        state.exportingCandidates = true;
-        state.exportCandidatesError = null;
-    }
-)
-
-.addCase(
-    exportCandidates.fulfilled,
-    (state) => {
-        state.exportingCandidates = false;
-        state.exportCandidatesError = null;
-    }
-)
-
-.addCase(
-    exportCandidates.rejected,
-    (state, action) => {
-        state.exportingCandidates = false;
-        state.exportCandidatesError =
-            action.payload ||
-            "Failed to export candidates";
-    }
-)
+        .addCase(
+            exportCandidates.rejected,
+            (state, action) => {
+                state.exportingCandidates = false;
+                state.exportCandidatesError =action.payload ||"Failed to export candidates";
+            }
+        )
     },
 });
 

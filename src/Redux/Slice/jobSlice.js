@@ -123,10 +123,6 @@ export const deleteJob = createAsyncThunk(
 );
 
 
-/* =========================================================
-   GET JOB ACTIVITIES
-========================================================= */
-
 export const getJobActivities = createAsyncThunk(
   "jobs/getJobActivities",
 
@@ -154,9 +150,6 @@ export const getJobActivities = createAsyncThunk(
   }
 );
 
-/* =========================================================
-   GET JOB FILTERS / HEADER COUNTS
-========================================================= */
 
 export const getJobFilters = createAsyncThunk(
   "jobs/getJobFilters",
@@ -183,9 +176,6 @@ export const getJobFilters = createAsyncThunk(
   }
 );
 
-/* =========================================================
-   EXPORT JOBS
-========================================================= */
 
 export const exportJobs = createAsyncThunk(
     "jobs/exportJobs",

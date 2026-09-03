@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutUser, setActiveRole } from "../Redux/Slice/authSlice";
+import { logoutUser, setActiveRole, setRoles } from "../Redux/Slice/authSlice";
 import { switchRole } from "../Redux/Slice/roleSlice";
 import {
     FiGrid,
@@ -95,36 +95,51 @@ function Sidebar() {
         },
     ];
 
-    const normalizedRoles = useMemo(() => {
-        return (roles || [])
-            .map((roleItem) => {
-                const id =
-                    roleItem?.id ||
-                    roleItem?.roleId ||
-                    roleItem?.role?.id;
+const normalizedRoles = useMemo(() => {
+    const roleMap = new Map();
 
-                const name =
-                    roleItem?.name ||
-                    roleItem?.roleName ||
-                    roleItem?.role?.name;
+    /*
+        Add roles from the roles array
+    */
 
-                if (!id || !name) {
-                    return null;
-                }
+    (roles || []).forEach((roleItem) => {
+        const id =
+            roleItem?.id ||
+            roleItem?.roleId ||
+            roleItem?.role?.id;
 
-                return {
-                    id,
-                    name,
-                };
-            })
-            .filter(Boolean);
-    }, [roles]);
+        const name =
+            roleItem?.name ||
+            roleItem?.roleName ||
+            roleItem?.role?.name;
 
-    useEffect(() => {
-        if (activeRole?.id) {
-            setSelectedRoleId(activeRole.id);
+        if (id && name) {
+            roleMap.set(String(id), {
+                id,
+                name,
+            });
         }
-    }, [activeRole?.id]);
+    });
+
+    /*
+        Also add the currently active role.
+        This is important because activeRole
+        may not be present in roles.
+    */
+
+    if (activeRole?.id && activeRole?.name) {
+        roleMap.set(String(activeRole.id), {
+            id: activeRole.id,
+            name: activeRole.name,
+        });
+    }
+
+    return Array.from(roleMap.values());
+}, [roles, activeRole]);
+
+useEffect(() => {
+    setSelectedRoleId(activeRole?.id || "");
+}, [activeRole?.id]);
 
     const currentRole = normalizedRoles.find(
         (roleItem) =>
@@ -142,92 +157,156 @@ function Sidebar() {
         user?.role ||
         "";
 
-    const handleRoleChange = async (event) => {
-        const newRoleId = event.target.value;
+const handleRoleChange = async (event) => {
+    const newRoleId = event.target.value;
 
-        if (
-            !newRoleId ||
-            newRoleId === selectedRoleId
-        ) {
-            return;
-        }
+    if (
+        !newRoleId ||
+        String(newRoleId) === String(selectedRoleId)
+    ) {
+        return;
+    }
 
-        const previousRoleId = selectedRoleId;
+    const previousRoleId = selectedRoleId;
 
-        const selectedRole = normalizedRoles.find(
-            (roleItem) =>
-                String(roleItem.id) === String(newRoleId)
+    const selectedRole = normalizedRoles.find(
+        (roleItem) =>
+            String(roleItem.id) === String(newRoleId)
+    );
+
+    try {
+        setSwitchingRole(true);
+
+        const response = await dispatch(
+            switchRole(newRoleId)
+        ).unwrap();
+
+        console.log(
+            "Switch role response:",
+            response
         );
 
-        try {
-            setSwitchingRole(true);
+        const newAccessToken =
+            response?.accessToken ||
+            response?.data?.accessToken;
 
-            const response = await dispatch(
-                switchRole(newRoleId)
-            ).unwrap();
+        const newRefreshToken =
+            response?.refreshToken ||
+            response?.data?.refreshToken;
 
-            console.log(
-                "Switch role response:",
-                response
+        const newActiveRole =
+            response?.activeRole ||
+            response?.data?.activeRole ||
+            selectedRole;
+
+        const returnedRoles =
+            response?.roles ||
+            response?.data?.roles ||
+            [];
+
+        if (newAccessToken) {
+            localStorage.setItem(
+                "accessToken",
+                newAccessToken
             );
-
-            const newAccessToken =
-                response?.accessToken ||
-                response?.data?.accessToken;
-
-            const newRefreshToken =
-                response?.refreshToken ||
-                response?.data?.refreshToken;
-
-            const newActiveRole =
-                response?.activeRole ||
-                response?.data?.activeRole ||
-                selectedRole;
-
-            if (newAccessToken) {
-                localStorage.setItem(
-                    "accessToken",
-                    newAccessToken
-                );
-            }
-
-            if (newRefreshToken) {
-                localStorage.setItem(
-                    "refreshToken",
-                    newRefreshToken
-                );
-            }
-
-            if (newActiveRole) {
-                dispatch(
-                    setActiveRole(newActiveRole)
-                );
-            }
-
-            setSelectedRoleId(newRoleId);
-
-            showToast(
-                "success",
-                `Role switched to ${selectedRole?.name || "selected role"} successfully.`
-            );
-        } catch (error) {
-            console.error(
-                "Role switch failed:",
-                error
-            );
-
-            setSelectedRoleId(previousRoleId);
-
-            showToast(
-                "error",
-                error ||
-                    "Unable to switch role. Please try again."
-            );
-        } finally {
-            setSwitchingRole(false);
         }
-    };
 
+        if (newRefreshToken) {
+            localStorage.setItem(
+                "refreshToken",
+                newRefreshToken
+            );
+        }
+
+        if (newActiveRole) {
+            dispatch(
+                setActiveRole(newActiveRole)
+            );
+        }
+
+        /*
+         * Preserve all existing roles
+         * and add the newly selected role.
+         */
+        const allRolesMap = new Map();
+
+        // Add roles already available in Redux
+        (roles || []).forEach((roleItem) => {
+            const id =
+                roleItem?.id ||
+                roleItem?.roleId ||
+                roleItem?.role?.id;
+
+            const name =
+                roleItem?.name ||
+                roleItem?.roleName ||
+                roleItem?.role?.name;
+
+            if (id && name) {
+                allRolesMap.set(String(id), {
+                    id,
+                    name,
+                });
+            }
+        });
+
+        // Add newly active role
+        if (newActiveRole?.id && newActiveRole?.name) {
+            allRolesMap.set(String(newActiveRole.id), {
+                id: newActiveRole.id,
+                name: newActiveRole.name,
+            });
+        }
+
+        // Add roles returned by switch-role API
+        returnedRoles.forEach((roleItem) => {
+            const id =
+                roleItem?.id ||
+                roleItem?.roleId ||
+                roleItem?.role?.id;
+
+            const name =
+                roleItem?.name ||
+                roleItem?.roleName ||
+                roleItem?.role?.name;
+
+            if (id && name) {
+                allRolesMap.set(String(id), {
+                    id,
+                    name,
+                });
+            }
+        });
+
+        dispatch(
+            setRoles(Array.from(allRolesMap.values()))
+        );
+
+        setSelectedRoleId(newRoleId);
+
+        showToast(
+            "success",
+            `Role switched to ${
+                selectedRole?.name || "selected role"
+            } successfully.`
+        );
+    } catch (error) {
+        console.error(
+            "Role switch failed:",
+            error
+        );
+
+        setSelectedRoleId(previousRoleId);
+
+        showToast(
+            "error",
+            error ||
+                "Unable to switch role. Please try again."
+        );
+    } finally {
+        setSwitchingRole(false);
+    }
+};
     const handleSignOut = async () => {
         try {
             await dispatch(logoutUser()).unwrap();

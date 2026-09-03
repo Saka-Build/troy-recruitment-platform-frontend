@@ -147,9 +147,7 @@ const jobApi = {
         );
         return response.data;
     },
-    /* =========================================================
-   JOB FILTERS / HEADER COUNTS
-========================================================= */
+
 
     getJobFilters: async () => {
         const accessToken = localStorage.getItem("accessToken");
