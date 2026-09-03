@@ -239,21 +239,6 @@ function RecruitmentWorkflow() {
 
           <div className="rejection-branch">
 
-            {/* Vertical line from Interview */}
-            <div
-              className="rejection-line-vertical"
-              aria-hidden="true"
-            ></div>
-
-
-            {/* Horizontal line from Interview to Selected */}
-            <div
-              className="rejection-line-horizontal"
-              aria-hidden="true"
-            >
-              <span></span>
-            </div>
-
 
             {/* Rejected card exactly below Selected */}
             <button

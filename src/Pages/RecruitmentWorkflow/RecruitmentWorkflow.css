@@ -348,64 +348,12 @@
   pointer-events: none;
 }
 
-
-/* =========================================================
-   VERTICAL LINE FROM INTERVIEW
-   ========================================================= */
-
-.rejection-line-vertical {
-  position: absolute;
-
-  left: 0;
-  top: 0;
-
-  width: 2px;
-  height: 112px;
-
-  background: #E2A4A2;
-}
-
 .workflow-interview-date-time {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-
-
-/* =========================================================
-   HORIZONTAL LINE
-   ========================================================= */
-
-.rejection-line-horizontal {
-  position: absolute;
-
-  left: 0;
-  top: 112px;
-
-  width: 52%;
-  height: 2px;
-
-  background: #E2A4A2;
-}
-
-
-/* Arrow pointing toward Selected */
-.rejection-line-horizontal span {
-  position: absolute;
-
-  right: -1px;
-  top: 50%;
-
-  width: 8px;
-  height: 8px;
-
-  border-top: 2px solid #D9534F;
-  border-right: 2px solid #D9534F;
-
-  transform:
-    translateY(-50%) rotate(45deg);
-}
 
 
 /* =========================================================
