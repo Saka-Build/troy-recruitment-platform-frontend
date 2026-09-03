@@ -5,18 +5,45 @@ import employeeApi from "../../services/employeeApi";
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     " ";
+const getAccessToken = () => {
+    const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("token");
 
-/*
-|--------------------------------------------------------------------------
-| GET ALL EMPLOYEES
-|
-| Backend handles pagination, search and status filtering.
-|
-| GET /api/v1/employees?page=0&size=10
-| GET /api/v1/employees?page=0&size=10&active=true
-| GET /api/v1/employees?page=0&size=10&search=anitha
-|--------------------------------------------------------------------------
-*/
+    if (!token) {
+        return null;
+    }
+
+    return token
+        .replace(/^Bearer\s+/i, "")
+        .trim();
+};
+
+const getAuthHeaders = () => {
+    const token = getAccessToken();
+
+    if (!token) {
+        return null;
+    }
+
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+    };
+};
+
+const getFormDataHeaders = () => {
+    const token = getAccessToken();
+
+    if (!token) {
+        return null;
+    }
+
+    return {
+        Authorization: `Bearer ${token}`,
+    };
+};
+
 export const getAllEmployees = createAsyncThunk(
     "employees/getAllEmployees",
     async (
@@ -30,6 +57,13 @@ export const getAllEmployees = createAsyncThunk(
     ) => {
         try {
             const params = new URLSearchParams();
+            const headers = getAuthHeaders();
+
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
 
             params.append("page", page);
             params.append("size", size);
@@ -52,7 +86,11 @@ export const getAllEmployees = createAsyncThunk(
             }
 
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/employees?${params.toString()}`
+                `${API_BASE_URL}/api/v1/employees?${params.toString()}`,
+    {
+        method: "GET",
+        headers,
+    }
             );
 
             const data =
@@ -76,20 +114,26 @@ export const getAllEmployees = createAsyncThunk(
     }
 );
 
-
-/*
-|--------------------------------------------------------------------------
-| GET COUNTRIES
-|--------------------------------------------------------------------------
-*/
 export const getCountries = createAsyncThunk(
     "employees/getCountries",
     async (_, { rejectWithValue }) => {
 
         try {
 
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                return rejectWithValue(
+                    "User not authenticated. Access token not found."
+                );
+            }
+
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/global/getCountries`
+                `${API_BASE_URL}/api/v1/global/getCountries`,
+    {
+        method: "GET",
+        headers,
+    }
             );
 
 
@@ -117,20 +161,24 @@ export const getCountries = createAsyncThunk(
     }
 );
 
-
-/*
-|--------------------------------------------------------------------------
-| GET EMPLOYEE BY ID
-|--------------------------------------------------------------------------
-*/
 export const getEmployeeById = createAsyncThunk(
     "employees/getEmployeeById",
     async (id, { rejectWithValue }) => {
 
         try {
+const headers = getAuthHeaders();
 
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/employees/${id}`
+                `${API_BASE_URL}/api/v1/employees/${id}`,
+    {
+        method: "GET",
+        headers,
+    }
             );
 
 
@@ -158,19 +206,6 @@ export const getEmployeeById = createAsyncThunk(
     }
 );
 
-
-/*
-|--------------------------------------------------------------------------
-| CREATE EMPLOYEE
-|
-| POST /api/v1/employees/create
-|
-| multipart/form-data
-|
-| employee -> JSON
-| photo    -> File
-|--------------------------------------------------------------------------
-*/
 export const createEmployee = createAsyncThunk(
     "employees/createEmployee",
     async (
@@ -185,12 +220,13 @@ export const createEmployee = createAsyncThunk(
 
             const formData = new FormData();
 
+const headers = getFormDataHeaders();
 
-            /*
-             * Backend expects:
-             *
-             * employee = JSON
-             */
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
             const employeeBlob =
                 new Blob(
                     [
@@ -209,13 +245,6 @@ export const createEmployee = createAsyncThunk(
                 "employee",
                 employeeBlob
             );
-
-
-            /*
-             * Backend expects:
-             *
-             * photo = File
-             */
             if (photoFile) {
 
                 formData.append(
@@ -228,10 +257,11 @@ export const createEmployee = createAsyncThunk(
             const response =
                 await fetch(
                     `${API_BASE_URL}/api/v1/employees/create`,
-                    {
-                        method: "POST",
-                        body: formData,
-                    }
+        {
+            method: "POST",
+            headers,
+            body: formData,
+        }
                 );
 
 
@@ -260,28 +290,6 @@ export const createEmployee = createAsyncThunk(
     }
 );
 
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE EMPLOYEE
-|
-| PUT /api/v1/employees/update/{id}
-|
-| Backend accepts partial body.
-|--------------------------------------------------------------------------
-*/
-/*
-|--------------------------------------------------------------------------
-| UPDATE EMPLOYEE
-|
-| PUT /api/v1/employees/update/{id}
-|
-| multipart/form-data
-|
-| employee -> JSON
-| photo    -> File (optional)
-|--------------------------------------------------------------------------
-*/
 export const updateEmployee = createAsyncThunk(
     "employees/updateEmployee",
     async (
@@ -296,12 +304,13 @@ export const updateEmployee = createAsyncThunk(
         try {
 
             const formData = new FormData();
+const headers = getFormDataHeaders();
 
-            /*
-             * Backend expects:
-             *
-             * employee = JSON
-             */
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
             const employeeBlob = new Blob(
                 [
                     JSON.stringify(
@@ -318,12 +327,6 @@ export const updateEmployee = createAsyncThunk(
                 employeeBlob
             );
 
-
-            /*
-             * Backend expects:
-             *
-             * photo = File
-             */
             if (photoFile) {
 
                 formData.append(
@@ -346,13 +349,13 @@ export const updateEmployee = createAsyncThunk(
 
             const response =
                 await fetch(
-                    `${API_BASE_URL}/api/v1/employees/update/${id}`,
-                    {
-                        method: "PUT",
-
-                        body: formData,
-                    }
-                );
+                        `${API_BASE_URL}/api/v1/employees/update/${id}`,
+                        {
+                            method: "PUT",
+                            headers,
+                            body: formData,
+                        }
+                    );
 
 
             const data =
@@ -396,30 +399,27 @@ export const updateEmployee = createAsyncThunk(
     }
 );
 
-/*
-|--------------------------------------------------------------------------
-| DELETE EMPLOYEE
-|
-| DELETE /api/v1/employees/delete/{id}
-|--------------------------------------------------------------------------
-*/
 export const deleteEmployee = createAsyncThunk(
     "employees/deleteEmployee",
     async (id, { rejectWithValue }) => {
 
         try {
 
-            const response = await fetch(
-                `${API_BASE_URL}/api/v1/employees/delete/${id}`,
-                {
-                    method: "DELETE",
-                }
-            );
+            const headers = getFormDataHeaders();
 
-            /*
-             * DELETE API may return an empty response body.
-             * So don't blindly call response.json().
-             */
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
+const response = await fetch(
+    `${API_BASE_URL}/api/v1/employees/delete/${id}`,
+    {
+        method: "DELETE",
+        headers,
+    }
+);
+
             const responseText = await response.text();
 
             let data = null;
@@ -455,13 +455,7 @@ export const deleteEmployee = createAsyncThunk(
         }
     }
 );
-/*
-|--------------------------------------------------------------------------
-| GET ALL SUBMISSIONS
-|
-| GET /api/v1/submissions
-|--------------------------------------------------------------------------
-*/
+
 
 export const getAllSubmissions = createAsyncThunk(
     "employees/getAllSubmissions",
@@ -480,18 +474,16 @@ export const getAllSubmissions = createAsyncThunk(
         try {
 
             const params = new URLSearchParams();
+            const headers = getAuthHeaders();
 
-            /* -------------------------------------------------------
-             * PAGINATION
-             * ------------------------------------------------------- */
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
 
             params.append("page", page);
             params.append("size", size);
-
-
-            /* -------------------------------------------------------
-             * OPTIONAL FILTERS
-             * ------------------------------------------------------- */
 
             if (statusId) {
                 params.append("statusId", statusId);
@@ -506,12 +498,12 @@ export const getAllSubmissions = createAsyncThunk(
             }
             if (search) { params.append("search", search); }
 
-            /* -------------------------------------------------------
-             * API CALL
-             * ------------------------------------------------------- */
-
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/submissions?${params.toString()}`
+                `${API_BASE_URL}/api/v1/submissions?${params.toString()}`,
+    {
+        method: "GET",
+        headers,
+    }
             );
 
 
@@ -544,9 +536,19 @@ export const getEmployeeFilters = createAsyncThunk(
     async (_, { rejectWithValue }) => {
 
         try {
+const headers = getAuthHeaders();
 
+if (!headers) {
+    return rejectWithValue(
+        "User not authenticated. Access token not found."
+    );
+}
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/employees/employeefilters`
+                `${API_BASE_URL}/api/v1/employees/employeefilters`,
+    {
+        method: "GET",
+        headers,
+    }
             );
 
             const data = await response.json();

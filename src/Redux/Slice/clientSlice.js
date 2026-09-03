@@ -1,19 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import fetch from "../../services/fetchInstance";
 
-
-/* =========================================================
-   API BASE URL
-========================================================= */
-
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     "";
-
-
-/* =========================================================
-   GET ACCESS TOKEN
-========================================================= */
 
 const getAccessToken = (getState) => {
 
@@ -22,10 +12,6 @@ const getAccessToken = (getState) => {
     return state.auth?.accessToken;
 };
 
-
-/* =========================================================
-   COMMON HEADERS
-========================================================= */
 
 const getHeaders = (token) => {
 
@@ -38,10 +24,6 @@ const getHeaders = (token) => {
     };
 };
 
-
-/* =========================================================
-   FETCH COUNTRIES
-========================================================= */
 
 export const fetchCountries = createAsyncThunk(
     "clients/fetchCountries",
@@ -78,19 +60,6 @@ export const fetchCountries = createAsyncThunk(
             const data =
                 await response.json();
 
-
-            /*
-                API returns directly:
-
-                [
-                    {
-                        id: "...",
-                        code: "IN",
-                        name: "India"
-                    }
-                ]
-            */
-
             return Array.isArray(data)
                 ? data
                 : [];
@@ -106,17 +75,8 @@ export const fetchCountries = createAsyncThunk(
     }
 );
 
-
-/* =========================================================
-   GET ALL CLIENTS
-========================================================= */
-
 export const fetchClients = createAsyncThunk( "clients/fetchClients", async ( { page = 0, size = 10, search = "", active, } = {}, { getState, rejectWithValue } ) => { try { const token = getAccessToken(getState); /* ===================================================== BUILD QUERY PARAMS ===================================================== */ const params = new URLSearchParams(); /* Backend uses ZERO-BASED page numbers. */ params.set( "page", page ); params.set( "size", size ); /* Only send search when user actually searched. */ if (search?.trim()) { params.set( "search", search.trim() ); } /* Active status: Active -> active=true Inactive -> active=false All -> don't send active */ if (active !== undefined) { params.set( "active", String(active) ); } const url = `${API_BASE_URL}/api/v1/clients?${params.toString()}`; console.log( "FETCH CLIENTS URL:", url ); /* ===================================================== API CALL ===================================================== */ const response = await fetch( url, { method: "GET", headers: getHeaders(token), } ); if (!response.ok) { const errorText = await response.text(); throw new Error( errorText || "Failed to fetch clients" ); } const data = await response.json(); /* Backend response: { content: [], totalPages: 5, totalElements: 42, size: 10, number: 0, first: true, last: false, ... } */ return { content: Array.isArray(data.content) ? data.content : [], totalPages: data.totalPages ?? 0, totalElements: data.totalElements ?? 0, pageSize: data.size ?? size, currentPage: data.number ?? page, numberOfElements: data.numberOfElements ?? data.content?.length ?? 0, first: data.first ?? true, last: data.last ?? true, empty: data.empty ?? data.content?.length === 0, }; } catch (error) { return rejectWithValue( error.message || "Failed to fetch clients" ); } } );
 
-
-/* =========================================================
-   GET CLIENT BY ID
-========================================================= */
 
 export const fetchClientById = createAsyncThunk(
     "clients/fetchClientById",
@@ -164,10 +124,6 @@ export const fetchClientById = createAsyncThunk(
     }
 );
 
-
-/* =========================================================
-   CREATE CLIENT
-========================================================= */
 
 export const createClient = createAsyncThunk(
     "clients/createClient",
@@ -267,10 +223,6 @@ export const createClient = createAsyncThunk(
 );
 
 
-/* =========================================================
-   UPDATE CLIENT
-========================================================= */
-
 export const updateClient = createAsyncThunk(
     "clients/updateClient",
 
@@ -287,61 +239,26 @@ export const updateClient = createAsyncThunk(
 
             const requestBody = {
 
-                name:
-                    clientData.name?.trim() || "",
-
-                industry:
-                    clientData.industry?.trim() || "",
-
-                countryCode:
-                    clientData.countryCode || "",
-
-                contactPerson:
-                    clientData.contactPerson?.trim() || "",
-
-                source:
-                    clientData.source?.trim() || "",
-
-                endClientIds:
-                    Array.isArray(clientData.endClientIds)
-                        ? clientData.endClientIds
-                        : [],
-
-                isActive:
-                    clientData.isActive ?? true,
-
-                status:
-                    clientData.status || "Active",
-
-                email:
-                    clientData.email?.trim() || "",
-
-                phone:
-                    clientData.phone?.trim() || "",
-
-                whatsapp:
-                    clientData.whatsapp?.trim() || "",
-
-                address:
-                    clientData.address?.trim() || "",
+                name:clientData.name?.trim() || "",
+                industry:clientData.industry?.trim() || "",
+                countryCode:clientData.countryCode || "",
+                contactPerson:clientData.contactPerson?.trim() || "",
+                source:clientData.source?.trim() || "",
+                endClientIds:Array.isArray(clientData.endClientIds)    ? clientData.endClientIds    : [],
+                isActive:clientData.isActive ?? true,
+                status:clientData.status || "Active",
+                email:clientData.email?.trim() || "",
+                phone:clientData.phone?.trim() || "",
+                whatsapp:clientData.whatsapp?.trim() || "",
+                address:clientData.address?.trim() || "",
             };
-
-
-            console.log(
-                "UPDATE CLIENT REQUEST:",
-                requestBody
-            );
-
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/clients/update/${id}`,
                 {
                     method: "PUT",
-
                     headers: getHeaders(token),
-
-                    body:
-                        JSON.stringify(requestBody),
+                    body:JSON.stringify(requestBody),
                 }
             );
 
@@ -370,11 +287,6 @@ export const updateClient = createAsyncThunk(
         }
     }
 );
-
-
-/* =========================================================
-   DELETE CLIENT
-========================================================= */
 
 export const deleteClient = createAsyncThunk(
     "clients/deleteClient",
@@ -423,10 +335,6 @@ export const deleteClient = createAsyncThunk(
 );
 
 
-/* =========================================================
-   EXPORT CLIENTS
-========================================================= */
-
 export const exportClients = createAsyncThunk(
     "clients/exportClients",
 
@@ -441,34 +349,13 @@ export const exportClients = createAsyncThunk(
 
         try {
 
-            /* =====================================================
-               GET STATE
-            ===================================================== */
-
             const state =
                 thunkAPI.getState();
 
             const token =
                 state.auth?.accessToken;
 
-
-            /* =====================================================
-               BUILD REQUEST BODY
-               
-               IMPORTANT:
-               - No filters       -> {}
-               - Active           -> active: true
-               - Inactive         -> active: false
-               - All statuses     -> don't send active
-            ===================================================== */
-
             const requestBody = {};
-
-
-            /* =====================================================
-               FROM DATE
-            ===================================================== */
-
             if (fromDate) {
 
                 requestBody.fromDate =
@@ -476,22 +363,12 @@ export const exportClients = createAsyncThunk(
 
             }
 
-
-            /* =====================================================
-               TO DATE
-            ===================================================== */
-
             if (toDate) {
 
                 requestBody.toDate =
                     `${toDate}T23:59:59`;
 
             }
-
-
-            /* =====================================================
-               STATUS
-            ===================================================== */
 
             if (status === "Active") {
 
@@ -504,21 +381,6 @@ export const exportClients = createAsyncThunk(
                 requestBody.active = false;
 
             }
-
-
-            /* =====================================================
-               DEBUG
-            ===================================================== */
-
-            console.log(
-                "EXPORT CLIENT REQUEST BODY:",
-                requestBody
-            );
-
-
-            /* =====================================================
-               API CALL
-            ===================================================== */
 
             const response = await fetch(
 
@@ -550,11 +412,6 @@ export const exportClients = createAsyncThunk(
 
             );
 
-
-            /* =====================================================
-               API ERROR
-            ===================================================== */
-
             if (!response.ok) {
 
                 const errorText =
@@ -568,11 +425,6 @@ export const exportClients = createAsyncThunk(
                 );
 
             }
-
-
-            /* =====================================================
-               GET EXCEL FILE
-            ===================================================== */
 
             const blob =
                 await response.blob();
@@ -607,13 +459,6 @@ export const exportClients = createAsyncThunk(
     }
 
 );
-/* =========================================================
-   GET CLIENT HEADER / FILTER COUNTS
-========================================================= */
-
-/* =========================================================
-   GET CLIENT HEADER / FILTER COUNTS
-========================================================= */
 
 export const fetchClientHeaderFilters = createAsyncThunk(
     "clients/fetchClientHeaderFilters",
@@ -622,56 +467,11 @@ export const fetchClientHeaderFilters = createAsyncThunk(
 
         try {
 
-            /* =====================================================
-               GET TOKEN
-            ===================================================== */
-
             const token =
                 getAccessToken(getState);
 
-
-            /* =====================================================
-               BUILD URL
-            ===================================================== */
-
             const url =
                 `${API_BASE_URL}/api/v1/clients/clientheader/clientfilters`;
-
-
-            /* =====================================================
-               DEBUG - REQUEST
-            ===================================================== */
-
-            console.log(
-                "========== CLIENT HEADER FILTER DEBUG =========="
-            );
-
-            console.log(
-                "API BASE URL:",
-                API_BASE_URL
-            );
-
-            console.log(
-                "FULL URL:",
-                url
-            );
-
-            console.log(
-                "TOKEN EXISTS:",
-                !!token
-            );
-
-            console.log(
-                "TOKEN:",
-                token
-                    ? `${token.substring(0, 20)}...`
-                    : "NO TOKEN"
-            );
-
-
-            /* =====================================================
-               API CALL
-            ===================================================== */
 
             const response =
                 await fetch(
@@ -683,26 +483,6 @@ export const fetchClientHeaderFilters = createAsyncThunk(
                             getHeaders(token),
                     }
                 );
-
-
-            /* =====================================================
-               DEBUG - RESPONSE STATUS
-            ===================================================== */
-
-            console.log(
-                "RESPONSE STATUS:",
-                response.status
-            );
-
-            console.log(
-                "RESPONSE OK:",
-                response.ok
-            );
-
-
-            /* =====================================================
-               HANDLE API ERROR
-            ===================================================== */
 
             if (!response.ok) {
 
@@ -723,44 +503,8 @@ export const fetchClientHeaderFilters = createAsyncThunk(
 
             }
 
-
-            /* =====================================================
-               READ RESPONSE
-            ===================================================== */
-
             const data =
                 await response.json();
-
-
-            /* =====================================================
-               DEBUG - RAW RESPONSE
-            ===================================================== */
-
-            console.log(
-                "CLIENT HEADER FILTER RAW RESPONSE:",
-                data
-            );
-
-
-            console.log(
-                "totalClients:",
-                data?.totalClients
-            );
-
-            console.log(
-                "totalActiveClients:",
-                data?.totalActiveClients
-            );
-
-            console.log(
-                "totalInActiveClients:",
-                data?.totalInActiveClients
-            );
-
-
-            /* =====================================================
-               VALIDATE RESPONSE
-            ===================================================== */
 
             if (
                 !data ||
@@ -772,11 +516,6 @@ export const fetchClientHeaderFilters = createAsyncThunk(
                 );
 
             }
-
-
-            /* =====================================================
-               PREPARE REDUX PAYLOAD
-            ===================================================== */
 
             const result = {
 
@@ -797,48 +536,10 @@ export const fetchClientHeaderFilters = createAsyncThunk(
 
             };
 
-
-            /* =====================================================
-               DEBUG - REDUX PAYLOAD
-            ===================================================== */
-
-            console.log(
-                "CLIENT HEADER FILTER REDUX PAYLOAD:",
-                result
-            );
-
-            console.log(
-                "=============================================="
-            );
-
-
             return result;
 
 
         } catch (error) {
-
-            /* =====================================================
-               DEBUG - THUNK ERROR
-            ===================================================== */
-
-            console.error(
-                "========== CLIENT HEADER FILTER THUNK ERROR =========="
-            );
-
-            console.error(
-                "ERROR:",
-                error
-            );
-
-            console.error(
-                "ERROR MESSAGE:",
-                error?.message
-            );
-
-            console.error(
-                "======================================================="
-            );
-
 
             return rejectWithValue(
                 error?.message ||
@@ -849,9 +550,6 @@ export const fetchClientHeaderFilters = createAsyncThunk(
 
     }
 );
-/* =========================================================
-   SLICE
-========================================================= */
 
 const clientSlice = createSlice({
 
@@ -886,11 +584,6 @@ clientHeaderError: null, },
 
 
     extraReducers: (builder) => {
-
-
-        /* =====================================================
-           COUNTRIES
-        ===================================================== */
 
         builder
 
@@ -928,18 +621,8 @@ clientHeaderError: null, },
             );
 
 
-        /* =====================================================
-           FETCH ALL
-        ===================================================== */
-
-
  builder .addCase( fetchClients.pending, (state) => { state.loading = true; state.error = null; } ) .addCase( fetchClients.fulfilled, (state, action) => { state.loading = false; /* Replace current page completely. No append. No filter. No slice. */ state.items = action.payload.content || []; /* Store backend pagination metadata. */ state.totalPages = action.payload.totalPages ?? 0; state.totalElements = action.payload.totalElements ?? 0; state.pageSize = action.payload.pageSize ?? 10; state.currentPage = action.payload.currentPage ?? 0; state.numberOfElements = action.payload.numberOfElements ?? state.items.length; state.first = action.payload.first ?? true; state.last = action.payload.last ?? true; state.empty = action.payload.empty ?? state.items.length === 0; } ) .addCase( fetchClients.rejected, (state, action) => { state.loading = false; state.error = action.payload || "Failed to fetch clients"; } )
 
-
-
-        /* =====================================================
-           FETCH BY ID
-        ===================================================== */
 
         builder
 
@@ -977,10 +660,6 @@ clientHeaderError: null, },
             );
 
 
-        /* =====================================================
-           CREATE
-        ===================================================== */
-
         builder
 
             .addCase(
@@ -992,19 +671,6 @@ clientHeaderError: null, },
                     state.error = null;
                 }
             )
-
-            // .addCase(
-            //     createClient.fulfilled,
-            //     (state, action) => {
-
-            //         state.creating = false;
-
-            //         state.items.push(
-            //             action.payload
-            //         );
-            //     }
-            // )
-
             .addCase(
                     createClient.fulfilled,
                     (state, action) => {
@@ -1029,11 +695,6 @@ clientHeaderError: null, },
                         "Failed to create client";
                 }
             );
-
-
-        /* =====================================================
-           UPDATE
-        ===================================================== */
 
         builder
 
@@ -1085,11 +746,6 @@ clientHeaderError: null, },
                 }
             );
 
-
-        /* =====================================================
-           DELETE
-        ===================================================== */
-
         builder
 
             .addCase(
@@ -1129,10 +785,6 @@ clientHeaderError: null, },
                 }
             );
 
-            /* =====================================================
-   EXPORT
-===================================================== */
-
 builder
 
     .addCase(
@@ -1169,13 +821,6 @@ builder
 
         }
     )
-    /* =====================================================
-   CLIENT HEADER / FILTER COUNTS
-===================================================== */
-
-/* =====================================================
-   CLIENT HEADER / FILTER COUNTS
-===================================================== */
 
 builder
 

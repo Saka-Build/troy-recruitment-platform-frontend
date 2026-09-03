@@ -3,10 +3,6 @@ import fetch from "../../services/fetchInstance";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-/* =========================================================
-   GET ACCESS TOKEN
-========================================================= */
-
 const getAccessToken = () => {
     return (
         localStorage.getItem("accessToken") ||
@@ -14,9 +10,6 @@ const getAccessToken = () => {
     );
 };
 
-/* =========================================================
-   COMMON GET REQUEST
-========================================================= */
 
 const fetchGetRequest = async (url, rejectWithValue) => {
     try {
@@ -54,10 +47,6 @@ const fetchGetRequest = async (url, rejectWithValue) => {
     }
 };
 
-/* =========================================================
-   DASHBOARD SUMMARY
-========================================================= */
-
 export const getDashboardSummary = createAsyncThunk(
     "dashboard/getDashboardSummary",
     async (_, { rejectWithValue }) => {
@@ -68,11 +57,6 @@ export const getDashboardSummary = createAsyncThunk(
     }
 );
 
-/* =========================================================
-   GET SELECTED SUBMISSIONS
-   API:
-   /api/v1/submissions?statusName=Selected&page=0&size=20
-========================================================= */
 
 export const getSelectedSubmissions = createAsyncThunk(
     "dashboard/getSelectedSubmissions",
@@ -101,12 +85,6 @@ export const getSelectedSubmissions = createAsyncThunk(
     }
 );
 
-/* =========================================================
-   GET HIGH PRIORITY JOBS
-   API:
-   /api/v1/jobs?priority=high&page=0&size=20
-========================================================= */
-
 export const getHighPriorityJobs = createAsyncThunk(
     "dashboard/getHighPriorityJobs",
     async (
@@ -129,15 +107,6 @@ export const getHighPriorityJobs = createAsyncThunk(
     }
 );
 
-/* =========================================================
-   GET INTERVIEW SUBMISSIONS
-   API:
-   /api/v1/submissions
-       ?statusName=Interview
-       &search=Feedback
-       &page=0
-       &size=20
-========================================================= */
 
 export const getInterviewSubmissions = createAsyncThunk(
     "dashboard/getInterviewSubmissions",
@@ -166,11 +135,6 @@ export const getInterviewSubmissions = createAsyncThunk(
     }
 );
 
-/* =========================================================
-   GET READY TO SUBMIT SUBMISSIONS
-   API:
-   /api/v1/submissions?pipelineStage=ready_to_submit&page=0&size=20
-========================================================= */
 
 export const getReadyToSubmitSubmissions = createAsyncThunk(
     "dashboard/getReadyToSubmitSubmissions",
@@ -194,12 +158,6 @@ export const getReadyToSubmitSubmissions = createAsyncThunk(
     }
 );
 
-
-/* =========================================================
-   GET ONBOARDED SUBMISSIONS
-   API:
-   /api/v1/submissions?pipelineStage=onboarded&page=0&size=20
-========================================================= */
 
 export const getOnboardedSubmissions = createAsyncThunk(
     "dashboard/getOnboardedSubmissions",
@@ -227,23 +185,13 @@ export const getOnboardedSubmissions = createAsyncThunk(
         );
     }
 );
-/* =========================================================
-   INITIAL STATE
-========================================================= */
 
 const initialState = {
-    /* -------------------------
-       Dashboard Summary
-    ------------------------- */
 
     summary: null,
 
     loading: false,
     error: null,
-
-    /* -------------------------
-       Selected Submissions
-    ------------------------- */
 
     selectedSubmissions: {
         content: [],
@@ -261,10 +209,6 @@ const initialState = {
     selectedSubmissionsLoading: false,
     selectedSubmissionsError: null,
 
-    /* -------------------------
-       High Priority Jobs
-    ------------------------- */
-
     highPriorityJobs: {
         content: [],
         pageable: null,
@@ -281,10 +225,6 @@ const initialState = {
     highPriorityJobsLoading: false,
     highPriorityJobsError: null,
 
-    /* -------------------------
-       Interview Submissions
-    ------------------------- */
-
     interviewSubmissions: {
         content: [],
         pageable: null,
@@ -300,10 +240,6 @@ const initialState = {
 
     interviewSubmissionsLoading: false,
     interviewSubmissionsError: null,
-
-    /* -------------------------
-       Ready To Submit
-    ------------------------- */
 
     readyToSubmitSubmissions: {
         content: [],
@@ -338,67 +274,36 @@ onboardedSubmissionsLoading: false,
 onboardedSubmissionsError: null,
 };
 
-/* =========================================================
-   SLICE
-========================================================= */
-
 const dashboardSlice = createSlice({
     name: "dashboard",
 
     initialState,
 
     reducers: {
-        /* =====================================================
-           CLEAR GENERAL DASHBOARD ERROR
-        ===================================================== */
 
         clearDashboardError: (state) => {
             state.error = null;
         },
 
-        /* =====================================================
-           CLEAR DASHBOARD SUMMARY
-        ===================================================== */
-
         clearDashboardSummary: (state) => {
             state.summary = null;
         },
-
-        /* =====================================================
-           CLEAR SELECTED SUBMISSIONS ERROR
-        ===================================================== */
 
         clearSelectedSubmissionsError: (state) => {
             state.selectedSubmissionsError = null;
         },
 
-        /* =====================================================
-           CLEAR HIGH PRIORITY JOBS ERROR
-        ===================================================== */
-
         clearHighPriorityJobsError: (state) => {
             state.highPriorityJobsError = null;
         },
-
-        /* =====================================================
-           CLEAR INTERVIEW SUBMISSIONS ERROR
-        ===================================================== */
 
         clearInterviewSubmissionsError: (state) => {
             state.interviewSubmissionsError = null;
         },
 
-        /* =====================================================
-           CLEAR READY TO SUBMIT ERROR
-        ===================================================== */
-
         clearReadyToSubmitSubmissionsError: (state) => {
             state.readyToSubmitSubmissionsError = null;
         },
-
-        /* =====================================================
-           CLEAR ALL DASHBOARD DATA
-        ===================================================== */
 
         clearDashboardData: (state) => {
             state.summary = null;
@@ -424,17 +329,8 @@ const dashboardSlice = createSlice({
         },
     },
 
-    /* =========================================================
-       EXTRA REDUCERS
-    ========================================================= */
-
     extraReducers: (builder) => {
         builder
-
-            /* =================================================
-               DASHBOARD SUMMARY
-            ================================================= */
-
             .addCase(
                 getDashboardSummary.pending,
                 (state) => {
@@ -462,10 +358,6 @@ const dashboardSlice = createSlice({
                 }
             )
 
-            /* =================================================
-               SELECTED SUBMISSIONS
-            ================================================= */
-
             .addCase(
                 getSelectedSubmissions.pending,
                 (state) => {
@@ -478,11 +370,6 @@ const dashboardSlice = createSlice({
                 getSelectedSubmissions.fulfilled,
                 (state, action) => {
                     state.selectedSubmissionsLoading = false;
-
-                    /*
-                     * Store the complete backend pagination response.
-                     * No frontend pagination is performed.
-                     */
                     state.selectedSubmissions = action.payload;
 
                     state.selectedSubmissionsError = null;
@@ -500,10 +387,6 @@ const dashboardSlice = createSlice({
                 }
             )
 
-            /* =================================================
-               HIGH PRIORITY JOBS
-            ================================================= */
-
             .addCase(
                 getHighPriorityJobs.pending,
                 (state) => {
@@ -517,9 +400,6 @@ const dashboardSlice = createSlice({
                 (state, action) => {
                     state.highPriorityJobsLoading = false;
 
-                    /*
-                     * Backend pagination response stored directly.
-                     */
                     state.highPriorityJobs = action.payload;
 
                     state.highPriorityJobsError = null;
@@ -537,9 +417,6 @@ const dashboardSlice = createSlice({
                 }
             )
 
-            /* =================================================
-               INTERVIEW SUBMISSIONS
-            ================================================= */
 
             .addCase(
                 getInterviewSubmissions.pending,
@@ -554,9 +431,6 @@ const dashboardSlice = createSlice({
                 (state, action) => {
                     state.interviewSubmissionsLoading = false;
 
-                    /*
-                     * Backend pagination response stored directly.
-                     */
                     state.interviewSubmissions = action.payload;
 
                     state.interviewSubmissionsError = null;
@@ -573,11 +447,6 @@ const dashboardSlice = createSlice({
                         "Failed to fetch interview submissions";
                 }
             )
-
-            /* =================================================
-               READY TO SUBMIT SUBMISSIONS
-            ================================================= */
-
             .addCase(
                 getReadyToSubmitSubmissions.pending,
                 (state) => {
@@ -610,9 +479,6 @@ const dashboardSlice = createSlice({
                         "Failed to fetch ready to submit submissions";
                 }
             )
-            /* =================================================
-   ONBOARDED SUBMISSIONS
-================================================= */
 
 .addCase(
     getOnboardedSubmissions.pending,
@@ -626,11 +492,6 @@ const dashboardSlice = createSlice({
     getOnboardedSubmissions.fulfilled,
     (state, action) => {
         state.onboardedSubmissionsLoading = false;
-
-        /*
-         * Backend pagination response stored directly.
-         * No frontend pagination.
-         */
         state.onboardedSubmissions = action.payload;
 
         state.onboardedSubmissionsError = null;
@@ -650,10 +511,6 @@ const dashboardSlice = createSlice({
     },
 });
 
-/* =========================================================
-   ACTIONS
-========================================================= */
-
 export const {
     clearDashboardError,
     clearDashboardSummary,
@@ -665,9 +522,6 @@ export const {
     clearDashboardData,
 } = dashboardSlice.actions;
 
-/* =========================================================
-   SELECTORS
-========================================================= */
 
 export const selectDashboardSummary = (state) =>
     state.dashboard.summary;
@@ -686,8 +540,5 @@ export const selectReadyToSubmitSubmissions = (state) =>
 
 export const selectOnboardedSubmissions = (state) =>
     state.dashboard.onboardedSubmissions;
-/* =========================================================
-   DEFAULT EXPORT
-========================================================= */
 
 export default dashboardSlice.reducer;
