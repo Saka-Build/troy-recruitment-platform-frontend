@@ -609,3 +609,38 @@
 .employee-modal-error span {
     word-break: break-word;
 }
+.employee-password-wrapper {
+    position: relative;
+}
+
+.employee-password-wrapper input {
+    padding-right: 45px;
+}
+
+.employee-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+
+    border: none;
+    background: transparent;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #6b7280;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.employee-password-toggle:hover {
+    color: #374151;
+}
+
+.employee-password-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}

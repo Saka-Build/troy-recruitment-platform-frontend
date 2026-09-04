@@ -965,3 +965,14 @@
         font-size: 12px;
     }
 }
+
+/* Center content inside the Applied For card */
+.summary-blue .summary-content {
+    text-align: center;
+    width: 100%;
+}
+
+.summary-blue .summary-value {
+    text-align: center;
+    overflow-wrap: anywhere;
+}

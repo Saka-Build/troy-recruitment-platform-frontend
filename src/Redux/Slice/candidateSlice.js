@@ -493,27 +493,51 @@ export const deleteCandidate = createAsyncThunk(
     "candidates/deleteCandidate",
     async (id, { rejectWithValue }) => {
         try {
+            const accessToken = localStorage
+                .getItem("accessToken")
+                ?.replace(/^Bearer\s+/i, "")
+                .trim();
+
+            if (!accessToken) {
+                return rejectWithValue(
+                    "Authentication token not found. Please login again."
+                );
+            }
+
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/candidates/delete/${id}`,
+                `/api/v1/candidates/delete/${id}`,
                 {
                     method: "DELETE",
                     headers: {
-                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
                     },
                 }
             );
 
-            const data = await response.json().catch(() => null);
+            const responseText = await response.text();
+
+            let data = null;
+
+            if (responseText) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    data = responseText;
+                }
+            }
+
+            console.log("DELETE STATUS:", response.status);
+            console.log("DELETE RESPONSE:", data);
 
             if (!response.ok) {
                 return rejectWithValue(
                     data?.message ||
-                    "Failed to delete candidate"
+                    (typeof data === "string" ? data : null) ||
+                    `Failed to delete candidate (${response.status})`
                 );
             }
 
             return id;
-
         } catch (error) {
             return rejectWithValue(
                 error.message ||
@@ -522,7 +546,6 @@ export const deleteCandidate = createAsyncThunk(
         }
     }
 );
-
 
 export const getCandidateActivity = createAsyncThunk(
     "candidates/getCandidateActivity",
@@ -1933,7 +1956,9 @@ const candidateSlice = createSlice({
         clearCandidateDetails: (state) => {state.selectedCandidate = null;state.candidateDetailsError = null;},
         clearCandidateActivity: (state) => {state.candidateActivity = [];state.candidateActivityError = null;},        
         clearSubmissionActivities: (state) => {state.submissionActivities = [];state.submissionActivitiesError = null;},
-        clearCandidateApplications: (state) => {state.candidateApplications = [];state.candidateApplicationsError = null;},    
+        clearCandidateApplications: (state) => {
+            state.candidateApplications = [];
+            state.candidateApplicationsError = null;},    
     },
 
     extraReducers: (builder) => {
