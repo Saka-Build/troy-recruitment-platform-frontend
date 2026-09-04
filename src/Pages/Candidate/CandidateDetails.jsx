@@ -808,6 +808,8 @@ function CandidateDetails() {
 
   const candidate =
     selectedCandidate;
+    const appliedForJobName =
+    candidateApplications?.[0]?.jobName || "-";
 
   const getLatestCandidateInterview = () => {
 
@@ -1345,6 +1347,7 @@ function CandidateDetails() {
 
         <ProfileTab
           candidate={candidate}
+          appliedForJobName={appliedForJobName}
         />
 
       )}

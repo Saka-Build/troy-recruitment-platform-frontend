@@ -8,6 +8,7 @@ import {
 } from "../../Redux/Slice/authSlice";
 
 import "./Login.css";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Login = () => {
 
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -157,42 +159,55 @@ const Login = () => {
                         </div>
 
                         {/* Password */}
-                        <div className="mb-3">
-                            <label
-                                htmlFor="password"
-                                className="form-label login-label"
-                            >
-                                Password
-                            </label>
 
-                            <input
-                                type="password"
-                                id="password"
-                                className={`form-control login-input ${
-                                    passwordError ? "input-error" : ""
-                                }`}
-                                placeholder="Enter your password"
-                                value={password}
-                                disabled={isLoading}
-                                onChange={(e) => {
-                                    setPassword(e.target.value);
+{/* Password */}
+<div className="mb-3">
+    <label
+        htmlFor="password"
+        className="form-label login-label"
+    >
+        Password
+    </label>
 
-                                    if (passwordError) {
-                                        setPasswordError("");
-                                    }
+    <div className="password-input-wrapper">
+        <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            className={`form-control login-input ${
+                passwordError ? "input-error" : ""
+            }`}
+            placeholder="Enter your password"
+            value={password}
+            disabled={isLoading}
+            onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) {
+                    setPasswordError("");
+                }
+                if (error) {
+                    dispatch(clearAuthError());
+                }
+            }}
+        />
 
-                                    if (error) {
-                                        dispatch(clearAuthError());
-                                    }
-                                }}
-                            />
+        <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((prev) => !prev)}
+            disabled={isLoading}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+            {showPassword ? <FiEyeOff /> : <FiEye />}
+        </button>
+    </div>
 
-                            {passwordError && (
-                                <div className="field-error">
-                                    {passwordError}
-                                </div>
-                            )}
-                        </div>
+    {passwordError && (
+        <div className="field-error">
+            {passwordError}
+        </div>
+    )}
+</div>
+
 
                         {/* Authentication Error */}
                         {error && (
