@@ -20,59 +20,26 @@ const CandidateModal = ({
   initialData = null,
 }) => {
 
-  /*
-  |--------------------------------------------------------------------------
-  | INITIAL FORM
-  |--------------------------------------------------------------------------
-  */
 
   const getInitialFormData = () => ({
-    /*
-    |----------------------------------------------------------------------
-    | FILES
-    |----------------------------------------------------------------------
-    */
     originalCV: null,
     troyCV: null,
 
-    /*
-    |----------------------------------------------------------------------
-    | CANDIDATE DETAILS
-    |----------------------------------------------------------------------
-    */
     fullName: "",
     designation: "",
     cvOwnerId: "",
     referredBy: "",
     referenceNote: "",
-
-    /*
-    |----------------------------------------------------------------------
-    | CONTACT
-    |----------------------------------------------------------------------
-    */
     email: "",
     phone: "",
     whatsapp: "",
     nationality: "",
     currentLocation: "",
     preferredLocation: "",
-
-    /*
-    |----------------------------------------------------------------------
-    | PROFESSIONAL
-    |----------------------------------------------------------------------
-    */
     currentCompany: "",
     experience: "",
     primarySkills: "",
     secondarySkills: "",
-
-    /*
-    |----------------------------------------------------------------------
-    | ADDITIONAL
-    |----------------------------------------------------------------------
-    */
     noticePeriod: "",
     visaStatus: "",
 
@@ -99,25 +66,28 @@ const CandidateModal = ({
   );
 const [changedFields, setChangedFields] = useState(new Set());
 
-  /*
-  |--------------------------------------------------------------------------
-  | EXISTING FILE INFORMATION
-  |--------------------------------------------------------------------------
-  */
-
   const [existingOriginalCv, setExistingOriginalCv] =
     useState("");
 
   const [existingTroyCv, setExistingTroyCv] =
     useState("");
 
+const formatAmount = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return "";
+  }
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD EDIT DATA
-  |--------------------------------------------------------------------------
-  */
+  const stringValue = String(value);
 
+  // Keep only digits
+  const numericValue = stringValue.replace(/\D/g, "");
+
+  if (!numericValue) {
+    return "";
+  }
+
+  return Number(numericValue).toLocaleString("en-IN");
+};
   useEffect(() => {
 
     if (mode === "edit" && initialData) {
@@ -183,8 +153,10 @@ const [changedFields, setChangedFields] = useState(new Set());
           initialData.currentSalaryCurrency ||
           "INR",
 
+        // currentRateAmount:
+        //   initialData.currentSalaryAmount ?? "",
         currentRateAmount:
-          initialData.currentSalaryAmount ?? "",
+  formatAmount(initialData.currentSalaryAmount),
 
         currentRatePeriod:
           initialData.currentSalaryPeriod ||
@@ -194,8 +166,10 @@ const [changedFields, setChangedFields] = useState(new Set());
           initialData.expectedSalaryCurrency ||
           "INR",
 
+        // dayRateAmount:
+        //   initialData.expectedSalaryAmount ?? "",
         dayRateAmount:
-          initialData.expectedSalaryAmount ?? "",
+  formatAmount(initialData.expectedSalaryAmount),
 
         dayRatePeriod:
           initialData.expectedSalaryPeriod ||
@@ -249,18 +223,36 @@ setFormData(getInitialFormData());
   ]);
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | HANDLE INPUT CHANGE
-  |--------------------------------------------------------------------------
-  */
+// const handleChange = (e) => {
+//   const { name, value } = e.target;
+
+//   setFormData((previous) => ({
+//     ...previous,
+//     [name]: value,
+//   }));
+
+//   if (mode === "edit") {
+//     setChangedFields((previous) => {
+//       const updated = new Set(previous);
+//       updated.add(name);
+//       return updated;
+//     });
+//   }
+// };
+
 
 const handleChange = (e) => {
   const { name, value } = e.target;
 
+  const formattedValue =
+    name === "currentRateAmount" ||
+    name === "dayRateAmount"
+      ? formatAmount(value)
+      : value;
+
   setFormData((previous) => ({
     ...previous,
-    [name]: value,
+    [name]: formattedValue,
   }));
 
   if (mode === "edit") {
@@ -271,8 +263,6 @@ const handleChange = (e) => {
     });
   }
 };
-
-
   /*
   |--------------------------------------------------------------------------
   | HANDLE FILE CHANGE
@@ -341,14 +331,19 @@ const handleSubmit = (e) => {
       formData.noticePeriod === ""
         ? ""
         : Number(formData.noticePeriod),
-    currentRateAmount:
-      formData.currentRateAmount === ""
-        ? ""
-        : Number(formData.currentRateAmount),
-    dayRateAmount:
-      formData.dayRateAmount === ""
-        ? ""
-        : Number(formData.dayRateAmount),
+currentRateAmount:
+  formData.currentRateAmount === ""
+    ? ""
+    : Number(
+        String(formData.currentRateAmount).replace(/,/g, "")
+      ),
+
+dayRateAmount:
+  formData.dayRateAmount === ""
+    ? ""
+    : Number(
+        String(formData.dayRateAmount).replace(/,/g, "")
+      ),
   };
 
   if (mode === "edit") {
@@ -1122,15 +1117,15 @@ const handleSubmit = (e) => {
                   </select>
 
 
-                  <input
-                    type="number"
-                    name="currentRateAmount"
-                    value={formData.currentRateAmount}
-                    onChange={handleChange}
-                    placeholder="Amount"
-                    className="candidate-rate-input"
-                    min="0"
-                  />
+<input
+  type="text"
+  inputMode="numeric"
+  name="currentRateAmount"
+  value={formData.currentRateAmount}
+  onChange={handleChange}
+  placeholder="Amount"
+  className="candidate-rate-input"
+/>
 
 
                   <select
@@ -1181,15 +1176,15 @@ const handleSubmit = (e) => {
                   </select>
 
 
-                  <input
-                    type="number"
-                    name="dayRateAmount"
-                    value={formData.dayRateAmount}
-                    onChange={handleChange}
-                    placeholder="Amount"
-                    className="candidate-rate-input"
-                    min="0"
-                  />
+<input
+  type="text"
+  inputMode="numeric"
+  name="dayRateAmount"
+  value={formData.dayRateAmount}
+  onChange={handleChange}
+  placeholder="Amount"
+  className="candidate-rate-input"
+/>
 
 
                   <select

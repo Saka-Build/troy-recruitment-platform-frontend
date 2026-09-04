@@ -82,7 +82,6 @@ const NotesTab = ({
                 notes.length > 0 && (
 
                 <div className="candidate-notes-list">
-
                     {notes.map((note, index) => (
 
                         <div
@@ -100,15 +99,13 @@ const NotesTab = ({
                             <div className="candidate-note-label">
 
                                 <span>
-                                    Recruiter note
+                                    By: {note.chatWith || "-"}
                                 </span>
 
                                 {note.chatAt && (
                                     <span>
                                         {" · "}
-                                        {formatDate(
-                                            note.chatAt
-                                        )}
+                                        {formatDate(note.chatAt)}
                                     </span>
                                 )}
 
@@ -117,7 +114,6 @@ const NotesTab = ({
                         </div>
 
                     ))}
-
                 </div>
             )}
 
