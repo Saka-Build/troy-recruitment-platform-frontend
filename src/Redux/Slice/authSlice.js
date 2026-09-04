@@ -26,13 +26,6 @@ export const loginUser = createAsyncThunk(
                 email,
                 password
             );
-
-            // const {
-            //     accessToken,
-            //     refreshToken,
-            //     expiresInSeconds,
-            // } = tokenResponse;
-
             const {
     accessToken,
     refreshToken,
