@@ -513,21 +513,23 @@ if (role?.id) {
      * FORMAT MODULE NAME
      * =========================================================
      */
-    const formatModuleName = (module) => {
+const formatModuleName = (module) => {
+    if (!module) {
+        return "";
+    }
 
-        if (!module) {
-            return "";
-        }
+    const moduleName = module
+        .toString()
+        .toLowerCase();
 
-        return module
-            .toString()
-            .toLowerCase()
-            .replace(/\b\w/g, (char) =>
-                char.toUpperCase()
-            );
+    if (moduleName === "user") {
+        return "Employee";
+    }
 
-    };
-
+    return moduleName.replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+    );
+};
 
     /*
      * =========================================================

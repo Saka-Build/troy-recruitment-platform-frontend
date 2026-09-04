@@ -3,7 +3,7 @@ import {
     useRef,
     useState,
 } from "react";
-
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import "./EmployeeModal.css";
 
 
@@ -23,7 +23,7 @@ function EmployeeModal({
 
 
     const isEditMode = Boolean(employee);
-
+const [showPassword, setShowPassword] = useState(false);
     const [validationError, setValidationError,] = useState("");
 
     const [
@@ -639,6 +639,7 @@ function EmployeeModal({
 
 
 {/* CONTACT + WHATSAPP */}
+{/* CONTACT + WHATSAPP */}
 <div className="employee-form-row">
 
     <div className="employee-form-group">
@@ -647,36 +648,14 @@ function EmployeeModal({
             Contact Number
         </label>
 
-        <div className="employee-phone-input-wrapper">
-
-            <span className="employee-country-code">
-                +91
-            </span>
-
-            <input
-                type="text"
-                name="contactNumber"
-                value={form.contactNumber.replace(/^\+91\s*/, '')}
-                onChange={(e) => {
-
-                    const rawValue =
-                        e.target.value.replace(/\D/g, '');
-
-                    setForm((current) => ({
-                        ...current,
-                        contactNumber:
-                            rawValue
-                                ? `+91${rawValue}`
-                                : '',
-                    }));
-
-                }}
-                placeholder="Enter phone number"
-                disabled={isSubmitting}
-                className="employee-phone-input"
-            />
-
-        </div>
+        <input
+            type="text"
+            name="contactNumber"
+            value={form.contactNumber}
+            onChange={handleChange}
+            placeholder="Enter phone number"
+            disabled={isSubmitting}
+        />
 
     </div>
 
@@ -687,67 +666,49 @@ function EmployeeModal({
             WhatsApp Number
         </label>
 
-        <div className="employee-phone-input-wrapper">
-
-            <span className="employee-country-code">
-                +91
-            </span>
-
-            <input
-                type="text"
-                name="whatsappNumber"
-                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
-                onChange={(e) => {
-
-                    const rawValue =
-                        e.target.value.replace(/\D/g, '');
-
-                    setForm((current) => ({
-                        ...current,
-                        whatsappNumber:
-                            rawValue
-                                ? `+91${rawValue}`
-                                : '',
-                    }));
-
-                }}
-                placeholder="Enter WhatsApp number"
-                disabled={isSubmitting}
-                className="employee-phone-input"
-            />
-
-        </div>
+        <input
+            type="text"
+            name="whatsappNumber"
+            value={form.whatsappNumber}
+            onChange={handleChange}
+            placeholder="Enter WhatsApp number"
+            disabled={isSubmitting}
+        />
 
     </div>
 
 </div>
-
-
-{/* PASSWORD - KEEP THIS AT THE BOTTOM */}
 <div className="employee-form-group">
 
     <label>
         Password
     </label>
 
-    <input
-        type="password"
-        name="password"
-        value={form.password}
-        onChange={handleChange}
-        placeholder="Leave blank to keep current password"
-        disabled={isSubmitting}
-    />
+    <div className="employee-password-wrapper">
+        <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Leave blank to keep current password"
+            disabled={isSubmitting}
+        />
+
+        <button
+            type="button"
+            className="employee-password-toggle"
+            onClick={() => setShowPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+            {showPassword ? <FiEyeOff /> : <FiEye />}
+        </button>
+    </div>
 
 </div>
                             </>
 
                         ) : (
-                            /* 
-                             * ============================================================
-                             * CREATE MODE LAYOUT (ORIGINAL)
-                             * ============================================================
-                             */
 
                             <>
                                 {/* FULL NAME + EMPLOYEE ID */}
@@ -811,29 +772,6 @@ function EmployeeModal({
                                         />
 
                                     </div>
-
-                                    {/* <div className="employee-form-group">
-
-                                        <label>
-                                            Role
-                                            <span>*</span>
-                                        </label>
-
-                                        <select
-                                            name="role"
-                                            value={form.role}
-                                            onChange={handleChange}
-                                            disabled={isSubmitting}
-                                        >
-
-                                            <option value="admin">Admin</option>
-                                            <option value="recruiter">Recruiter</option>
-                                            <option value="hr">HR</option>
-
-                                        </select>
-
-                                    </div> */}
-
                                 </div>
 
                                 {/* COUNTRY + STATUS */}
@@ -941,82 +879,76 @@ function EmployeeModal({
                                 </div>
 
                                 {/* CONTACT + WHATSAPP */}
-                                <div className="employee-form-row">
+{/* CONTACT + WHATSAPP */}
+<div className="employee-form-row">
 
-                                    <div className="employee-form-group">
+    <div className="employee-form-group">
 
-                                        <label>
-                                            Contact Number
-                                        </label>
+        <label>
+            Contact Number
+        </label>
 
-                                        <div className="employee-phone-input-wrapper">
-                                            <span className="employee-country-code">+91</span>
-                                            <input
-                                                type="text"
-                                                name="contactNumber"
-                                                value={form.contactNumber.replace(/^\+91\s*/, '')}
-                                                onChange={(e) => {
-                                                    const rawValue = e.target.value.replace(/\D/g, '');
-                                                    setForm((current) => ({
-                                                        ...current,
-                                                        contactNumber: rawValue ? `+91${rawValue}` : '',
-                                                    }));
-                                                }}
-                                                placeholder="Enter phone number"
-                                                disabled={isSubmitting}
-                                                className="employee-phone-input"
-                                            />
-                                        </div>
+        <input
+            type="text"
+            name="contactNumber"
+            value={form.contactNumber}
+            onChange={handleChange}
+            placeholder="Enter phone number"
+            disabled={isSubmitting}
+        />
 
-                                    </div>
+    </div>
 
-                                    <div className="employee-form-group">
 
-                                        <label>
-                                            WhatsApp Number
-                                        </label>
+    <div className="employee-form-group">
 
-                                        <div className="employee-phone-input-wrapper">
-                                            <span className="employee-country-code">+91</span>
-                                            <input
-                                                type="text"
-                                                name="whatsappNumber"
-                                                value={form.whatsappNumber.replace(/^\+91\s*/, '')}
-                                                onChange={(e) => {
-                                                    const rawValue = e.target.value.replace(/\D/g, '');
-                                                    setForm((current) => ({
-                                                        ...current,
-                                                        whatsappNumber: rawValue ? `+91${rawValue}` : '',
-                                                    }));
-                                                }}
-                                                placeholder="Enter WhatsApp number"
-                                                disabled={isSubmitting}
-                                                className="employee-phone-input"
-                                            />
-                                        </div>
+        <label>
+            WhatsApp Number
+        </label>
 
-                                    </div>
+        <input
+            type="text"
+            name="whatsappNumber"
+            value={form.whatsappNumber}
+            onChange={handleChange}
+            placeholder="Enter WhatsApp number"
+            disabled={isSubmitting}
+        />
 
-                                </div>
+    </div>
+
+</div>
 
                                 {/* PASSWORD */}
-                                <div className="employee-form-group">
+<div className="employee-form-group">
 
-                                    <label>
-                                        Password
-                                        <span>*</span>
-                                    </label>
+    <label>
+        Password
+        <span>*</span>
+    </label>
 
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        value={form.password}
-                                        onChange={handleChange}
-                                        placeholder="Enter password"
-                                        disabled={isSubmitting}
-                                    />
+    <div className="employee-password-wrapper">
+        <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter password"
+            disabled={isSubmitting}
+        />
 
-                                </div>
+        <button
+            type="button"
+            className="employee-password-toggle"
+            onClick={() => setShowPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+            {showPassword ? <FiEyeOff /> : <FiEye />}
+        </button>
+    </div>
+
+</div>
                             </>
                         )}
 

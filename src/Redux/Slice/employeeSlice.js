@@ -300,22 +300,20 @@ export const updateEmployee = createAsyncThunk(
         },
         { rejectWithValue }
     ) => {
-
         try {
+            const headers = getFormDataHeaders();
+
+            if (!headers) {
+                return rejectWithValue(
+                    "User not authenticated. Access token not found."
+                );
+            }
 
             const formData = new FormData();
-const headers = getFormDataHeaders();
 
-if (!headers) {
-    return rejectWithValue(
-        "User not authenticated. Access token not found."
-    );
-}
             const employeeBlob = new Blob(
                 [
-                    JSON.stringify(
-                        employeeData
-                    ),
+                    JSON.stringify(employeeData),
                 ],
                 {
                     type: "application/json",
@@ -327,70 +325,35 @@ if (!headers) {
                 employeeBlob
             );
 
-            if (photoFile) {
-
+            // Only append photo when a NEW photo is selected
+            if (photoFile instanceof File) {
                 formData.append(
                     "photo",
                     photoFile
                 );
             }
 
-
-            console.log(
-                "UPDATE URL:",
-                `${API_BASE_URL}/api/v1/employees/update/${id}`
+            const response = await fetch(
+                `${API_BASE_URL}/api/v1/employees/update/${id}`,
+                {
+                    method: "PUT",
+                    headers,
+                    body: formData,
+                }
             );
 
-            console.log(
-                "UPDATE BODY:",
-                employeeData
-            );
-
-
-            const response =
-                await fetch(
-                        `${API_BASE_URL}/api/v1/employees/update/${id}`,
-                        {
-                            method: "PUT",
-                            headers,
-                            body: formData,
-                        }
-                    );
-
-
-            const data =
-                await response.json();
-
-
-            console.log(
-                "UPDATE RESPONSE STATUS:",
-                response.status
-            );
-
-            console.log(
-                "UPDATE RESPONSE:",
-                data
-            );
-
+            const data = await response.json();
 
             if (!response.ok) {
-
                 throw new Error(
                     data?.message ||
                     "Failed to update employee."
                 );
             }
 
-
             return data;
 
         } catch (error) {
-
-            console.error(
-                "UPDATE EMPLOYEE ERROR:",
-                error
-            );
-
             return rejectWithValue(
                 error.message ||
                 "Failed to update employee."
@@ -398,7 +361,6 @@ if (!headers) {
         }
     }
 );
-
 export const deleteEmployee = createAsyncThunk(
     "employees/deleteEmployee",
     async (id, { rejectWithValue }) => {
@@ -463,31 +425,31 @@ export const getAllSubmissions = createAsyncThunk(
         {
             page = 0,
             size = 20,
-            statusId = "",
+            statusId = [],
             jobId = "",
             clientId = "",
             search = "",
         } = {},
         { rejectWithValue }
     ) => {
-
         try {
-
             const params = new URLSearchParams();
             const headers = getAuthHeaders();
 
-if (!headers) {
-    return rejectWithValue(
-        "User not authenticated. Access token not found."
-    );
-}
+            if (!headers) {
+                return rejectWithValue(
+                    "User not authenticated. Access token not found."
+                );
+            }
 
             params.append("page", page);
             params.append("size", size);
-
-            if (statusId) {
-                params.append("statusId", statusId);
-            }
+if (Array.isArray(statusId) && statusId.length > 0) {
+    params.append("statusIds", statusId.join(","));
+} else if (statusId) {
+    // Keeps backward compatibility with a single status
+    params.append("statusIds", statusId);
+}
 
             if (jobId) {
                 params.append("jobId", jobId);
@@ -496,33 +458,30 @@ if (!headers) {
             if (clientId) {
                 params.append("clientId", clientId);
             }
-            if (search) { params.append("search", search); }
+
+            if (search) {
+                params.append("search", search);
+            }
 
             const response = await fetch(
                 `${API_BASE_URL}/api/v1/submissions?${params.toString()}`,
-    {
-        method: "GET",
-        headers,
-    }
+                {
+                    method: "GET",
+                    headers,
+                }
             );
-
 
             const data = await response.json();
 
-
             if (!response.ok) {
-
                 throw new Error(
                     data?.message ||
                     "Failed to fetch submissions."
                 );
             }
 
-
             return data;
-
         } catch (error) {
-
             return rejectWithValue(
                 error.message ||
                 "Failed to fetch submissions."

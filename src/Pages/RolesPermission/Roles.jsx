@@ -263,18 +263,23 @@ const handleRoleSaved = async (actionType) => {
      * FORMAT MODULE NAME
      * =========================================================
      */
-    const formatModuleName = (module) => {
-        if (!module) {
-            return "";
-        }
+const formatModuleName = (module) => {
+    if (!module) {
+        return "";
+    }
 
-        return module
-            .toString()
-            .toLowerCase()
-            .replace(/\b\w/g, (char) =>
-                char.toUpperCase()
-            );
-    };
+    const moduleName = module
+        .toString()
+        .toLowerCase();
+
+    if (moduleName === "user") {
+        return "Employee";
+    }
+
+    return moduleName.replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+    );
+};
 
     /*
      * =========================================================
