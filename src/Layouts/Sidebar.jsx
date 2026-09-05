@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser, setActiveRole, setRoles } from "../Redux/Slice/authSlice";
 import { switchRole } from "../Redux/Slice/roleSlice";
@@ -18,6 +18,7 @@ import Toast from "../Components/Toast";
 function Sidebar() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const location = useLocation();
 
     const {
         user,
@@ -88,10 +89,25 @@ function Sidebar() {
             path: "/dashboard/roles",
             icon: <FiShield />,
         },
+        // {
+        //     name: "Reports",
+        //     path: "/dashboard/reports",
+        //     icon: <FiBarChart2 />,
+        // },
         {
             name: "Reports",
             path: "/dashboard/reports",
             icon: <FiBarChart2 />,
+            children: [
+                {
+                    name: "Expand View",
+                    path: "/dashboard/reports/expand",
+                },
+                {
+                    name: "Tabular View",
+                    path: "/dashboard/reports/tabular",
+                },
+            ],
         },
     ];
 
@@ -338,41 +354,75 @@ const handleRoleChange = async (event) => {
                 }
                 style={{ cursor: "pointer" }}
             >
-<img
-    src={`${import.meta.env.BASE_URL}Troylogo1.png`}
-    alt="Troy Consultancy"
-    className="troy-logo-image"
-/>
+                <img
+                    src={`${import.meta.env.BASE_URL}Troylogo1.png`}
+                    alt="Troy Consultancy"
+                    className="troy-logo-image"
+                />
             </div>
 
             <nav className="sidebar-nav">
-                {menuItems.map((item) => (
-                    <NavLink
-                        key={item.name}
-                        to={item.path}
-                        end={
-                            item.path ===
-                            "/dashboard"
-                        }
-                        className={({
-                            isActive,
-                        }) =>
-                            `sidebar-link ${
-                                isActive
-                                    ? "active"
-                                    : ""
-                            }`
-                        }
-                    >
-                        <span className="sidebar-icon">
-                            {item.icon}
-                        </span>
+                {menuItems.map((item) => {
+                    const isReports = item.name === "Reports";
 
-                        <span className="sidebar-link-text">
-                            {item.name}
-                        </span>
-                    </NavLink>
-                ))}
+                    const isReportsActive =
+                        isReports &&
+                        location.pathname.startsWith("/dashboard/reports");
+
+                    return (
+                        <div
+                            key={item.name}
+                            className="sidebar-menu-group"
+                        >
+                            <NavLink
+                                to={item.path}
+                                end={
+                                    item.path === "/dashboard" ||
+                                    isReports
+                                }
+                                className={({ isActive }) =>
+                                    `sidebar-link ${
+                                        isActive || isReportsActive
+                                            ? "active"
+                                            : ""
+                                    }`
+                                }
+                            >
+                                <span className="sidebar-icon">
+                                    {item.icon}
+                                </span>
+
+                                <span className="sidebar-link-text">
+                                    {item.name}
+                                </span>
+                            </NavLink>
+
+                            {isReports && (
+                                <div className="sidebar-submenu">
+                                    {item.children.map((child) => (
+                                        <NavLink
+                                            key={child.name}
+                                            to={child.path}
+                                            className={({ isActive }) =>
+                                                `sidebar-sublink ${
+                                                    isActive ? "active" : ""
+                                                }`
+                                            }
+                                        >
+                                            <span className="sidebar-sublink-dot">
+                                                •
+                                            </span>
+
+                                            <span>
+                                                {child.name}
+                                            </span>
+                                        </NavLink>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </nav>
 
             <div className="sidebar-bottom">
