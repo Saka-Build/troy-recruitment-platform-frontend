@@ -532,7 +532,7 @@
 
 .candidate-summary-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     width: 100%;
 }
@@ -892,7 +892,7 @@
 
 @media (max-width: 1100px) {
     .candidate-summary-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 
     .profile-top-grid {

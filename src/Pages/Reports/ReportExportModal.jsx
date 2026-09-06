@@ -24,7 +24,7 @@ const ReportExportModal = ({
     isOpen,
     onClose,
     onExport,
-    initialFilters = {},
+    // initialFilters = {},
 }) => {
 
     const dispatch = useDispatch();
@@ -41,17 +41,17 @@ const ReportExportModal = ({
     const applicationStatuses = useSelector(
         selectApplicationStatusList
     );
-useEffect(() => {
-    if (!isOpen) {
-        return;
-    }
+// useEffect(() => {
+//     if (!isOpen) {
+//         return;
+//     }
 
-    setJob(initialFilters?.jobId || "");
-    setClient(initialFilters?.clientId || "");
-    setApplicationStatus(
-        initialFilters?.statusId || ""
-    );
-}, [isOpen, initialFilters]);
+//     setJob(initialFilters?.jobId || "");
+//     setClient(initialFilters?.clientId || "");
+//     setApplicationStatus(
+//         initialFilters?.statusId || ""
+//     );
+// }, [isOpen, initialFilters]);
     const loading = useSelector(selectReportLoading);
 
     const exportLoading = useSelector(selectExportLoading);

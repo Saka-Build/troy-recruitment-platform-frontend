@@ -705,7 +705,7 @@ initialState: {
 
     submissionsPagination: {
         pageNumber: 0,
-        pageSize: 20,
+        pageSize: 100,
         totalPages: 0,
         totalElements: 0,
         numberOfElements: 0,
@@ -767,7 +767,7 @@ employeeExportError: null,
 
                     pageNumber: 0,
 
-                    pageSize: 20,
+                    pageSize: 100,
 
                     totalPages: 0,
 
