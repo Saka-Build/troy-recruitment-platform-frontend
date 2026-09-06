@@ -70,12 +70,12 @@ const ProfileTab = ({ candidate, appliedForJobName, }) => {
     return (
         <div className="profile-tab">
             <div className="candidate-summary-grid">
-                <SummaryCard
+                {/* <SummaryCard
                     icon={<FiBriefcase />}
                     label="Applied For"
                     value={appliedFor}
                     type="blue"
-                />
+                /> */}
 
                 <SummaryCard
                     icon={<FiUser />}

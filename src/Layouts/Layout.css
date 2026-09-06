@@ -1000,3 +1000,42 @@
     margin-bottom: 14px;
 }
 
+
+/* Reports submenu */
+
+.sidebar-menu-group {
+    width: 100%;
+}
+
+.sidebar-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 8px 42px;
+}
+
+.sidebar-sublink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--sidebar-text-color);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-sublink:hover {
+    background: var(--sidebar-hover-bg);
+}
+
+.sidebar-sublink.active {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+}
+
+.sidebar-sublink-dot {
+    font-size: 16px;
+}

@@ -21,6 +21,7 @@ import JobRoleReport from "./Pages/Reports/JobRoleReport";
 import "./App.css";
 import Roles from "./Pages/RolesPermission/Roles";
 import EmployeeDetails from "./Pages/Employees/EmployeeDetails";
+import TabularReport from "./Pages/Reports/TabularReport";
 
 
 function ProtectedRoute({ children }) {
@@ -72,8 +73,10 @@ function App() {
                     <Route path="employees" element={<Employees />}/>
                     <Route path="employees/:employeeId" element={<EmployeeDetails />}/>
 
-                    <Route path="reports" element={<JobRoleReport />}/>
-
+                    {/* <Route path="reports" element={<JobRoleReport />}/> */}
+                    <Route path="reports" element={<Navigate to="/dashboard/reports/expand" replace />}/>
+                    <Route path="reports/expand" element={<JobRoleReport />}/>
+                    <Route path="reports/tabular" element={<TabularReport />}/>
                 </Route>
 
                 <Route path="*" element={<PageNotFound />} />
