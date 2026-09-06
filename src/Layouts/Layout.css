@@ -637,26 +637,26 @@
   overflow: hidden;
 }
 
-.advanced-btn::before {
+/* .advanced-btn::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(50, 109, 246, 0.05), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
-}
+} */
 
-.advanced-btn:hover::before {
+/* .advanced-btn:hover::before {
   opacity: 1;
-}
+} */
 
-.advanced-btn:hover {
+/* .advanced-btn:hover {
   border-color: #326df6;
   color: #326df6;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(50, 109, 246, 0.15);
-}
-
+} */
+/* 
 .advanced-btn:active {
   transform: scale(0.95);
 }
@@ -668,7 +668,7 @@
 
 .advanced-btn:hover .advanced-icon {
   transform: rotate(20deg) scale(1.1);
-}
+} */
 
 /* ===== HEADER ICON BUTTONS ===== */
 .header-icon-btn {
@@ -726,9 +726,9 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.theme-toggle:hover {
+/* .theme-toggle:hover {
   transform: translateY(-2px) rotate(15deg);
-}
+} */
 
 /* Notification Button */
 .notification-btn {
@@ -739,9 +739,9 @@
   transition: transform 0.3s ease;
 }
 
-.notification-btn:hover .notification-icon {
+/* .notification-btn:hover .notification-icon {
   transform: scale(1.1) rotate(-10deg);
-}
+} */
 
 .notification-count {
   position: absolute;
@@ -1038,4 +1038,8 @@
 
 .sidebar-sublink-dot {
     font-size: 16px;
+}
+.advanced-btn:disabled,
+.notification-btn:disabled {
+  cursor: not-allowed;
 }

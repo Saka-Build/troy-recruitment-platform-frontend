@@ -26,7 +26,7 @@ function Header() {
   return (
     <header className="top-header">
       <div className="header-actions">
-        <button className="advanced-btn" onClick={openAdvanced}>
+        <button className="advanced-btn" onClick={openAdvanced} disabled>
           <span className="advanced-icon">⚡</span>
           Advanced
         </button>
@@ -43,7 +43,7 @@ function Header() {
           </span>
         </button>
 
-        <button className="header-icon-btn notification-btn">
+        <button className="header-icon-btn notification-btn" disabled>
           <span className="notification-icon">🔔</span>
           <span className="notification-count">2</span>
           <span className="tooltip">Notifications</span>
