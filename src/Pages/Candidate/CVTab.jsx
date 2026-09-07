@@ -351,10 +351,10 @@ const CVTab = ({ candidate }) => {
                     <span>
                         File
                     </span>
-
+{/* 
                     <strong>
                         {fileName}
-                    </strong>
+                    </strong> */}
 
                 </div>
 
