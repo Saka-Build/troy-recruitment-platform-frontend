@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {FiSearch,FiRotateCcw,FiChevronDown,FiMail,FiPhone,FiDownload,FiUsers,FiUserPlus,FiCheckCircle,FiFilter,FiX,} from "react-icons/fi";
+import {FiSearch,FiRotateCcw,FiChevronDown,FiMail,FiPhone,FiDownload,FiUsers,FiUserPlus,FiCheckCircle,FiFilter,FiX,FiFileText} from "react-icons/fi";
 import { getAllSubmissions } from "../../Redux/Slice/employeeSlice";
-import { getSubmissionFilters } from "../../Redux/Slice/reportSlice";
+import { getSubmissionFilters,  getHopeListReport, } from "../../Redux/Slice/reportSlice";
 import "./TabularReport.css";
 import ExcelJS from "exceljs";
 import CommonPagination from "../../Components/CommonPagination";
@@ -12,7 +12,19 @@ import ReportExportModal from "./ReportExportModal";
 function TabularReport() {
     const dispatch = useDispatch();
 
-    const {submissions = [],submissionsLoading,submissionsError,submissionsPagination,} = useSelector((state) => state.employees || {});
+   const {
+    hopeListReport = {},
+    hopeListLoading,
+    hopeListError,
+} = useSelector((state) => state.report || {});
+
+const submissions = hopeListReport?.content || [];
+
+const submissionsPagination = {
+    totalPages: hopeListReport?.totalPages || 0,
+    totalElements: hopeListReport?.totalElements || 0,
+    pageSize: hopeListReport?.size || 100,
+};
     const { submissionFilters = {} } = useSelector((state) => state.report || {});
 
     const [search, setSearch] = useState("");
@@ -56,22 +68,41 @@ function TabularReport() {
         });
     };
 
-    useEffect(() => {
-        const selectedStatusIds = applicationStatuses
-            .filter((status) => applicationStatusFilter.includes(status.value))
-            .map((status) => status.id);
+useEffect(() => {
+    const selectedStatusIds = applicationStatuses
+        .filter((status) =>
+            applicationStatusFilter.includes(status.value)
+        )
+        .map((status) => status.id);
 
-        dispatch(
-            getAllSubmissions({
-                page: currentPage - 1,
-                size: 100,
-                search: search.trim(),
-                jobId: jobFilter,
-                statusId: selectedStatusIds,
-                clientId: clientFilter,
-            })
-        );
-    }, [dispatch,currentPage,search,jobFilter,applicationStatusFilter,clientFilter,applicationStatuses,]);
+    dispatch(
+        getHopeListReport({
+            page: currentPage - 1,
+            size: 100,
+            search: search.trim(),
+            jobId: jobFilter,
+            clientId: clientFilter,
+
+            // Multiple status IDs
+            statusIds: selectedStatusIds,
+
+            // Order will remain exactly as passed
+            sort: [
+                "job.client.name,asc",
+                "job.endClient.name,asc",
+                "job.title,asc",
+            ],
+        })
+    );
+}, [
+    dispatch,
+    currentPage,
+    search,
+    jobFilter,
+    clientFilter,
+    applicationStatusFilter,
+    applicationStatuses,
+]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -391,36 +422,41 @@ function TabularReport() {
                 </div>
             </div>
 
-            {submissionsLoading ? (
+            {hopeListLoading ? (
                 <div className="tabular-table-card">
                     <div className="tabular-empty-state">
                         <div className="tabular-loading-spinner"></div>
-                        <strong>Loading submissions...</strong>
+                        <strong>Loading hope list...</strong>
                     </div>
                 </div>
-            ) : submissionsError ? (
+            ) : hopeListError ? (
                 <div className="tabular-table-card">
                     <div className="tabular-empty-state">
                         <div className="tabular-error-content">
-                            <strong>Failed to load submissions</strong>
-                            <span className="tabular-error-message">{submissionsError}</span>
+                            <strong>Failed to load hope list</strong>
+                            <span className="tabular-error-message">{hopeListError}</span>
                             <button
                                 type="button"
                                 className="tabular-retry-btn"
                                 onClick={() => {
-                                    const selectedStatusIds =
-                                        applicationStatuses
-                                            .filter((status) => applicationStatusFilter.includes(status.value))
-                                            .map((status) => status.id);
+                                    const selectedStatusIds = applicationStatuses
+                                        .filter((status) => applicationStatusFilter.includes(status.value))
+                                        .map((status) => status.id);
 
                                     dispatch(
-                                        getAllSubmissions({
+                                        getHopeListReport({
                                             page: currentPage - 1,
-                                            size: 100,
+                                            size: 20,
                                             search: search.trim(),
                                             jobId: jobFilter,
                                             statusId: selectedStatusIds,
                                             clientId: clientFilter,
+
+                                            sort: [
+                                                "job.client.name,asc",
+                                                "job.endClient.name,asc",
+                                                "job.title,asc",
+                                            ],
                                         })
                                     );
                                 }}
@@ -516,9 +552,42 @@ function TabularReport() {
                                                     </div>
 
                                                     <div className="tabular-candidate-info">
-                                                        <div className="tabular-candidate-name">
-                                                            {displayValue(item.candidateName)}
-                                                        </div>
+<div className="tabular-candidate-name">
+    <span>{displayValue(item.candidateName)}</span>
+
+{item.latestCandidateNote?.content && (
+    <div className="tabular-note-wrapper">
+        <button
+            type="button"
+            className="tabular-note-icon"
+            aria-label="View latest candidate note"
+        >
+            <FiFileText />
+        </button>
+
+        <div className="tabular-note-tooltip">
+            <div className="tabular-note-tooltip-header">
+                <FiFileText />
+                <span>Latest Candidate Note</span>
+            </div>
+
+            <div className="tabular-note-tooltip-content">
+                {item.latestCandidateNote.content}
+            </div>
+
+            <div className="tabular-note-tooltip-footer">
+                <span>
+                    {item.latestCandidateNote.chatWith || "—"}
+                </span>
+
+                <span>
+                    {item.latestCandidateNote.chatAt || "—"}
+                </span>
+            </div>
+        </div>
+    </div>
+)}
+</div>
 
                                                         <div className="tabular-candidate-designation">
                                                             {displayValue(item.candidateDesignation)}
@@ -554,14 +623,48 @@ function TabularReport() {
                                                                     <FiPhone />
                                                                 </span>
                                                             )}
+                                                            {/* {item.latestCandidateNote?.content && (
+                <div
+                    className="tabular-candidate-note"
+                    title={item.latestCandidateNote.content}
+                >
+                    <span className="tabular-candidate-note-label">
+                        Note:
+                    </span>
+
+                    <span className="tabular-candidate-note-content">
+                        {item.latestCandidateNote.content}
+                    </span>
+                </div>
+            )} */}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span className={`tabular-status-badge ${getBadgeClass(item.statusName)}`}>
-                                                    {getApplicationStatusLabel(item.statusName)}
-                                                </span>
+                                                <div className="tabular-status-cell">
+                                                    <span
+                                                        className={`tabular-status-badge ${getBadgeClass(
+                                                            item.statusName
+                                                        )}`}
+                                                    >
+                                                        {getApplicationStatusLabel(item.statusName)}
+                                                    </span>
+
+                                                    {(item.statusUpdatedAt || item.statusUpdatedBy) && (
+                                                        <div className="tabular-status-hint">
+                                                            {item.statusUpdatedAt && (
+                                                                <span>{item.statusUpdatedAt}</span>
+                                                            )}
+                                                            <br />
+                                                            {item.statusUpdatedBy && (
+                                                                <span>
+                                                                    By {item.statusUpdatedBy}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
 
                                             <td>
@@ -602,11 +705,11 @@ function TabularReport() {
                     isOpen={showExportModal}
                     onClose={() => setShowExportModal(false)}
                     onExport={handleExport}
-                    // initialFilters={{
-                    //     jobId: jobFilter,
-                    //     clientId: clientFilter,
-                    //     statusId: applicationStatuses.filter((status) =>applicationStatusFilter.includes(status.value)).map((status) => status.id),
-                    // }}
+                    initialFilters={{
+                        jobId: jobFilter,
+                        clientId: clientFilter,
+                        statusIds: applicationStatuses.filter((status) =>applicationStatusFilter.includes(status.value)).map((status) => status.id),
+                    }}
                 />
             )}
         </div>

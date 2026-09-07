@@ -201,11 +201,18 @@ exportJobs: async (params = {}) => {
 
     const response = await axios.post(
         `${API_BASE_URL}/api/v1/jobs/export`,
+
+        // Request body
+        {},
+
+        // Axios config
         {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
+
             params: requestParams,
+
             responseType: "blob",
         }
     );

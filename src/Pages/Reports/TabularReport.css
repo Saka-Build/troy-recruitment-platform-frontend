@@ -402,10 +402,9 @@
     background: white;
     border-radius: 16px;
     border: 1px solid #e2e8f0;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
 }
-
 .tabular-table-header {
     padding: 18px 24px;
     border-bottom: 1px solid #e2e8f0;
@@ -908,4 +907,171 @@
         padding: 10px 12px;
         font-size: 12px;
     }
+}
+/* ===== CANDIDATE NAME + NOTE ===== */
+
+.tabular-candidate-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.tabular-note-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Note icon */
+.tabular-note-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    border: 1px solid #dbe4ef;
+    border-radius: 6px;
+
+    background: #f8fafc;
+    color: #64748b;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabular-note-icon:hover {
+    background: #eef4ff;
+    border-color: #b8c9e6;
+    color: #3b5b8a;
+}
+
+.tabular-note-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ===== NOTE TOOLTIP ===== */
+
+.tabular-note-tooltip {
+    position: absolute;
+
+    /* Open to the RIGHT of the icon */
+    left: calc(100% + 10px);
+    top: 60%;
+
+    transform: translateY(-50%) translateX(5px);
+
+    width: 320px;
+    max-width: 320px;
+
+    padding: 14px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        visibility 0.2s ease;
+
+    z-index: 9999;
+}
+
+/* Small arrow pointing to icon */
+.tabular-note-tooltip::before {
+    content: "";
+
+    position: absolute;
+
+    left: -6px;
+    top: 60%;
+
+    transform: translateY(-50%);
+
+    width: 10px;
+    height: 10px;
+
+    background: #ffffff;
+
+    border-left: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+
+    transform: translateY(-50%) rotate(45deg);
+}
+
+/* Show tooltip */
+.tabular-note-wrapper:hover .tabular-note-tooltip,
+.tabular-note-wrapper:focus-within .tabular-note-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(-50%) translateX(0);
+}
+
+/* ===== TOOLTIP HEADER ===== */
+
+.tabular-note-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+
+    border-bottom: 1px solid #eef2f7;
+
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.tabular-note-tooltip-header svg {
+    width: 15px;
+    height: 15px;
+    color: #64748b;
+}
+
+/* ===== NOTE CONTENT ===== */
+
+.tabular-note-tooltip-content {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #475569;
+
+    word-break: break-word;
+}
+
+/* ===== TOOLTIP FOOTER ===== */
+
+.tabular-note-tooltip-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    margin-top: 12px;
+    padding-top: 10px;
+
+    border-top: 1px solid #eef2f7;
+
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.tabular-note-tooltip-footer span:first-child {
+    font-weight: 600;
+    color: #64748b;
 }

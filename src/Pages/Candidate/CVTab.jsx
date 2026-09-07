@@ -20,6 +20,16 @@ const CVTab = ({ candidate }) => {
 
     /*
     |--------------------------------------------------------------------------
+    | API BASE URL
+    |--------------------------------------------------------------------------
+    */
+
+    const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "";
+
+
+    /*
+    |--------------------------------------------------------------------------
     | GET FILE NAME
     |--------------------------------------------------------------------------
     */
@@ -40,110 +50,168 @@ const CVTab = ({ candidate }) => {
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | FILE NAMES
-    |--------------------------------------------------------------------------
-    */
-
     const originalCvName =
-        getFileName(
-            candidate.originalCvUrl
-        );
+        getFileName(candidate.originalCvUrl);
 
     const troyCvName =
-        getFileName(
-            candidate.troyCvUrl
-        );
+        getFileName(candidate.troyCvUrl);
 
 
     /*
     |--------------------------------------------------------------------------
-    | GET FILE URL
+    | GET JWT TOKEN
     |--------------------------------------------------------------------------
+    |
+    | Change this key ONLY if your application stores the JWT
+    |
     */
 
-    const getFileUrl = (fileUrl) => {
+    const getAuthToken = () => {
 
-        if (!fileUrl) {
-            return null;
-        }
-
-        /*
-         * Already a complete URL
-         */
-
-        if (
-            fileUrl.startsWith("http://") ||
-            fileUrl.startsWith("https://")
-        ) {
-            return fileUrl;
-        }
-
-        /*
-         * Relative URL
-         */
-
-        const API_BASE_URL =
-            import.meta.env.VITE_API_BASE_URL || "";
-
-        return `${API_BASE_URL}${fileUrl}`;
+        return (
+            localStorage.getItem("token") ||
+            localStorage.getItem("accessToken") ||
+            sessionStorage.getItem("token") ||
+            sessionStorage.getItem("accessToken")
+        );
     };
 
 
     /*
     |--------------------------------------------------------------------------
-    | FETCH FILE SAFELY
+    | GET DOWNLOAD API URL
     |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | We fetch the file ourselves instead of directly putting the URL
-    | inside iframe / anchor.
-    |
-    | Therefore if backend returns 401, 403, 404, 500 etc.,
-    | we show an error instead of navigating to login.
+    */
+
+    const getDownloadApiUrl = (candidateId, cvType) => {
+
+        return `${API_BASE_URL}/api/v1/candidates/${candidateId}/download/cv/${cvType}`;
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET PRESIGNED S3 URL FROM BACKEND
+    |--------------------------------------------------------------------------
     |
     */
 
-    const fetchFile = async (fileUrl) => {
+    const getPresignedUrl = async (cvType) => {
 
         const url =
-            getFileUrl(fileUrl);
+            getDownloadApiUrl(
+                candidate.id,
+                cvType
+            );
 
-        if (!url) {
-            throw new Error("File URL not found");
+        const token =
+            getAuthToken();
+
+        const headers = {
+            "Accept": "application/json"
+        };
+
+     
+
+        if (token) {
+            headers["Authorization"] =
+                `Bearer ${token}`;
         }
 
         const response =
             await fetch(url, {
                 method: "GET",
-                credentials: "include",
-                redirect: "manual",
+                headers,
+                credentials: "include"
             });
 
+        if (!response.ok) {
+
+            let errorMessage =
+                `Download API failed: ${response.status}`;
+
+            try {
+
+                const errorText =
+                    await response.text();
+
+                if (errorText) {
+                    errorMessage =
+                        errorText;
+                }
+
+            } catch (e) {
+                // Ignore error parsing
+            }
+
+            throw new Error(errorMessage);
+        }
+
+        const data =
+            await response.json();
+
         /*
-         * Any HTTP error should be handled here.
+         * 
+         *
+         * url
+         * fileName
+         *
          */
 
-        if (!response.ok) {
+        if (!data || !data.url) {
             throw new Error(
-                `File request failed: ${response.status}`
+                "Backend did not return a presigned URL"
             );
         }
 
+        return data;
+    };
+
+
+  //Downlad from S3
+
+   const handleDownload = async (cvType) => {
+
+    setFileError(null);
+    setLoadingFile(true);
+
+    try {
+
         /*
-         * Make sure the response actually contains data.
+         * Ask backend for the presigned S3 URL.
+         */
+        const downloadData =
+            await getPresignedUrl(cvType);
+
+        console.log(
+            "Presigned URL received:",
+            downloadData
+        );
+
+        /*
+         * Therefore S3 will return the file as a download.
          */
 
-        const blob =
-            await response.blob();
+        window.location.href =
+            downloadData.url;
 
-        if (!blob || blob.size === 0) {
-            throw new Error("Empty file");
-        }
+    } catch (error) {
 
-        return blob;
-    };
+        console.error(
+            "CV download failed:",
+            error
+        );
+
+        setFileError({
+            type: "download",
+            message: "Failed to download CV."
+        });
+
+    } finally {
+
+        setLoadingFile(false);
+    }
+};
 
 
     /*
@@ -152,39 +220,56 @@ const CVTab = ({ candidate }) => {
     |--------------------------------------------------------------------------
     */
 
-    const handlePreview = async (
-        fileUrl,
-        fileName
-    ) => {
-
-        if (!fileUrl) {
-            return;
-        }
-
-        /*
-         * Clear previous error
-         */
+    const handlePreview = async (cvType) => {
 
         setFileError(null);
-
         setLoadingFile(true);
 
         try {
 
-            const blob =
-                await fetchFile(fileUrl);
-
             /*
-             * Create temporary browser URL
+             * Get presigned S3 URL from backend.
              */
 
-            const blobUrl =
-                URL.createObjectURL(blob);
+            const downloadData =
+                await getPresignedUrl(cvType);
 
-            setPreviewFile({
-                url: blobUrl,
-                name: fileName,
-            });
+
+        
+
+            const fileName =
+                downloadData.fileName || "CV";
+
+            const extension =
+                fileName
+                    .split(".")
+                    .pop()
+                    ?.toLowerCase();
+
+
+            if (
+                extension === "pdf"
+            ) {
+
+                setPreviewFile({
+                    url: downloadData.url,
+                    name: fileName
+                });
+
+            } else {
+
+                /*
+                 * DOC/DOCX cannot reliably be previewed
+                 * directly by the browser.
+                 */
+
+                setFileError({
+                    type: "preview",
+                    message:
+                        "Preview is available for PDF files. Please use Download for DOC/DOCX files."
+                });
+
+            }
 
         } catch (error) {
 
@@ -193,101 +278,10 @@ const CVTab = ({ candidate }) => {
                 error
             );
 
-            /*
-             * DO NOT redirect.
-             * DO NOT navigate to login.
-             */
-
-            setPreviewFile(null);
-
             setFileError({
                 type: "preview",
-                name: fileName,
-                message: "Failed to open file.",
-            });
-
-        } finally {
-
-            setLoadingFile(false);
-
-        }
-    };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DOWNLOAD
-    |--------------------------------------------------------------------------
-    */
-
-    const handleDownload = async (
-        fileUrl,
-        fileName
-    ) => {
-
-        if (!fileUrl) {
-            return;
-        }
-
-        setFileError(null);
-
-        setLoadingFile(true);
-
-        try {
-
-            const blob =
-                await fetchFile(fileUrl);
-
-            /*
-             * Create temporary URL
-             */
-
-            const blobUrl =
-                URL.createObjectURL(blob);
-
-            /*
-             * Download file without opening
-             * a new tab.
-             */
-
-            const link =
-                document.createElement("a");
-
-            link.href =
-                blobUrl;
-
-            link.download =
-                fileName || "CV";
-
-            document.body.appendChild(link);
-
-            link.click();
-
-            document.body.removeChild(link);
-
-            /*
-             * Release temporary URL
-             */
-
-            setTimeout(() => {
-                URL.revokeObjectURL(blobUrl);
-            }, 1000);
-
-        } catch (error) {
-
-            console.error(
-                "CV download failed:",
-                error
-            );
-
-            /*
-             * DO NOT redirect.
-             */
-
-            setFileError({
-                type: "download",
-                name: fileName,
-                message: "Failed to open file.",
+                message:
+                    "Failed to open CV."
             });
 
         } finally {
@@ -307,9 +301,20 @@ const CVTab = ({ candidate }) => {
     const closePreview = () => {
 
         if (previewFile?.url) {
-            URL.revokeObjectURL(
-                previewFile.url
-            );
+
+            /*
+             * Only revoke blob URLs.
+             * Presigned S3 URLs should not be revoked.
+             */
+
+            if (
+                previewFile.url.startsWith("blob:")
+            ) {
+
+                URL.revokeObjectURL(
+                    previewFile.url
+                );
+            }
         }
 
         setPreviewFile(null);
@@ -327,6 +332,7 @@ const CVTab = ({ candidate }) => {
         fileUrl,
         fileName,
         format,
+        cvType
     }) => {
 
         const hasFile =
@@ -338,6 +344,7 @@ const CVTab = ({ candidate }) => {
                 <h2>
                     {title}
                 </h2>
+
 
                 <div className="cv-detail-row">
 
@@ -365,19 +372,16 @@ const CVTab = ({ candidate }) => {
                         </div>
 
 
-                        {/* ACTION BUTTONS */}
-
                         <div className="cv-file-actions">
+
+                            {/* PREVIEW */}
 
                             <button
                                 type="button"
                                 className="cv-preview-btn"
-                                disabled={true}
+                                disabled={loadingFile}
                                 onClick={() =>
-                                    handlePreview(
-                                        fileUrl,
-                                        fileName
-                                    )
+                                    handlePreview(cvType)
                                 }
                             >
 
@@ -390,22 +394,21 @@ const CVTab = ({ candidate }) => {
                             </button>
 
 
+                            {/* DOWNLOAD */}
+
                             <button
                                 type="button"
                                 className="cv-download-btn"
                                 disabled={loadingFile}
                                 onClick={() =>
-                                    handleDownload(
-                                        fileUrl,
-                                        fileName
-                                    )
+                                    handleDownload(cvType)
                                 }
                             >
 
                                 <i className="fas fa-download"></i>
 
                                 {loadingFile
-                                    ? "Opening..."
+                                    ? "Downloading..."
                                     : "Download"}
 
                             </button>
@@ -436,6 +439,7 @@ const CVTab = ({ candidate }) => {
     */
 
     return (
+
         <div className="candidate-cv-tab">
 
 
@@ -450,7 +454,7 @@ const CVTab = ({ candidate }) => {
                     <i className="fas fa-exclamation-circle"></i>
 
                     <span>
-                        Failed to open file.
+                        {fileError.message}
                     </span>
 
                     <button
@@ -482,6 +486,7 @@ const CVTab = ({ candidate }) => {
                 format={
                     candidate.originalCvFormat
                 }
+                cvType="original"
             />
 
 
@@ -498,6 +503,7 @@ const CVTab = ({ candidate }) => {
                     troyCvName
                 }
                 format="DOCX"
+                cvType="troy"
             />
 
 
@@ -574,6 +580,4 @@ const CVTab = ({ candidate }) => {
         </div>
     );
 };
-
-
 export default CVTab;
