@@ -637,7 +637,7 @@ function JobPage() {
         <table className="job-table">
 
           <thead>
-            <tr>
+            <tr className="job-table-header">
               <th>ROLE ID</th>
               <th>JOB</th>
               <th>CLIENT</th>
@@ -645,6 +645,7 @@ function JobPage() {
               <th>LOCATION</th>
               <th>PRIORITY</th>
               <th>STATUS</th>
+              <th>CREATED DATE & TIME / <br/> CREATED BY</th>
               <th className="actions-heading">
                 ACTIONS
               </th>
@@ -657,7 +658,7 @@ function JobPage() {
 
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="9"
                   className="no-jobs"
                 >
                   Loading jobs...
@@ -735,9 +736,9 @@ function JobPage() {
 
                   {/* LOCATION */}
 
-                  <td>
+                  <td className="text-center">
                     <div className="job-location">
-                      {job.location}
+                      {job.location || "—"} 
                     </div>
                   </td>
 
@@ -768,7 +769,15 @@ function JobPage() {
                     </span>
 
                   </td>
+<td>
+  <div className="job-created-date">
+    {job.createdAt || "—"}
+  </div>
 
+  <div className="job-created-by">
+    {job.ownerName || "—"}
+  </div>
+</td>
 
                   {/* ACTIONS */}
 
@@ -817,7 +826,7 @@ function JobPage() {
                 <tr>
 
                   <td
-                    colSpan="8"
+                    colSpan="9"
                     className="no-jobs"
                   >
                     No jobs found.
