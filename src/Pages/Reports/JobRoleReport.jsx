@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {FiSearch,FiRotateCcw,FiChevronDown,FiChevronRight,FiMail,FiPhone,FiDownload,FiUsers,FiUserPlus,FiCheckCircle,} from "react-icons/fi";
+import {FiSearch,FiRotateCcw,FiChevronDown,FiChevronRight,FiMail,FiPhone,FiDownload,FiUsers,FiUserPlus,FiCheckCircle, FiFileText,} from "react-icons/fi";
 import { getAllSubmissions } from "../../Redux/Slice/employeeSlice";
-import {getSubmissionFilters,} from "../../Redux/Slice/reportSlice";
+import {getHopeListReport, getSubmissionFilters,} from "../../Redux/Slice/reportSlice";
 import "./JobRoleReport.css";
 import ExcelJS from "exceljs";
 import CommonPagination from "../../Components/CommonPagination";
@@ -12,8 +12,19 @@ import ReportExportModal from "./ReportExportModal";
 function JobRoleReport() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+const {
+    hopeListReport = {},
+    hopeListLoading: submissionsLoading,
+    hopeListError: submissionsError,
+} = useSelector((state) => state.report || {});
 
-    const {submissions = [],submissionsLoading,submissionsError,submissionsPagination,} = useSelector((state) => state.employees || {});
+const submissions = hopeListReport?.content || [];
+
+const submissionsPagination = {
+    totalPages: hopeListReport?.totalPages || 0,
+    totalElements: hopeListReport?.totalElements || 0,
+    pageSize: hopeListReport?.size || 100,
+};
     const {submissionFilters = {},} = useSelector((state) => state.report || {});
 
     const [search, setSearch] = useState("");
@@ -70,20 +81,27 @@ const handleApplicationStatusChange = (statusValue) => {
 useEffect(() => {
     const selectedStatusIds = applicationStatuses
         .filter((status) =>
-            applicationStatusFilter.includes(
-                status.value
-            )
+            applicationStatusFilter.includes(status.value)
         )
         .map((status) => status.id);
 
     dispatch(
-        getAllSubmissions({
+        getHopeListReport({
             page: currentPage - 1,
-            size: 20,
+            size: 100,
             search: search.trim(),
             jobId: jobFilter,
-            statusId: selectedStatusIds,
             clientId: clientFilter,
+
+            // Multiple status IDs
+            statusIds: selectedStatusIds,
+
+            // Keep existing sorting
+            sort: [
+                "job.client.name,asc",
+                "job.endClient.name,asc",
+                "job.title,asc",
+            ],
         })
     );
 }, [
@@ -91,8 +109,8 @@ useEffect(() => {
     currentPage,
     search,
     jobFilter,
-    applicationStatusFilter,
     clientFilter,
+    applicationStatusFilter,
     applicationStatuses,
 ]);
     useEffect(() => {
@@ -681,12 +699,12 @@ onClick={() => {
             .map((status) => status.id);
 
     dispatch(
-        getAllSubmissions({
+        getHopeListReport({
             page: currentPage - 1,
-            size: 20,
+            size: 100,
             search: search.trim(),
             jobId: jobFilter,
-            statusId: selectedStatusIds,
+            statusIds: selectedStatusIds,
             clientId: clientFilter,
         })
     );
@@ -1065,13 +1083,42 @@ onClick={() => {
 
                                                                                                                     <div className="report-candidate-info">
 
-                                                                                                                        <div className="report-candidate-name">
+<div className="tabular-candidate-name">
+    <span>{displayValue(item.candidateName)}</span>
 
-                                                                                                                            {displayValue(
-                                                                                                                                item.candidateName
-                                                                                                                            )}
+{item.latestCandidateNote?.content && (
+    <div className="tabular-note-wrapper">
+        <button
+            type="button"
+            className="tabular-note-icon"
+            aria-label="View latest candidate note"
+        >
+            <FiFileText />
+        </button>
 
-                                                                                                                        </div>
+        <div className="tabular-note-tooltip">
+            <div className="tabular-note-tooltip-header">
+                <FiFileText />
+                <span>Latest Candidate Note</span>
+            </div>
+
+            <div className="tabular-note-tooltip-content">
+                {item.latestCandidateNote.content}
+            </div>
+
+            <div className="tabular-note-tooltip-footer">
+                <span>
+                    {item.latestCandidateNote.chatWith || "—"}
+                </span>
+
+                <span>
+                    {item.latestCandidateNote.chatAt || "—"}
+                </span>
+            </div>
+        </div>
+    </div>
+)}
+</div>
 
 
                                                                                                                         <div className="report-candidate-designation">
@@ -1137,6 +1184,19 @@ onClick={() => {
                                                                                                                     )}
 
                                                                                                                 </span>
+                                                                                                                {(item.statusUpdatedAt || item.statusUpdatedBy) && (
+                                                        <div className="tabular-status-hint">
+                                                            {item.statusUpdatedAt && (
+                                                                <span>{item.statusUpdatedAt}</span>
+                                                            )}
+                                                            <br />
+                                                            {item.statusUpdatedBy && (
+                                                                <span>
+                                                                    By {item.statusUpdatedBy}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
 
                                                                                                             </td>
 
@@ -1194,30 +1254,24 @@ onClick={() => {
                     currentPage={currentPage}
                     totalPages={submissionsPagination?.totalPages || 0}
                     totalItems={submissionsPagination?.totalElements || 0}
-                    itemsPerPage={submissionsPagination?.pageSize || 20}
+                    itemsPerPage={submissionsPagination?.pageSize || 100}
                     onPageChange={(page) => {setCurrentPage(page);}}
                     itemLabel="submissions"
                 />
                 </div>
             )}
             {showExportModal && (
-                <ReportExportModal
-                    isOpen={showExportModal}
-                    onClose={() => setShowExportModal(false)}
-                    onExport={handleExport}
-                    initialFilters={{
-                        jobId: jobFilter,
-                        clientId: clientFilter,
-                            statusId: applicationStatuses
-        .filter((status) =>
-            applicationStatusFilter.includes(
-                status.value
-            )
-        )
-        .map((status) => status.id),
-                    }}
-                />
-            )}
+                            <ReportExportModal
+                                isOpen={showExportModal}
+                                onClose={() => setShowExportModal(false)}
+                                onExport={handleExport}
+                                initialFilters={{
+                                    jobId: jobFilter,
+                                    clientId: clientFilter,
+                                    statusIds: applicationStatuses.filter((status) =>applicationStatusFilter.includes(status.value)).map((status) => status.id),
+                                }}
+                            />
+                        )}
         </div>
     );
 }

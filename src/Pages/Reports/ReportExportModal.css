@@ -20,7 +20,7 @@
     background: #ffffff;
     border-radius: 18px;
     box-shadow: 0 20px 60px rgba(15, 30, 55, 0.22);
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* =========================================================
@@ -87,7 +87,7 @@
 }
 
 .report-export-field label {
-    display: block;
+    display: flex;
     margin-bottom: 9px;
     color: #5f7594;
     font-size: 14px;
@@ -389,4 +389,104 @@
     .report-export-btn {
         flex: 1;
     }
+}
+/* =========================================================
+   STATUS MULTI-SELECT DROPDOWN
+========================================================= */
+
+.report-searchable-dropdown {
+    position: relative;
+}
+
+.report-status-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+
+    background: #ffffff;
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+
+    max-height: 260px;
+    overflow-y: auto;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* HEADER */
+
+.report-status-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+
+    position: sticky;
+    top: 0;
+    z-index: 2;
+
+    background: #ffffff;
+}
+
+.report-status-clear-btn {
+    border: none;
+    background: transparent;
+
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 500;
+
+    cursor: pointer;
+    padding: 0;
+}
+
+.report-status-clear-btn:hover {
+    text-decoration: underline;
+}
+
+/* CHECKBOX OPTIONS */
+
+.report-status-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    min-height: 40px;
+    padding: 10px 12px;
+
+    font-size: 14px;
+    line-height: 20px;
+    color: #374151;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.report-status-option:hover {
+    background: #f3f4f6;
+}
+
+.report-status-option input[type="checkbox"] {
+    flex: 0 0 16px;
+
+    width: 16px;
+    height: 16px;
+
+    margin: 0;
+
+    accent-color: #6366f1;
+    cursor: pointer;
+}
+
+.report-status-option span {
+    white-space: nowrap;
 }
