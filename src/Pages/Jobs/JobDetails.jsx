@@ -5,11 +5,13 @@ import "./Job.css";
 import AddCandidateModal from "../Add_Edit_CandidateModal";
 import { getJobActivities, getJobById } from "../../Redux/Slice/jobSlice";
 import ManualCreationModal from "./ManualCreationModal";
+import usePermissions from "../../Utils/permissions";
 
 function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { canRead, canWrite, canDelete } = usePermissions();
 
   const {selectedJob, isFetching, error, activities, isActivitiesLoading, activitiesError,} = useSelector((state) => state.jobs);
 
@@ -70,7 +72,7 @@ function JobDetails() {
 
         <div className="page-header-actions">
           <span className={`status-badge status-${job.status?.toLowerCase()}`}> {job.status}</span>
-          <button className="primary-btn" onClick={() => setShowManualCreationModal(true)}> Edit</button>
+         {canWrite("JOB") && ( <button className="primary-btn" onClick={() => setShowManualCreationModal(true)}> Edit</button>)}
         </div>
       </div>
 

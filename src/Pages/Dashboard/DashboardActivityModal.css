@@ -320,3 +320,8 @@
     padding: 0 16px;
   }
 }
+.dashboard-candidate-name-clickable, .dashboard-job-name-clickabl {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+

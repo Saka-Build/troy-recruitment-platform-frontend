@@ -22,11 +22,20 @@ import EmployeeModal from "./EmployeeModal";
 import RoleAssignmentModal from "./RoleAssignmentModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import Toast from "../../Components/Toast";
+import usePermissions from "../../Utils/permissions";
 
 function EmployeeDetails() {
     const { employeeId } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { canRead, canWrite, canDelete } = usePermissions();
+
+    const canReadEmployee = canRead("USER");
+    const canWriteEmployee = canWrite("USER");
+    const canDeleteEmployee = canDelete("USER");
+    const canReadRole = canRead("ROLE");
+    const canWriteRole = canWrite("ROLE");
+    const canDeleteRole = canDelete("ROLE");
 
     const {
         employees = [],
@@ -567,7 +576,7 @@ const showNotification = (type, message) => {
                     <span>Employees</span>
                 </button>
 
-                <button
+                {canWriteEmployee && (<button
                     type="button"
                     className="employee-edit-detail-btn"
                     onClick={openEditModal}
@@ -575,7 +584,7 @@ const showNotification = (type, message) => {
                 >
                     <i className="bi bi-pencil"></i>
                     <span>Edit Employee</span>
-                </button>
+                </button>)}
             </div>
 
             {/* Profile Header - Enhanced */}
@@ -928,14 +937,14 @@ const showNotification = (type, message) => {
 
                         </div>
 
-                        <button
+                        { canWriteRole && (<button
                             type="button"
                             className="employee-primary-btn"
                             onClick={openRoleAssignmentModal}
                         >
                             <i className="bi bi-person-plus"></i>
                             Assign Role
-                        </button>
+                        </button> )}
 
                     </div>
 
@@ -962,13 +971,13 @@ const showNotification = (type, message) => {
                                 This employee does not have any roles yet.
                             </span>
 
-                            <button
+                            {canWriteRole && (<button
                                 type="button"
                                 className="employee-outline-btn"
                                 onClick={openRoleAssignmentModal}
                             >
                                 Assign Role
-                            </button>
+                            </button>)}
 
                         </div>
                     ) : (
@@ -1016,7 +1025,7 @@ const showNotification = (type, message) => {
 
                                             </div>
 
-                                            <button
+                                            {canDeleteRole && (<button
                                                 type="button"
                                                 className="employee-role-remove"
                                                 title={`Remove ${roleName}`}
@@ -1027,7 +1036,7 @@ const showNotification = (type, message) => {
                                                 }
                                             >
                                                 <i className="bi bi-trash"></i>
-                                            </button>
+                                            </button>)}
 
                                         </div>
                                     );

@@ -43,6 +43,7 @@ import {
 import {
   getSubmissionStatuses,
 } from "../../Redux/Slice/recruitmentWorkflowSlice";
+import usePermissions from "../../Utils/permissions";
 
 function CandidateDetails() {
 
@@ -55,6 +56,11 @@ function CandidateDetails() {
 
   const dispatch =
     useDispatch();
+    const { canRead, canWrite, canDelete } = usePermissions();
+
+    const canReadCandidate = canRead("CANDIDATE");
+    const canWriteCandidate = canWrite("CANDIDATE");
+    const canDeleteCandidate = canDelete("CANDIDATE");
 
   const {
     selectedCandidate,
@@ -1227,19 +1233,19 @@ function CandidateDetails() {
             ✉ Message
           </button>
 
-          <button
+          {canWriteCandidate &&  (<button
             className="outline-btn"
             onClick={handleEditClick}
           >
             Edit
-          </button>
+          </button>)}
 
-          <button
+          {canDeleteCandidate && (<button
             className="outline-btn detail-delete-btn"
             onClick={handleDeleteClick}
           >
             Delete
-          </button>
+          </button>)}
 
         </div>
 

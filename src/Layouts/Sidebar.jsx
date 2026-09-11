@@ -14,11 +14,13 @@ import {
     FiShield,
 } from "react-icons/fi";
 import Toast from "../Components/Toast";
+import usePermissions from "../Utils/permissions";
 
 function Sidebar() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
+    const { canRead } = usePermissions();
 
     const {
         user,
@@ -68,32 +70,32 @@ function Sidebar() {
             name: "Candidates",
             path: "/dashboard/candidates",
             icon: <FiUsers />,
+            permission: "CANDIDATE",
         },
         {
             name: "Jobs",
             path: "/dashboard/jobs",
             icon: <FiBriefcase />,
+            permission: "JOB",
         },
         {
             name: "Clients",
             path: "/dashboard/clients",
             icon: <FiLayers />,
+            permission: "CLIENT",
         },
         {
             name: "Employees",
             path: "/dashboard/employees",
             icon: <FiUserCheck />,
+            permission: "USER",
         },
         {
             name: "Roles",
             path: "/dashboard/roles",
             icon: <FiShield />,
+            permission: "ROLE",
         },
-        // {
-        //     name: "Reports",
-        //     path: "/dashboard/reports",
-        //     icon: <FiBarChart2 />,
-        // },
         {
             name: "Reports",
             path: "/dashboard/reports",
@@ -362,7 +364,15 @@ const handleRoleChange = async (event) => {
             </div>
 
             <nav className="sidebar-nav">
-                {menuItems.map((item) => {
+                {/* {menuItems.map((item) => { */}
+                {menuItems
+                    .filter((item) => {
+                        if (!item.permission) {
+                            return true;
+                        }
+                        return canRead(item.permission);
+                    })
+                    .map((item) => {
                     const isReports = item.name === "Reports";
 
                     const isReportsActive =

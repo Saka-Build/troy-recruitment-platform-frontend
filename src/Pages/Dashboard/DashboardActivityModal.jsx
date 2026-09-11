@@ -1,35 +1,42 @@
 import React from "react";
 import "./DashboardActivityModal.css";
+import { useNavigate } from "react-router-dom";
 
-function DashboardActivityModal({
-  show,
-  title,
-  count = 0,
-  items = [],
-  type,
-  onClose,
-}) {
+function DashboardActivityModal({show,title,count = 0,items = [],type,onClose}) {
+
+  const navigate = useNavigate();
+
   if (!show) {
     return null;
   }
 
   const getCandidateName = (item) => {
     return (
-      item?.candidateName ||
-      item?.name ||
-      "Unknown Candidate"
+      item?.candidateName ||item?.name ||"Unknown Candidate"
     );
+  };
+
+  const getCandidateId = (item) => {
+    return (item?.candidateId ||item?.candidate?.id ||item?.candidate?.candidateId ||null);
+  };
+
+  const handleCandidateClick = (item) => {
+    const candidateId = getCandidateId(item);
+    if (!candidateId) {
+      console.warn("Candidate ID not found:", item);
+      return;
+    }
+    onClose();
+    navigate(`/dashboard/candidates/${candidateId}`);
   };
 
   const getCandidateDesignation = (item) => {
     if (item?.candidateDesignation) {
       return item.candidateDesignation;
     }
-
     if (item?.jobName) {
       return item.jobName;
     }
-
     return "Candidate";
   };
 
@@ -42,23 +49,28 @@ function DashboardActivityModal({
   };
 
   const getJobName = (item) => {
-    return (
-      item?.jobName ||
-      item?.title ||
-      "Job not specified"
-    );
+    return (item?.jobName ||item?.title ||"Job not specified");
   };
+const getJobId = (item) => {
+  return item?.id || null;
+};
 
+const handleJobClick = (item) => {
+  const jobId = getJobId(item);
+
+  if (!jobId) {
+    console.warn("Job ID not found:", item);
+    return;
+  }
+
+  onClose();
+  navigate(`/dashboard/jobs/${jobId}`);
+};
   const getLocation = (item) => {
     if (item?.location) {
       return item.location;
     }
-
-    const parts = [
-      item?.clientName,
-      item?.location,
-    ].filter(Boolean);
-
+    const parts = [item?.clientName,item?.location,].filter(Boolean);
     return parts.join(" · ");
   };
 
@@ -66,35 +78,33 @@ function DashboardActivityModal({
     if (!item?.interviewTime) {
       return "--";
     }
-
-    const date = new Date(
-      `1970-01-01T${item.interviewTime}`
-    );
-
+    const date = new Date(`1970-01-01T${item.interviewTime}`);
     if (Number.isNaN(date.getTime())) {
       return item.interviewTime;
     }
-
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    }).format(date);
+    return new Intl.DateTimeFormat("en-US", {hour: "numeric",minute: "2-digit",hour12: true,}).format(date);
   };
 
   const renderCandidateItem = (item, index) => {
     return (
       <div
         className="dashboard-activity-item"
-        key={
-          item?.submissionId ||
-          item?.candidateId ||
-          index
-        }
+        key={item?.submissionId ||item?.candidateId ||index}
       >
         <div className="dashboard-activity-main">
           <div>
-            <div className="dashboard-activity-name">
+            <div className="dashboard-activity-name" onClick={() => handleCandidateClick(item)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" ||
+                      event.key === " "
+                    ) {
+                      event.preventDefault();
+                      handleCandidateClick(item);
+                    }
+                  }}>
               {getCandidateName(item)}
             </div>
 
@@ -127,49 +137,54 @@ function DashboardActivityModal({
     );
   };
 
-  const renderJobItem = (item, index) => {
-    return (
-      <div
-        className="dashboard-activity-item"
-        key={item?.jobId || item?.id || index}
-      >
-        <div className="dashboard-activity-main">
-          <div>
-            <div className="dashboard-activity-name">
-              {getJobName(item)}
-            </div>
+const renderJobItem = (item, index) => (
+  <div
+    className="dashboard-activity-item"
+    key={item?.id || item?.jobId || index}
+  >
+    <div className="dashboard-activity-main">
+      <div>
+        <div
+          className="dashboard-activity-name dashboard-job-name-clickable"
+          onClick={() => handleJobClick(item)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleJobClick(item);
+            }
+          }}
+        >
+          {getJobName(item)}
+        </div>
 
-            <div className="dashboard-activity-subtitle">
-              {getClientName(item)}
+        <div className="dashboard-activity-subtitle">
+          {getClientName(item)}
+          {getEndClientName(item) && (
+            <>
+              {" · "}
+              {getEndClientName(item)}
+            </>
+          )}
 
-              {getEndClientName(item) && (
-                <>
-                  {" · "}
-                  {getEndClientName(item)}
-                </>
-              )}
-
-              {!getEndClientName(item) &&
-                getLocation(item) &&
-                getLocation(item) !==
-                  getClientName(item) && (
-                  <>
-                    {" · "}
-                    {getLocation(item)}
-                  </>
-                )}
-            </div>
-          </div>
-
-          <span className="dashboard-activity-badge">
-            {item?.priority ||
-              item?.jobPriority ||
-              "High"}
-          </span>
+          {!getEndClientName(item) &&
+            getLocation(item) &&
+            getLocation(item) !== getClientName(item) && (
+              <>
+                {" · "}
+                {getLocation(item)}
+              </>
+            )}
         </div>
       </div>
-    );
-  };
+
+      <span className="dashboard-activity-badge">
+        {item?.priority || item?.jobPriority || "High"}
+      </span>
+    </div>
+  </div>
+);
 
   const renderInterviewItem = (item, index) => {
     return (
@@ -182,7 +197,18 @@ function DashboardActivityModal({
       >
         <div className="dashboard-activity-main">
           <div>
-            <div className="dashboard-activity-name">
+            <div className="dashboard-activity-name" onClick={() => handleCandidateClick(item)}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      handleCandidateClick(item);
+    }
+  }}>
               {getCandidateName(item)}
             </div>
 

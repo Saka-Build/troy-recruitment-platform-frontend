@@ -16,10 +16,15 @@ import ManualCreationModal from "./ManualCreationModal";
 import ExcelJS from "exceljs";
 import Toast from "../../Components/Toast";
 import JobExportModal from "./JobExportModal";
+import usePermissions from "../../Utils/permissions";
 
 function JobPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {canRead,canWrite,canDelete,} = usePermissions();
+  const canReadJOB = canRead("JOB");
+  const canWriteJOB = canWrite("JOB");
+  const canDeleteJOB = canDelete("JOB");
 
   const {
     jobs,
@@ -413,7 +418,15 @@ function JobPage() {
       setIsLoadingJob(false);
     }
   };
-
+    if (!canReadJOB) {
+    return (
+        <div className="page roles-page">
+            <div className="role-error-message">
+                <span>You do not have permission to view Jobs.</span>
+            </div>
+        </div>
+    );
+}
   /*
    * =========================================================
    * UI
@@ -452,7 +465,7 @@ function JobPage() {
   Export Jobs
 </button>
 
-          <button
+          {/* <button
             className="primary-btn"
             onClick={() =>
               navigate("/dashboard/jobs/new")
@@ -460,8 +473,18 @@ function JobPage() {
           >
             <i className="bi bi-plus-lg"></i>
             Add job
-          </button>
-
+          </button> */}
+{canWriteJOB && (
+  <button
+    className="primary-btn"
+    onClick={() =>
+      navigate("/dashboard/jobs/new")
+    }
+  >
+    <i className="bi bi-plus-lg"></i>
+    Add job
+  </button>
+)}
         </div>
 
       </div>
@@ -785,7 +808,7 @@ function JobPage() {
 
                     <div className="job-actions">
 
-                      <button
+                      {/* <button
                         className="edit-btn"
                         disabled={isLoadingJob}
                         onClick={() =>
@@ -795,9 +818,22 @@ function JobPage() {
                         {isLoadingJob
                           ? "Loading..."
                           : "Edit"}
-                      </button>
+                      </button> */}
+                      {canWriteJOB && (
+  <button
+    className="edit-btn"
+    disabled={isLoadingJob}
+    onClick={() =>
+      handleEditJob(job)
+    }
+  >
+    {isLoadingJob
+      ? "Loading..."
+      : "Edit"}
+  </button>
+)}
 
-                      <button
+                      {/* <button
                         className="delete-btn"
                         disabled={isDeleting}
                         onClick={() =>
@@ -805,7 +841,18 @@ function JobPage() {
                         }
                       >
                         Delete
-                      </button>
+                      </button> */}
+                      {canDeleteJOB && (
+  <button
+    className="delete-btn"
+    disabled={isDeleting}
+    onClick={() =>
+      handleDeleteClick(job)
+    }
+  >
+    Delete
+  </button>
+)}
 
                     </div>
 
