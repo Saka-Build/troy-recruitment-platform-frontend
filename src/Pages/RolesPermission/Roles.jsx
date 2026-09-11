@@ -1,29 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    FiEdit2,
-    FiPlus,
-    FiSearch,
-    FiTrash2,
-    FiChevronDown,
-    FiRefreshCw,
-} from "react-icons/fi";
-
-import {
-    getAllRoles,
-    getAllRolesAndModules,
-    getRoleById,
-    deleteRole,
-    clearRoleError,
-} from "../../Redux/Slice/roleSlice";
-
+import {FiEdit2,FiPlus,FiSearch,FiTrash2,FiChevronDown,FiRefreshCw,} from "react-icons/fi";
+import {getAllRoles,getAllRolesAndModules,getRoleById,deleteRole,clearRoleError,} from "../../Redux/Slice/roleSlice";
 import RoleModal from "./RoleModal";
 import "./Roles.css";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import Toast from "../../Components/Toast";
+import usePermissions from "../../Utils/permissions";
 
 const Roles = () => {
     const dispatch = useDispatch();
+    const { canRead, canWrite, canDelete } = usePermissions();
+    const canReadRole = canRead("ROLE");
+    const canWriteRole = canWrite("ROLE");
+    const canDeleteRole = canDelete("ROLE");
 
     const {
         roles = [],
@@ -64,11 +54,6 @@ const closeToast = () => {
     }));
 };
 
-    /*
-     * =========================================================
-     * INITIAL LOAD
-     * =========================================================
-     */
     useEffect(() => {
         dispatch(getAllRoles());
         dispatch(getAllRolesAndModules());
@@ -78,11 +63,6 @@ const closeToast = () => {
         };
     }, [dispatch]);
 
-    /*
-     * =========================================================
-     * NORMALIZE ROLE NAME
-     * =========================================================
-     */
     const getRoleName = (role) => {
         return (
             role?.name ||
@@ -92,11 +72,6 @@ const closeToast = () => {
         );
     };
 
-    /*
-     * =========================================================
-     * FILTER ROLES
-     * =========================================================
-     */
     const filteredRoles = useMemo(() => {
         const searchValue = search.trim().toLowerCase();
 
@@ -111,21 +86,11 @@ const closeToast = () => {
         );
     }, [roles, search]);
 
-    /*
-     * =========================================================
-     * ADD ROLE
-     * =========================================================
-     */
     const handleAddRole = () => {
         setEditingRole(null);
         setShowRoleModal(true);
     };
 
-    /*
-     * =========================================================
-     * EDIT ROLE
-     * =========================================================
-     */
     const handleEditRole = async (role) => {
         try {
             const result = await dispatch(
@@ -154,11 +119,6 @@ const closeToast = () => {
         setShowDeleteModal(true);
     };
 
-    /*
-     * =========================================================
-     * CLOSE DELETE CONFIRMATION
-     * =========================================================
-     */
     const handleDeleteModalClose = () => {
         if (deleteLoading) {
             return;
@@ -168,11 +128,6 @@ const closeToast = () => {
         setRoleToDelete(null);
     };
 
-    /*
-     * =========================================================
-     * CONFIRM DELETE
-     * =========================================================
-     */
 const handleConfirmDelete = async () => {
     if (!roleToDelete?.id) {
         return;
@@ -212,21 +167,11 @@ const handleConfirmDelete = async () => {
     }
 };
 
-    /*
-     * =========================================================
-     * ROLE MODAL CLOSE
-     * =========================================================
-     */
     const handleModalClose = () => {
         setShowRoleModal(false);
         setEditingRole(null);
     };
 
-    /*
-     * =========================================================
-     * AFTER CREATE / UPDATE
-     * =========================================================
-     */
 const handleRoleSaved = async (actionType) => {
     try {
         await dispatch(
@@ -258,11 +203,6 @@ const handleRoleSaved = async (actionType) => {
     }
 };
 
-    /*
-     * =========================================================
-     * FORMAT MODULE NAME
-     * =========================================================
-     */
 const formatModuleName = (module) => {
     if (!module) {
         return "";
@@ -281,11 +221,6 @@ const formatModuleName = (module) => {
     );
 };
 
-    /*
-     * =========================================================
-     * GET MODULES / PERMISSIONS FROM ROLE
-     * =========================================================
-     */
     const getRoleModules = (role) => {
         if (Array.isArray(role?.modules)) {
             return role.modules;
@@ -298,6 +233,16 @@ const formatModuleName = (module) => {
         return [];
     };
 
+
+    if (!canReadRole) {
+    return (
+        <div className="page roles-page">
+            <div className="role-error-message">
+                <span>You do not have permission to view roles.</span>
+            </div>
+        </div>
+    );
+}
     return (
         <div className="page roles-page">
 <Toast
@@ -306,9 +251,6 @@ const formatModuleName = (module) => {
             message={toast.message}
             onClose={closeToast}
         />
-            {/* =================================================
-                PAGE HEADER
-            ================================================= */}
             <div className="roles-page-header">
 
                 <div>
@@ -323,7 +265,7 @@ const formatModuleName = (module) => {
 
                 <div className="roles-page-header-actions">
 
-                    <button
+                   {canWriteRole && ( <button
                         type="button"
                         className="primary-btn add-role-button"
                         onClick={handleAddRole}
@@ -331,14 +273,11 @@ const formatModuleName = (module) => {
                         <FiPlus size={18} />
                         <span>Add role</span>
                     </button>
-
+                    )}
                 </div>
 
             </div>
 
-            {/* =================================================
-                ERROR
-            ================================================= */}
             {error && (
                 <div className="role-error-message">
                     <span>{error}</span>
@@ -355,14 +294,7 @@ const formatModuleName = (module) => {
                 </div>
             )}
 
-            {/* =================================================
-                ROLE CARD
-            ================================================= */}
             <div className="roles-card">
-
-                {/* =================================================
-                    TOOLBAR
-                ================================================= */}
                 <div className="roles-table-toolbar">
 
                     <div className="entries-wrapper">
@@ -419,10 +351,6 @@ const formatModuleName = (module) => {
                     </div>
 
                 </div>
-
-                {/* =================================================
-                    TABLE
-                ================================================= */}
                 <div className="roles-table-wrapper">
 
                     <table className="roles-table">
@@ -536,85 +464,70 @@ const formatModuleName = (module) => {
                                                                                     moduleName
                                                                                 )}
                                                                             </div>
+                                                                                <div className="permission-badges">
 
-<div className="permission-badges">
+                                                                                    {modulePermissions.length === 0 ? (
+                                                                                        <span className="no-module-permission">
+                                                                                            No permissions
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        (() => {
+                                                                                            const displayPermissions = [];
 
-    {modulePermissions.length === 0 ? (
-        <span className="no-module-permission">
-            No permissions
-        </span>
-    ) : (
-        (() => {
-            const displayPermissions = [];
+                                                                                            modulePermissions.forEach((permission) => {
+                                                                                                const permissionName =
+                                                                                                    permission?.name || permission;
 
-            modulePermissions.forEach((permission) => {
-                const permissionName =
-                    permission?.name || permission;
+                                                                                                const normalizedPermission =
+                                                                                                    permissionName
+                                                                                                        ?.toString()
+                                                                                                        .toLowerCase()
+                                                                                                        .trim();
 
-                const normalizedPermission =
-                    permissionName
-                        ?.toString()
-                        .toLowerCase()
-                        .trim();
+                                                                                                if (normalizedPermission === "read") {
+                                                                                                    if (!displayPermissions.includes("read")) {
+                                                                                                        displayPermissions.push("read");
+                                                                                                    }
+                                                                                                }
+                                                                                                if (normalizedPermission === "write") {
+                                                                                                    if (!displayPermissions.includes("create")) {
+                                                                                                        displayPermissions.push("create");
+                                                                                                    }
 
-                if (normalizedPermission === "read") {
-                    if (!displayPermissions.includes("read")) {
-                        displayPermissions.push("read");
-                    }
-                }
+                                                                                                    if (!displayPermissions.includes("update")) {
+                                                                                                        displayPermissions.push("update");
+                                                                                                    }
+                                                                                                }
+                                                                                                if (normalizedPermission === "update") {
+                                                                                                    if (!displayPermissions.includes("update")) {
+                                                                                                        displayPermissions.push("update");
+                                                                                                    }
+                                                                                                }
 
-                /*
-                 * Backend "write" means:
-                 * - Create
-                 * - Update
-                 *
-                 * So show BOTH badges in frontend.
-                 */
-                if (normalizedPermission === "write") {
-                    if (!displayPermissions.includes("create")) {
-                        displayPermissions.push("create");
-                    }
+                                                                                                if (normalizedPermission === "delete") {
+                                                                                                    if (!displayPermissions.includes("delete")) {
+                                                                                                        displayPermissions.push("delete");
+                                                                                                    }
+                                                                                                }
+                                                                                            });
 
-                    if (!displayPermissions.includes("update")) {
-                        displayPermissions.push("update");
-                    }
-                }
+                                                                                            return displayPermissions.map(
+                                                                                                (permission) => (
+                                                                                                    <span
+                                                                                                        key={permission}
+                                                                                                        className={`permission-badge permission-${permission}`}
+                                                                                                    >
+                                                                                                        {permission
+                                                                                                            .charAt(0)
+                                                                                                            .toUpperCase() +
+                                                                                                            permission.slice(1)}
+                                                                                                    </span>
+                                                                                                )
+                                                                                            );
+                                                                                        })()
+                                                                                    )}
 
-                /*
-                 * If backend ever sends update separately,
-                 * still show Update.
-                 */
-                if (normalizedPermission === "update") {
-                    if (!displayPermissions.includes("update")) {
-                        displayPermissions.push("update");
-                    }
-                }
-
-                if (normalizedPermission === "delete") {
-                    if (!displayPermissions.includes("delete")) {
-                        displayPermissions.push("delete");
-                    }
-                }
-            });
-
-            return displayPermissions.map(
-                (permission) => (
-                    <span
-                        key={permission}
-                        className={`permission-badge permission-${permission}`}
-                    >
-                        {permission
-                            .charAt(0)
-                            .toUpperCase() +
-                            permission.slice(1)}
-                    </span>
-                )
-            );
-        })()
-    )}
-
-</div>
-
+                                                                                </div>
                                                                         </div>
                                                                     );
                                                                 }
@@ -630,7 +543,7 @@ const formatModuleName = (module) => {
 
                                                     <div className="role-actions">
 
-                                                        <button
+                                                       {canWriteRole && ( <button
                                                             type="button"
                                                             className="role-action-button edit-role-button"
                                                             onClick={() =>
@@ -643,9 +556,9 @@ const formatModuleName = (module) => {
                                                             }
                                                         >
                                                             <FiEdit2 size={16} />
-                                                        </button>
+                                                        </button>)}
 
-                                                        <button
+                                                       {canDeleteRole && (<button
                                                             type="button"
                                                             className="role-action-button delete-role-button"
                                                             onClick={() =>
@@ -660,7 +573,7 @@ const formatModuleName = (module) => {
                                                             }
                                                         >
                                                             <FiTrash2 size={16} />
-                                                        </button>
+                                                        </button>)}
 
                                                     </div>
 

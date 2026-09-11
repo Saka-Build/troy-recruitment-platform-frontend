@@ -26,6 +26,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import Toast from "../../Components/Toast";
+import usePermissions from "../../Utils/permissions";
 
 
 function generateEmployeeId() {
@@ -38,7 +39,11 @@ function Employees() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    const { canRead, canWrite, canDelete } = usePermissions();
 
+    const canReadEmployee = canRead("USER");
+    const canWriteEmployee = canWrite("USER");
+    const canDeleteEmployee = canDelete("USER");
     /*
     |--------------------------------------------------------------------------
     | REDUX
@@ -879,7 +884,15 @@ await dispatch(
     | RENDER
     |--------------------------------------------------------------------------
     */
-
+    if (!canReadEmployee) {
+    return (
+        <div className="page roles-page">
+            <div className="role-error-message">
+                <span>You do not have permission to view Employees.</span>
+            </div>
+        </div>
+    );
+}
     return (
 
         <div className="page">
@@ -908,16 +921,16 @@ await dispatch(
 
 
                 <div className="employees-header-actions">
-<button
+{canReadEmployee && (<button
     type="button"
     className="employee-export-btn"
     onClick={() => setShowExportModal(true)}
 >
     Export Employees
-</button>
+</button> )}
 
 
-                    <button
+                    {canWriteEmployee && (<button
                         type="button"
                         className="employee-add-btn"
                         onClick={openAddModal}
@@ -928,7 +941,7 @@ await dispatch(
                         {" "}
                         Add employee
 
-                    </button>
+                    </button> )}
 
                 </div>
 
@@ -1336,7 +1349,7 @@ await dispatch(
 
                                             <div className="employee-actions">
 
-                                                <button
+                                                {canWriteEmployee && (<button
                                                     type="button"
                                                     onClick={() =>
                                                         openEditModal(
@@ -1347,10 +1360,10 @@ await dispatch(
 
                                                     Edit
 
-                                                </button>
+                                                </button> )}
 
 
-                                                <button
+                                                {canDeleteEmployee && (<button
                                                     type="button"
                                                     className="employee-delete-action"
                                                     onClick={() =>
@@ -1365,9 +1378,9 @@ await dispatch(
 
                                                     Delete
 
-                                                </button>
+                                                </button> )}
 
-
+{/* 
                                                 <button
                                                     type="button"
                                                     className="employee-assign-role-action"
@@ -1383,7 +1396,7 @@ await dispatch(
                                                     {" "}
                                                     Assign Role
 
-                                                </button>
+                                                </button> */}
 
                                             </div>
 

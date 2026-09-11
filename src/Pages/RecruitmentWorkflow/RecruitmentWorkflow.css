@@ -1570,3 +1570,12 @@
     width: calc(100% - 30px);
   }
 }
+
+.workflow-candidate-name-clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.workflow-candidate-name-clickable:hover {
+  text-decoration: underline;
+}

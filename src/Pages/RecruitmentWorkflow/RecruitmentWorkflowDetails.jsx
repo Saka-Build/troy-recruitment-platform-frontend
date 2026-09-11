@@ -1,51 +1,21 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
-import {
-  getAllJobsName,
-  getSubmissionCounts,
-  getSubmissionsByStage,
-  getSubmissionStatuses,
-  
-} from "../../Redux/Slice/recruitmentWorkflowSlice";
-
-import {
-  updateSubmission,
-  getInterviewsBySubmission,
-} from "../../Redux/Slice/candidateSlice";
+import React, {useEffect,useMemo,useState,} from "react";
+import {useDispatch,useSelector,} from "react-redux";
+import {useNavigate,useParams,} from "react-router-dom";
+import {getAllJobsName,getSubmissionCounts,getSubmissionsByStage,getSubmissionStatuses,} from "../../Redux/Slice/recruitmentWorkflowSlice";
+import {updateSubmission,getInterviewsBySubmission,} from "../../Redux/Slice/candidateSlice";
 import Toast from "../../Components/Toast";
 import CommonPagination from "../../Components/CommonPagination";
-
 import "./RecruitmentWorkflow.css";
 
 const normalizeWorkflowName = (value) => {
   if (!value) {
     return "";
   }
-
-  return value
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "_");
+  return value.toString().toLowerCase().trim().replace(/\s+/g, "_");
 };
 
 const getStageId = (workflowStage) => {
-  const normalized =
-    normalizeWorkflowName(workflowStage);
+  const normalized = normalizeWorkflowName(workflowStage);
 
   switch (normalized) {
     case "ready_to_submit":
@@ -1003,6 +973,14 @@ const handleStageChange = async (
       </div>
     );
   }
+  const handleCandidateClick = (candidate) => {
+  if (!candidate?.candidateId) {
+    console.warn("Candidate ID not found:", candidate);
+    return;
+  }
+
+  navigate(`/dashboard/candidates/${candidate.candidateId}`);
+};
 
   return (
 
@@ -1248,7 +1226,19 @@ const handleStageChange = async (
 
                         <div className="workflow-candidate-info">
 
-                          <strong>
+                          <strong  className="workflow-candidate-name-clickable"
+  onClick={() => handleCandidateClick(candidate)}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      handleCandidateClick(candidate);
+    }
+  }}>
 
                             {candidate.name}
 

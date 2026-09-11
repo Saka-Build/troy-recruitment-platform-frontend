@@ -49,13 +49,17 @@ import {
 
 import Toast
     from "../../Components/Toast";
+import usePermissions from "../../Utils/permissions";
 
 
 function Clients() {
 
     const dispatch =
         useDispatch();
-
+    const { canRead, canWrite, canDelete } = usePermissions();
+    const canReadClient = canRead("CLIENT");
+    const canWriteClient = canWrite("CLIENT");
+    const canDeleteClient = canDelete("CLIENT");
 
     /* =========================================================
        TOAST
@@ -1016,7 +1020,15 @@ useEffect(() => {
     /* =========================================================
        RENDER
     ========================================================= */
-
+    if (!canReadClient) {
+    return (
+        <div className="page roles-page">
+            <div className="role-error-message">
+                <span>You do not have permission to view Clients.</span>
+            </div>
+        </div>
+    );
+}
     return (
 
         <div className="clients-page page">
@@ -1067,7 +1079,7 @@ useEffect(() => {
 
                     <div className="page-header-actions">
 
-                        <button
+                        {canReadClient && (<button
                             className="outline-btn"
 
                             onClick={
@@ -1084,7 +1096,7 @@ useEffect(() => {
                                 ? "Exporting..."
                                 : "↓ Export Clients"}
 
-                        </button>
+                        </button>)}
 
 
                         <button
@@ -1104,7 +1116,7 @@ useEffect(() => {
                         </button>
 
 
-                        <button
+                        {canWriteClient && (<button
                             type="button"
 
                             className="primary-btn"
@@ -1122,7 +1134,7 @@ useEffect(() => {
                                 ? "Adding..."
                                 : "+ Add client"}
 
-                        </button>
+                        </button> )}
 
                     </div>
 
@@ -1625,7 +1637,7 @@ useEffect(() => {
 
                                                 <div className="client-actions">
 
-                                                    <button
+                                                    {canWriteClient && (<button
 
                                                         type="button"
 
@@ -1646,10 +1658,10 @@ useEffect(() => {
 
                                                         Edit
 
-                                                    </button>
+                                                    </button>)}
 
 
-                                                    <button
+                                                   {canDeleteClient && ( <button
 
                                                         type="button"
 
@@ -1669,7 +1681,7 @@ useEffect(() => {
 
                                                         Delete
 
-                                                    </button>
+                                                    </button>)}
 
                                                 </div>
 
