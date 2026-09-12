@@ -96,105 +96,36 @@ const formatAmount = (value) => {
 
         originalCV: null,
         troyCV: null,
-
-        fullName:
-          initialData.fullName || "",
-
-        designation:
-          initialData.currentDesignation || "",
-
-        cvOwnerId:
-          initialData.cvOwnerId || "",
-
-        referredBy:
-          initialData.referredBy || "",
-
-        referenceNote:
-          initialData.referenceNote || "",
-
-        email:
-          initialData.email || "",
-
-        phone:
-          initialData.phone || "",
-
-        whatsapp:
-          initialData.whatsapp || "",
-
-        nationality:
-          initialData.nationality || "",
-
-        currentLocation:
-          initialData.location || "",
-
-        preferredLocation:
-          initialData.preferredLocation || "",
-
-        currentCompany:
-          initialData.currentEmployer || "",
-
-        experience:
-          initialData.experienceYears ?? "",
-
-        primarySkills:
-          Array.isArray(initialData.skills)
-            ? initialData.skills.join(", ")
-            : "",
-
-        secondarySkills: "",
-
-        noticePeriod:
-          initialData.noticePeriodDays ?? "",
-
-        visaStatus:
-          initialData.visaStatus || "",
-
-        currentRateCurrency:
-          initialData.currentSalaryCurrency ||
-          "INR",
-
-        // currentRateAmount:
-        //   initialData.currentSalaryAmount ?? "",
-        currentRateAmount:
-  formatAmount(initialData.currentSalaryAmount),
-
-        currentRatePeriod:
-          initialData.currentSalaryPeriod ||
-          "month",
-
-        dayRateCurrency:
-          initialData.expectedSalaryCurrency ||
-          "INR",
-
-        // dayRateAmount:
-        //   initialData.expectedSalaryAmount ?? "",
-        dayRateAmount:
-  formatAmount(initialData.expectedSalaryAmount),
-
-        dayRatePeriod:
-          initialData.expectedSalaryPeriod ||
-          "month",
-
-        source:
-          initialData.source ||
-          "LinkedIn",
-
-        candidateStatus:
-          initialData.status ||
-          "Active",
-
-        education:
-          initialData.education ||
-          "",
-
-        linkedinUrl:
-          initialData.linkedinUrl ||
-          "",
-
+        fullName: initialData.fullName || "",
+        designation: initialData.currentDesignation || "",
+        cvOwnerId: initialData.cvOwnerId || "",
+        referredBy: initialData.referredBy || "",
+        referenceNote: initialData.referenceNote || "",
+        email: initialData.email || "",
+        phone: initialData.phone || "",
+        whatsapp: initialData.whatsapp || "",
+        nationality: initialData.nationality || "",
+        currentLocation: initialData.location || "",
+        preferredLocation: initialData.preferredLocation || "",
+        currentCompany: initialData.currentEmployer || "",        
+        experience: initialData.experienceYears ?? "",
+        primarySkills: Array.isArray(initialData.skills)   ? initialData.skills.join(", ")   : "",
+        // secondarySkills: "",
+        secondarySkills: initialData.secondarySkills ?? "",
+        noticePeriod: initialData.noticePeriodDays ?? "",
+        visaStatus: initialData.visaStatus || "",
+        currentRateCurrency: initialData.currentSalaryCurrency || "INR",
+        currentRateAmount: formatAmount(initialData.currentSalaryAmount),
+        currentRatePeriod: initialData.currentSalaryPeriod || "month",
+        dayRateCurrency: initialData.expectedSalaryCurrency || "INR",
+        dayRateAmount: formatAmount(initialData.expectedSalaryAmount),
+        dayRatePeriod: initialData.expectedSalaryPeriod || "month",
+        source: initialData.source || "LinkedIn",
+        candidateStatus: initialData.status || "Active",
+        education: initialData.education || "",
+        linkedinUrl: initialData.linkedinUrl || "",
         recruiterNotes: "",
       });
-
-
       setExistingOriginalCv(
         initialData.originalCvUrl || ""
       );
@@ -204,42 +135,13 @@ const formatAmount = (value) => {
       );
 
     } else {
-
-      /*
-       * ADD MODE
-       */
-setChangedFields(new Set());
-
-setFormData(getInitialFormData());
-
+      setChangedFields(new Set());
+      setFormData(getInitialFormData());
       setExistingOriginalCv("");
       setExistingTroyCv("");
-
     }
 
-  }, [
-    mode,
-    initialData,
-  ]);
-
-
-// const handleChange = (e) => {
-//   const { name, value } = e.target;
-
-//   setFormData((previous) => ({
-//     ...previous,
-//     [name]: value,
-//   }));
-
-//   if (mode === "edit") {
-//     setChangedFields((previous) => {
-//       const updated = new Set(previous);
-//       updated.add(name);
-//       return updated;
-//     });
-//   }
-// };
-
+  }, [ mode, initialData,]);
 
 const handleChange = (e) => {
   const { name, value } = e.target;
@@ -263,11 +165,7 @@ const handleChange = (e) => {
     });
   }
 };
-  /*
-  |--------------------------------------------------------------------------
-  | HANDLE FILE CHANGE
-  |--------------------------------------------------------------------------
-  */
+
 
 const handleFileChange = (e, field) => {
   const file = e.target.files?.[0] || null;
@@ -290,12 +188,6 @@ const handleFileChange = (e, field) => {
   }
 };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | REMOVE SELECTED FILE
-  |--------------------------------------------------------------------------
-  */
 const removeFile = (field) => {
   setFormData((previous) => ({
     ...previous,
@@ -311,12 +203,6 @@ const removeFile = (field) => {
   }
 };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | SUBMIT
-  |--------------------------------------------------------------------------
-  */
 
 const handleSubmit = (e) => {
   e.preventDefault();
@@ -363,12 +249,6 @@ dayRateAmount:
 };
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | EMPLOYEE DISPLAY NAME
-  |--------------------------------------------------------------------------
-  */
-
   const getEmployeeName = (employee) => {
 
     return (
@@ -410,11 +290,6 @@ dayRateAmount:
           e.stopPropagation()
         }
       >
-
-        {/* ==========================================================
-                            HEADER
-        =========================================================== */}
-
         <div className="candidate-modal-header">
 
           <div>
@@ -441,21 +316,10 @@ dayRateAmount:
 
         </div>
 
-
-        {/* ==========================================================
-                            FORM
-        =========================================================== */}
-
         <form
           className="candidate-form"
           onSubmit={handleSubmit}
         >
-
-
-          {/* ========================================================
-                        1. ORIGINAL CV
-          ========================================================= */}
-
           <div className="candidate-form-section">
 
             <h3 className="candidate-section-title">
@@ -637,11 +501,6 @@ dayRateAmount:
 
           </div>
 
-
-          {/* ========================================================
-                        3. CANDIDATE DETAILS
-          ========================================================= */}
-
           <div className="candidate-form-section">
 
             <h3 className="candidate-section-title">
@@ -650,9 +509,6 @@ dayRateAmount:
 
 
             <div className="candidate-form-grid">
-
-
-              {/* FULL NAME */}
 
               <div className="candidate-form-group">
 
@@ -670,10 +526,6 @@ dayRateAmount:
                 />
 
               </div>
-
-
-              {/* DESIGNATION */}
-
               <div className="candidate-form-group">
 
                 <label>
@@ -689,9 +541,6 @@ dayRateAmount:
                 />
 
               </div>
-
-
-              {/* CV OWNER */}
 
               <div className="candidate-form-group">
 
@@ -758,9 +607,6 @@ dayRateAmount:
 
               </div>
 
-
-              {/* REFERRED BY */}
-
               <div className="candidate-form-group">
 
                 <label>
@@ -776,9 +622,6 @@ dayRateAmount:
                 />
 
               </div>
-
-
-              {/* REFERENCE NOTE */}
 
               <div className="candidate-form-group">
 
@@ -799,11 +642,6 @@ dayRateAmount:
             </div>
 
           </div>
-
-
-          {/* ========================================================
-                        4. CONTACT
-          ========================================================= */}
 
           <div className="candidate-form-section">
 
@@ -908,11 +746,6 @@ dayRateAmount:
 
           </div>
 
-
-          {/* ========================================================
-                        5. PROFESSIONAL
-          ========================================================= */}
-
           <div className="candidate-form-section">
 
             <h3 className="candidate-section-title">
@@ -996,11 +829,6 @@ dayRateAmount:
 
           </div>
 
-
-          {/* ========================================================
-                        6. ADDITIONAL
-          ========================================================= */}
-
           <div className="candidate-form-section">
 
             <h3 className="candidate-section-title">
@@ -1009,9 +837,6 @@ dayRateAmount:
 
 
             <div className="candidate-form-grid">
-
-
-              {/* NOTICE */}
 
               <div className="candidate-form-group">
 
@@ -1030,9 +855,6 @@ dayRateAmount:
 
               </div>
 
-
-              {/* VISA */}
-
               <div className="candidate-form-group">
 
                 <label>
@@ -1048,9 +870,6 @@ dayRateAmount:
                 />
 
               </div>
-
-
-              {/* EDUCATION */}
 
               <div className="candidate-form-group">
 
@@ -1068,9 +887,6 @@ dayRateAmount:
 
               </div>
 
-
-              {/* LINKEDIN */}
-
               <div className="candidate-form-group">
 
                 <label>
@@ -1086,9 +902,6 @@ dayRateAmount:
                 />
 
               </div>
-
-
-              {/* CURRENT SALARY */}
 
               <div className="candidate-form-group">
 
@@ -1145,10 +958,6 @@ dayRateAmount:
                 </div>
 
               </div>
-
-
-              {/* EXPECTED SALARY */}
-
               <div className="candidate-form-group">
 
                 <label>
@@ -1274,34 +1083,9 @@ dayRateAmount:
                 </select>
 
               </div>
-
-
-              {/* NOTES */}
-
-              {/* <div className="candidate-form-group candidate-form-full">
-
-                <label>
-                  Recruiter notes / latest comment
-                </label>
-
-                <textarea
-                  name="recruiterNotes"
-                  value={formData.recruiterNotes}
-                  onChange={handleChange}
-                  placeholder="Add any notes or comments about this candidate"
-                  rows="3"
-                />
-
-              </div> */}
-
             </div>
 
           </div>
-
-
-          {/* ========================================================
-                            INFO
-          ========================================================= */}
 
           <div className="candidate-info-note">
 
@@ -1321,11 +1105,6 @@ dayRateAmount:
             </span>
 
           </div>
-
-
-          {/* ========================================================
-                            FOOTER
-          ========================================================= */}
 
           <div className="candidate-modal-footer">
 

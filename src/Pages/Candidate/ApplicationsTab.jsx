@@ -27,6 +27,7 @@ import ApplyJobModal from "../Candidate/ApplyJobModal";
 import DeleteConfirmationModal from "../../Components/DeleteConfirmationModal";
 import RatesModal from "../Candidate/RatesModal";
 import "./Components.css";
+import usePermissions from "../../Utils/permissions";
 
 const ApplicationsTab = ({
     candidateId,
@@ -44,7 +45,10 @@ const ApplicationsTab = ({
     onApplyJob,
 }) => {
     const dispatch = useDispatch();
-
+    const {canRead,canWrite,canDelete,} = usePermissions();
+  const canReadSubmission = canRead("SUBMISSION");
+  const canWriteSubmission = canWrite("SUBMISSION");
+  const canDeleteSubmission = canDelete("SUBMISSION");
     const {
         candidateApplications = [],
         candidateApplicationsLoading = false,
@@ -1887,13 +1891,13 @@ const ApplicationsTab = ({
                         </p>
                     </div>
 
-                    <button
+                    {canWriteSubmission && (<button
                         type="button"
                         className="cxandidate-apply-job-btn"
                         onClick={() => setShowApplyJobModal(true)}
                     >
                         + Apply to a job
-                    </button>
+                    </button>)}
                 </div>
 
                 {candidateApplicationsLoading && (
@@ -2182,7 +2186,7 @@ const ApplicationsTab = ({
                                                     </span>
                                                 </button>
 
-                                                <button
+                                              {canDeleteSubmission && (  <button
                                                     type="button"
                                                     className="cxandidate-application-action cxandidate-remove-btn"
                                                     onClick={() =>
@@ -2204,7 +2208,7 @@ const ApplicationsTab = ({
                                                             ? "Removing..."
                                                             : "Remove"}
                                                     </span>
-                                                </button>
+                                                </button>)}
                                             </div>
 
                                             <div className="cxandidate-application-rates">
