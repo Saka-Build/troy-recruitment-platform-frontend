@@ -1,51 +1,22 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
-import {
-  getAllJobsName,
-  getSubmissionCounts,
-  getSubmissionsByStage,
-  getSubmissionStatuses,
-  
-} from "../../Redux/Slice/recruitmentWorkflowSlice";
-
-import {
-  updateSubmission,
-  getInterviewsBySubmission,
-} from "../../Redux/Slice/candidateSlice";
+import React, {useEffect,useMemo,useState,} from "react";
+import {useDispatch,useSelector,} from "react-redux";
+import {useNavigate,useParams,} from "react-router-dom";
+import {getAllJobsName,getSubmissionCounts,getSubmissionsByStage,getSubmissionStatuses,} from "../../Redux/Slice/recruitmentWorkflowSlice";
+import {updateSubmission,getInterviewsBySubmission,} from "../../Redux/Slice/candidateSlice";
 import Toast from "../../Components/Toast";
 import CommonPagination from "../../Components/CommonPagination";
-
 import "./RecruitmentWorkflow.css";
+import usePermissions from "../../Utils/permissions";
 
 const normalizeWorkflowName = (value) => {
   if (!value) {
     return "";
   }
-
-  return value
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "_");
+  return value.toString().toLowerCase().trim().replace(/\s+/g, "_");
 };
 
 const getStageId = (workflowStage) => {
-  const normalized =
-    normalizeWorkflowName(workflowStage);
+  const normalized = normalizeWorkflowName(workflowStage);
 
   switch (normalized) {
     case "ready_to_submit":
@@ -97,6 +68,10 @@ function RecruitmentWorkflowDetails() {
   const {
     stage = "applied",
   } = useParams();
+    const {canRead,canWrite,canDelete,} = usePermissions();
+  const canReadSubmission = canRead("SUBMISSION");
+  const canWriteSubmission = canWrite("SUBMISSION");
+  const canDeleteSubmission = canDelete("SUBMISSION");
 
   const navigate = useNavigate();
 
@@ -1003,6 +978,14 @@ const handleStageChange = async (
       </div>
     );
   }
+  const handleCandidateClick = (candidate) => {
+  if (!candidate?.candidateId) {
+    console.warn("Candidate ID not found:", candidate);
+    return;
+  }
+
+  navigate(`/dashboard/candidates/${candidate.candidateId}`);
+};
 
   return (
 
@@ -1178,9 +1161,9 @@ const handleStageChange = async (
                 CURRENT STATUS
               </th>
 
-              <th>
+              {canWriteSubmission && (<th>
                 MOVE TO STAGE
-              </th>
+              </th>)}
 
               <th>
                 ACTIONS
@@ -1248,7 +1231,19 @@ const handleStageChange = async (
 
                         <div className="workflow-candidate-info">
 
-                          <strong>
+                          <strong  className="workflow-candidate-name-clickable"
+  onClick={() => handleCandidateClick(candidate)}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      handleCandidateClick(candidate);
+    }
+  }}>
 
                             {candidate.name}
 
@@ -1415,7 +1410,7 @@ const handleStageChange = async (
 
                     </td>
 
-                    <td>
+                   {canWriteSubmission && ( <td>
 
                       <select
                         className="workflow-move-select"
@@ -1466,7 +1461,7 @@ const handleStageChange = async (
 
                       </select>
 
-                    </td>
+                    </td>)}
 
                     <td>
 

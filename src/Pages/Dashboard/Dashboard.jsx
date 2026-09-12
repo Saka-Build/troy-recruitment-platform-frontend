@@ -501,20 +501,10 @@ dispatch(setRoles(Array.from(allRolesMap.values())));
       readyToSubmitSubmissions?.totalElements
     ) || 0;
 
-  /*
-   * JOINING TODAY
-   *
-   * Count comes from:
-   * /api/v1/submissions?pipelineStage=onboarded
-   */
   const onboardedSubmissionsCount =
     Number(
       onboardedSubmissions?.totalElements
     ) || 0;
-
-  /* =========================================================
-     TODAY'S ACTIVITY ITEMS
-  ========================================================= */
 
   const selectedSubmissionItems =
     selectedSubmissions?.content || [];
@@ -528,18 +518,11 @@ dispatch(setRoles(Array.from(allRolesMap.values())));
   const readyToSubmitItems =
     readyToSubmitSubmissions?.content || [];
 
-  /*
-   * JOINING TODAY MODAL ITEMS
-   */
   const onboardedSubmissionItems =
     onboardedSubmissions?.content || [];
 
   const todayInterviewItems =
     todayInterviews || [];
-
-  /* =========================================================
-     KPI CARDS
-  ========================================================= */
 
 const summaryCards = [
   {
@@ -567,10 +550,6 @@ const summaryCards = [
     navigateTo: "/dashboard/clients",
   },
 ];
-
-  /* =========================================================
-     TIMEZONES
-  ========================================================= */
 
   const timeZones = [
     {
@@ -615,10 +594,6 @@ const summaryCards = [
       year: "numeric",
     }).format(currentTime);
   };
-
-  /* =========================================================
-     INTERVIEW HELPERS
-  ========================================================= */
 
   const getInterviewDateTime = (interview) => {
     if (
@@ -723,10 +698,6 @@ const summaryCards = [
     }).format(date);
   };
 
-  /* =========================================================
-     STATUS CARDS
-  ========================================================= */
-
   const statusCards = [
     {
       icon: "bi-camera-video-fill",
@@ -797,15 +768,10 @@ const summaryCards = [
       modalItems: selectedSubmissionItems,
       modalTitle: "Offers pending",
     },
-
-    /* =====================================================
-       JOINING TODAY
-    ===================================================== */
-
     {
       icon: "bi-person-check-fill",
       value: onboardedSubmissionsCount,
-      title: "Joining Today",
+      title: "Total Onboarded",
       subtitle:
         onboardedSubmissionsCount === 0
           ? "No candidates joining"
@@ -817,7 +783,7 @@ const summaryCards = [
 
       modalType: "joining",
       modalItems: onboardedSubmissionItems,
-      modalTitle: "Joining today",
+      modalTitle: "Total Onboarded",
     },
 
     {
@@ -838,10 +804,6 @@ const summaryCards = [
       modalTitle: "Urgent roles",
     },
   ];
-
-  /* =========================================================
-     TODAY'S INTERVIEWS
-  ========================================================= */
 
   const todaysInterviews = useMemo(() => {
     const interviews = (todayInterviews || []).map(
