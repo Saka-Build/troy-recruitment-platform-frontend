@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "./RecruitmentWorkflow.css";
 import { getSubmissionCounts } from "../../Redux/Slice/recruitmentWorkflowSlice";
+import usePermissions from "../../Utils/permissions";
 
 const workflowStages = [
   {
@@ -66,6 +67,10 @@ const workflowStages = [
 function RecruitmentWorkflow() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {canRead,canWrite,canDelete,} = usePermissions();
+  const canReadSubmission = canRead("SUBMISSION");
+  const canWriteSubmission = canWrite("SUBMISSION");
+  const canDeleteSubmission = canDelete("SUBMISSION");
 
   const {
     submissionCounts,

@@ -6,6 +6,7 @@ import {updateSubmission,getInterviewsBySubmission,} from "../../Redux/Slice/can
 import Toast from "../../Components/Toast";
 import CommonPagination from "../../Components/CommonPagination";
 import "./RecruitmentWorkflow.css";
+import usePermissions from "../../Utils/permissions";
 
 const normalizeWorkflowName = (value) => {
   if (!value) {
@@ -67,6 +68,10 @@ function RecruitmentWorkflowDetails() {
   const {
     stage = "applied",
   } = useParams();
+    const {canRead,canWrite,canDelete,} = usePermissions();
+  const canReadSubmission = canRead("SUBMISSION");
+  const canWriteSubmission = canWrite("SUBMISSION");
+  const canDeleteSubmission = canDelete("SUBMISSION");
 
   const navigate = useNavigate();
 
@@ -1156,9 +1161,9 @@ const handleStageChange = async (
                 CURRENT STATUS
               </th>
 
-              <th>
+              {canWriteSubmission && (<th>
                 MOVE TO STAGE
-              </th>
+              </th>)}
 
               <th>
                 ACTIONS
@@ -1405,7 +1410,7 @@ const handleStageChange = async (
 
                     </td>
 
-                    <td>
+                   {canWriteSubmission && ( <td>
 
                       <select
                         className="workflow-move-select"
@@ -1456,7 +1461,7 @@ const handleStageChange = async (
 
                       </select>
 
-                    </td>
+                    </td>)}
 
                     <td>
 

@@ -61,6 +61,9 @@ function CandidateDetails() {
     const canReadCandidate = canRead("CANDIDATE");
     const canWriteCandidate = canWrite("CANDIDATE");
     const canDeleteCandidate = canDelete("CANDIDATE");
+    const canReadSubmission = canRead("SUBMISSION");
+    const canWriteSubmission = canWrite("SUBMISSION");
+    const canDeleteSubmission = canDelete("SUBMISSION");
 
   const {
     selectedCandidate,
@@ -1218,12 +1221,12 @@ function CandidateDetails() {
 
         <div className="page-header-actions">
 
-          <button
+          {canWriteSubmission && (<button
             className="primary-btn"
             onClick={handleApplyToJob}
           >
             + Apply to job
-          </button>
+          </button>)}
 
           <button
             type="button"

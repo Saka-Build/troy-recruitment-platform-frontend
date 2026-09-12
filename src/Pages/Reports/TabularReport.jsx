@@ -35,6 +35,7 @@ const submissionsPagination = {
     const [clientFilter, setClientFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [jobStatusFilter, setJobStatusFilter] = useState("OPEN");
 
     const jobs = useMemo(() => {
         return submissionFilters?.jobs || [];
@@ -43,6 +44,10 @@ const submissionsPagination = {
     const clients = useMemo(() => {
         return submissionFilters?.clients || [];
     }, [submissionFilters]);
+
+    const jobStatuses = useMemo(() => {
+        return ["OPEN", "CLOSED", "ON_HOLD"];
+    }, []);
 
     const applicationStatuses = useMemo(() => {
         return (submissionFilters?.applicationStatusList || []).map(
@@ -146,6 +151,7 @@ useEffect(() => {
         setApplicationStatusFilter([]);
         setSubStatusFilter("");
         setCurrentPage(1);
+        setJobStatusFilter("OPEN");
     };
 
     const getInitials = (name) => {
@@ -350,7 +356,19 @@ useEffect(() => {
                         </select>
                         <FiChevronDown className="tabular-select-icon" />
                     </div>
+<div className="tabular-select-wrapper">
+    <select
+        className="tabular-select"
+        value={jobStatusFilter}
+        onChange={(e) => setJobStatusFilter(e.target.value)}
+    >
+        <option value="OPEN">Open</option>
+        <option value="CLOSED">Closed</option>
+        <option value="ON_HOLD">On Hold</option>
+    </select>
 
+    <FiChevronDown className="tabular-select-icon" />
+</div>
                     <div className="tabular-select-wrapper">
                         <select
                             className="tabular-select"
